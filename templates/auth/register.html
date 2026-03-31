@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Sign Up — FormCraft{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block body %}
+<div class="auth-wrap">
+  <div class="auth-left">
+    <div class="auth-brand">✦ FormCraft</div>
+    <h1 class="auth-headline">Create forms<br>in <em>minutes</em></h1>
+    <p class="auth-pitch">Free to use. No credit card required. Start collecting responses today.</p>
+    <div class="auth-features">
+      <div class="af-item">✅ Unlimited forms</div>
+      <div class="af-item">✅ MongoDB-powered storage</div>
+      <div class="af-item">✅ Share with a link</div>
+      <div class="af-item">✅ Email notifications</div>
+    </div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-card">
+      <h2 class="auth-title">Create account</h2>
+      <p class="auth-sub">Start building beautiful forms</p>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat,msg in messages %}<div class="alert alert-{{cat}}">{{msg}}</div>{% endfor %}
+      {% endwith %}
+      <form method="POST">
+        <div class="fg"><label>Full name</label><input type="text" name="name" placeholder="Your name" required></div>
+        <div class="fg"><label>Email</label><input type="email" name="email" placeholder="you@email.com" required></div>
+        <div class="fg"><label>Password</label><input type="password" name="password" placeholder="Min 6 characters" required minlength="6"></div>
+        <button class="btn-primary w-full" type="submit">Create account →</button>
+      </form>
+      <p class="auth-footer">Have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

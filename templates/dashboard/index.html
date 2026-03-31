@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}My Forms — FormCraft{% endblock %}
+{% block body_class %}app-page{% endblock %}
+{% block body %}
+<nav class="app-nav">
+  <div class="nav-brand">✦ FormCraft</div>
+  <div class="nav-right">
+    <div class="user-pill">
+      <div class="user-init">{{ current_user.name[0].upper() }}</div>
+      <span>{{ current_user.name }}</span>
+    </div>
+    <a href="{{ url_for('auth.logout') }}" class="btn-ghost-sm">Logout</a>
+  </div>
+</nav>
+<div class="app-body">
+  <div class="page-head">
+    <div><h1 class="page-title">My Forms</h1><p class="page-sub">{{ forms|length }} form{{ 's' if forms|length!=1 }}</p></div>
+    <button class="btn-primary" onclick="document.getElementById('newModal').style.display='flex'">+ New Form</button>
+  </div>
+
+  {% if not forms %}
+  <div class="empty-state">
+    <div class="empty-emoji">📋</div>
+    <h3>No forms yet</h3>
+    <p>Create your first form and start collecting responses</p>
+    <button class="btn-primary" onclick="document.getElementById('newModal').style.display='flex'">+ Create Form</button>
+  </div>
+  {% else %}
+  <div class="forms-grid">
+    {% for f in forms %}
+    <div class="fcard">
+      <div class="fcard-cover" style="background:{{ f.theme.header_color }}">
+        {% if f.theme.cover_image %}<img src="{{ f.theme.cover_image }}" alt="">{% endif %}
+        <span class="fcard-badge {{ 'live' if f.settings.is_published }}">{{ 'Live' if f.settings.is_published else 'Draft' }}</span>
+      </div>
+      <div class="fcard-body">
+        <div class="fcard-title">{{ f.title }}</div>
+        <div class="fcard-meta">{{ f.pages|length }} page{{ 's' if f.pages|length!=1 }} · {{ f.response_count }} response{{ 's' if f.response_count!=1 }}</div>
+        <div class="fcard-date">{{ f.updated_at.strftime('%d %b %Y') }}</div>
+      </div>
+      <div class="fcard-actions">
+        <a href="{{ url_for('builder.edit',form_id=f._id) }}" class="btn-xs">✏️ Edit</a>
+        <a href="{{ url_for('responses.view',form_id=f._id) }}" class="btn-xs">📊 Results</a>
+        {% if f.settings.is_published %}
+        <a href="{{ url_for('forms.view',slug=f.slug) }}" target="_blank" class="btn-xs accent">🔗 Open</a>
+        {% endif %}
+        <div class="fcard-more">
+          <button class="btn-dot" onclick="toggleDrop(this)">⋮</button>
+          <div class="drop-menu">
+            <form action="{{ url_for('dashboard.duplicate_form',form_id=f._id) }}" method="POST"><button>Duplicate</button></form>
+            {% if f.settings.is_published %}<button onclick="copyLink('{{ request.host_url }}f/{{ f.slug }}')">Copy Link</button>{% endif %}
+            <form action="{{ url_for('dashboard.delete_form',form_id=f._id) }}" method="POST" onsubmit="return confirm('Delete this form?')"><button class="del">Delete</button></form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<div class="modal-overlay" id="newModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal">
+    <h3>New Form</h3>
+    <form action="{{ url_for('dashboard.new_form') }}" method="POST">
+      <div class="fg"><label>Form title</label><input type="text" name="title" placeholder="e.g. Student Feedback Survey" required autofocus></div>
+      <div class="modal-btns">
+        <button type="button" class="btn-ghost" onclick="document.getElementById('newModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn-primary">Create →</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+{% endblock %}

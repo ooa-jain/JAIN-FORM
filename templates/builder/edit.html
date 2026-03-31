@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% block title %}{{ form.title }} — Builder{% endblock %}
+{% block body_class %}builder-page{% endblock %}
+{% block body %}
+
+<div class="bld-bar">
+  <div class="bld-bar-l">
+    <a href="{{ url_for('dashboard.index') }}" class="back-btn">← Back</a>
+    <input id="formTitle" type="text" class="title-inp" value="{{ form.title }}">
+  </div>
+  <div class="bld-bar-c">
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('build',this)">🔧 Build</button>
+      <button class="tab" onclick="showTab('theme',this)">🎨 Theme</button>
+      <button class="tab" onclick="showTab('settings',this)">⚙️ Settings</button>
+      <button class="tab" onclick="showTab('preview',this)">👁 Preview</button>
+    </div>
+  </div>
+  <div class="bld-bar-r">
+    <span id="saveStatus" class="save-txt">Saved ✓</span>
+    <button id="pubBtn" class="btn-pub {{ 'is-live' if form.settings.is_published }}" onclick="togglePublish()">
+      {{ '🔴 Unpublish' if form.settings.is_published else '🚀 Publish' }}
+    </button>
+    {% if form.settings.is_published %}
+    <button class="btn-share" onclick="copyLink('{{ request.host_url }}f/{{ form.slug }}')">🔗 Share</button>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ======= BUILD TAB ======= -->
+<div id="tab-build" class="tab-body build-layout">
+
+  <!-- LEFT -->
+  <div class="bleft" id="bleft">
+    <div class="bleft-section">
+      <div class="bleft-label">ADD FIELD</div>
+      <div class="palette">
+        <button class="pitem" onclick="addField('short_text')">✏️ Short Text</button>
+        <button class="pitem" onclick="addField('long_text')">📝 Paragraph</button>
+        <button class="pitem" onclick="addField('number')">🔢 Number</button>
+        <button class="pitem" onclick="addField('email')">📧 Email</button>
+        <button class="pitem" onclick="addField('phone')">📞 Phone</button>
+        <button class="pitem" onclick="addField('radio')">🔘 Choice</button>
+        <button class="pitem" onclick="addField('checkbox')">☑️ Checkbox</button>
+        <button class="pitem" onclick="addField('dropdown')">▾ Dropdown</button>
+        <button class="pitem" onclick="addField('date')">📅 Date</button>
+        <button class="pitem" onclick="addField('time')">⏰ Time</button>
+        <button class="pitem" onclick="addField('rating')">⭐ Rating</button>
+        <button class="pitem" onclick="addField('scale')">📊 Scale</button>
+        <button class="pitem" onclick="addField('file')">📎 File</button>
+        <button class="pitem" onclick="addField('header')">𝐇 Header</button>
+        <button class="pitem" onclick="addField('divider')">— Divider</button>
+      </div>
+    </div>
+    <div class="bleft-section">
+      <div class="bleft-label">PAGES</div>
+      <div id="pageList"></div>
+      <button class="btn-addpage" onclick="addPage()">+ Add Page</button>
+    </div>
+  </div>
+
+  <!-- Mobile toggle for left panel -->
+  <button class="mob-fields-btn" onclick="toggleMobLeft()">+ Add Field</button>
+
+  <!-- CENTER -->
+  <div class="bcenter">
+    <div class="canvas" id="canvas">
+      <div class="canvas-cover" id="cvCover">
+        <div class="canvas-cover-inner">
+          <div class="canvas-pg-badge" id="cvBadge"></div>
+          <div class="canvas-title" id="cvTitle" contenteditable="true" spellcheck="false">{{ form.title }}</div>
+          <div class="canvas-desc" id="cvDesc" contenteditable="true" spellcheck="false">{{ form.description or 'Click to add description...' }}</div>
+        </div>
+      </div>
+      <div class="canvas-page-tabs" id="cvPageTabs"></div>
+      <div class="canvas-fields" id="cvFields" ondragover="onDragOver(event)" ondrop="onDrop(event)">
+        <div class="canvas-empty" id="cvEmpty">⊕ Click a field on the left to add it here</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="bright" id="bright">
+    <div id="feEmpty" class="fe-empty">Select a field to edit</div>
+    <div id="fePanel" style="display:none">
+      <div class="fe-top">
+        <span id="feBadge" class="fe-badge"></span>
+        <button onclick="deleteField()" class="fe-delbtn" title="Delete field">🗑</button>
+      </div>
+      <div class="fg"><label>Label</label><input type="text" id="feLabel" oninput="upd('label',this.value)"></div>
+      <div class="fg"><label>Help text</label><input type="text" id="feHelp" placeholder="Optional hint..." oninput="upd('help',this.value)"></div>
+      <div class="fg" id="wPlaceholder" style="display:none"><label>Placeholder</label><input type="text" id="fePlaceholder" oninput="upd('placeholder',this.value)"></div>
+      <div class="fg toggle-row">
+        <label>Required</label>
+        <label class="sw"><input type="checkbox" id="feRequired" onchange="upd('required',this.checked)"><span class="sw-t"></span></label>
+      </div>
+      <div id="wOptions" style="display:none">
+        <label class="fg-label">Options</label>
+        <div id="optList"></div>
+        <button class="btn-addopt" onclick="addOpt()">+ Add Option</button>
+      </div>
+      <div class="fg" id="wRating" style="display:none">
+        <label>Max Stars</label>
+        <select id="feMaxRating" onchange="upd('max_rating',+this.value)"><option value="5">5</option><option value="10">10</option></select>
+      </div>
+      <div class="fg" id="wScale" style="display:none">
+        <label>Scale Max</label>
+        <select id="feScaleMax" onchange="upd('scale_max',+this.value)"><option value="5">5</option><option value="10">10</option></select>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #f0f0f0">
+        <button class="btn-move" onclick="moveField(-1)">↑ Up</button>
+        <button class="btn-move" onclick="moveField(1)">↓ Down</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======= THEME TAB ======= -->
+<div id="tab-theme" class="tab-body panel-body" style="display:none">
+  <div class="panel-inner">
+    <h2 class="panel-title">🎨 Theme & Appearance</h2>
+    <div class="panel-grid">
+      <div class="pcard">
+        <h3>Colors</h3>
+        <div class="color-grid">
+          <div class="citem"><label>Background</label><input type="color" id="th_bg" value="{{ form.theme.bg_color }}" oninput="liveCanvas()"></div>
+          <div class="citem"><label>Header</label><input type="color" id="th_hdr" value="{{ form.theme.header_color }}" oninput="liveCanvas()"></div>
+          <div class="citem"><label>Accent</label><input type="color" id="th_acc" value="{{ form.theme.accent_color }}" oninput="liveCanvas()"></div>
+          <div class="citem"><label>Text</label><input type="color" id="th_txt" value="{{ form.theme.text_color }}" oninput="liveCanvas()"></div>
+          <div class="citem"><label>Card</label><input type="color" id="th_card" value="{{ form.theme.card_color }}" oninput="liveCanvas()"></div>
+        </div>
+      </div>
+      <div class="pcard">
+        <h3>Typography</h3>
+        <div class="fg"><label>Font</label>
+          <select id="th_font">
+            {% for f in ['DM Sans','Inter','Roboto','Poppins','Playfair Display','Montserrat','Lato','Open Sans'] %}
+            <option value="{{ f }}" {{ 'selected' if form.theme.font==f }}>{{ f }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="fg"><label>Button Text</label><input type="text" id="th_btn" value="{{ form.theme.button_text or 'Submit' }}"></div>
+      </div>
+      <div class="pcard full">
+        <h3>Cover Image</h3>
+        <div class="cover-tabs">
+          <button class="ctab active" onclick="switchCoverTab('url',this)">🔗 URL</button>
+          <button class="ctab" onclick="switchCoverTab('unsplash',this)">🖼 Search Unsplash</button>
+          <button class="ctab" onclick="switchCoverTab('solid',this)">🎨 Solid Color</button>
+        </div>
+        <!-- URL tab -->
+        <div id="ctab-url">
+          <div class="fg" style="margin-top:12px"><label>Image URL</label>
+            <input type="url" id="th_cover" value="{{ form.theme.cover_image }}" placeholder="https://images.unsplash.com/..." oninput="previewCover()">
+          </div>
+          <div id="coverPreviewBox" class="cover-preview-box {{ 'has-img' if form.theme.cover_image }}"
+               style="{{ 'background-image:url(' + form.theme.cover_image + ')' if form.theme.cover_image else '' }}">
+            {% if not form.theme.cover_image %}<span>No cover image</span>{% endif %}
+          </div>
+        </div>
+        <!-- Unsplash search tab -->
+        <div id="ctab-unsplash" style="display:none">
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <input type="text" id="unsplashQ" placeholder="Search: nature, office, university..." style="flex:1">
+            <button class="btn-primary" onclick="searchUnsplash()">Search</button>
+          </div>
+          <div id="unsplashResults" class="unsplash-grid"></div>
+        </div>
+        <!-- Solid color tab -->
+        <div id="ctab-solid" style="display:none;margin-top:12px">
+          <p style="font-size:.82rem;color:#999;margin-bottom:10px">Pick a gradient or solid color for the header</p>
+          <div class="solid-presets">
+            <div class="solid-opt" style="background:linear-gradient(135deg,#1A1A2E,#FF8C00)" onclick="setSolidCover('linear-gradient(135deg,#1A1A2E,#FF8C00)')">Mango</div>
+            <div class="solid-opt" style="background:linear-gradient(135deg,#003366,#0066CC)" onclick="setSolidCover('linear-gradient(135deg,#003366,#0066CC)')">Jain Blue</div>
+            <div class="solid-opt" style="background:linear-gradient(135deg,#134E5E,#71B280)" onclick="setSolidCover('linear-gradient(135deg,#134E5E,#71B280)')">Forest</div>
+            <div class="solid-opt" style="background:linear-gradient(135deg,#6D213C,#C94B4B)" onclick="setSolidCover('linear-gradient(135deg,#6D213C,#C94B4B)')">Rose</div>
+            <div class="solid-opt" style="background:linear-gradient(135deg,#4a00e0,#8e2de2)" onclick="setSolidCover('linear-gradient(135deg,#4a00e0,#8e2de2)')">Purple</div>
+            <div class="solid-opt" style="background:linear-gradient(135deg,#0F2027,#2980B9)" onclick="setSolidCover('linear-gradient(135deg,#0F2027,#2980B9)')">Ocean</div>
+            <div class="solid-opt" style="background:linear-gradient(135deg,#0d0d0d,#434343)" onclick="setSolidCover('linear-gradient(135deg,#0d0d0d,#434343)')">Midnight</div>
+            <div class="solid-opt" style="background:linear-gradient(135deg,#f8f9fa,#dee2e6);color:#333" onclick="setSolidCover('linear-gradient(135deg,#f8f9fa,#dee2e6)')">Minimal</div>
+          </div>
+        </div>
+      </div>
+      <div class="pcard full">
+        <h3>Quick Presets</h3>
+        <div class="presets">
+          <button class="preset" onclick="applyPreset('mango')" style="background:linear-gradient(135deg,#1A1A2E,#FF8C00)">🥭 Mango</button>
+          <button class="preset" onclick="applyPreset('ocean')" style="background:linear-gradient(135deg,#0F2027,#2980B9)">🌊 Ocean</button>
+          <button class="preset" onclick="applyPreset('forest')" style="background:linear-gradient(135deg,#134E5E,#71B280)">🌿 Forest</button>
+          <button class="preset" onclick="applyPreset('rose')" style="background:linear-gradient(135deg,#6D213C,#C94B4B)">🌸 Rose</button>
+          <button class="preset" onclick="applyPreset('midnight')" style="background:linear-gradient(135deg,#0d0d0d,#4a00e0)">🌙 Midnight</button>
+          <button class="preset" onclick="applyPreset('jain')" style="background:linear-gradient(135deg,#003366,#0066CC)">🎓 Jain Blue</button>
+          <button class="preset" onclick="applyPreset('minimal')" style="background:#f8f9fa;color:#333;border:1px solid #ddd">⬜ Minimal</button>
+          <button class="preset" onclick="applyPreset('purple')" style="background:linear-gradient(135deg,#4a00e0,#8e2de2)">💜 Purple</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveTheme()">💾 Save Theme</button>
+  </div>
+</div>
+
+<!-- ======= SETTINGS TAB ======= -->
+<div id="tab-settings" class="tab-body panel-body" style="display:none">
+  <div class="panel-inner">
+    <h2 class="panel-title">⚙️ Form Settings</h2>
+    <div class="panel-grid">
+      <div class="pcard">
+        <h3>Behaviour</h3>
+        <div class="toggle-row" style="margin-bottom:16px">
+          <label>Show progress bar</label>
+          <label class="sw"><input type="checkbox" id="st_prog" {{ 'checked' if form.settings.show_progress }}><span class="sw-t"></span></label>
+        </div>
+        <div class="fg"><label>Confirmation message</label><textarea id="st_confirm" rows="3">{{ form.settings.confirmation_message }}</textarea></div>
+        <div class="fg"><label>Redirect URL after submit</label><input type="url" id="st_redir" value="{{ form.settings.redirect_url }}" placeholder="https://..."></div>
+      </div>
+      <div class="pcard">
+        <h3>📧 Email Notifications</h3>
+        <p class="card-note">Receive an email every time someone submits this form.</p>
+        <div class="toggle-row" style="margin-bottom:16px">
+          <label>Enable notifications</label>
+          <label class="sw"><input type="checkbox" id="st_notify" {{ 'checked' if form.settings.notify_on_submit }}><span class="sw-t"></span></label>
+        </div>
+        <div class="fg"><label>Send to email</label>
+          <input type="email" id="st_notify_email" value="{{ form.settings.notify_email }}" placeholder="officeofacademicaffairs@jainuniversity.ac.in">
+        </div>
+        <div class="info-box">
+          <strong>Add to your .env to enable:</strong><br>
+          <code>SMTP_HOST=smtp.gmail.com</code><br>
+          <code>SMTP_PORT=587</code><br>
+          <code>SMTP_USER=your@gmail.com</code><br>
+          <code>SMTP_PASS=your-app-password</code>
+        </div>
+      </div>
+      <div class="pcard full">
+        <h3>🔗 Share Link</h3>
+        {% if form.settings.is_published %}
+        <div class="share-row">
+          <input type="text" value="{{ request.host_url }}f/{{ form.slug }}" readonly id="shareInp">
+          <button class="btn-primary" onclick="copyLink(document.getElementById('shareInp').value)">Copy</button>
+        </div>
+        {% else %}
+        <p class="card-note">Publish your form first to get a shareable link.</p>
+        <button class="btn-primary" onclick="togglePublish()">🚀 Publish Now</button>
+        {% endif %}
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+  </div>
+</div>
+
+<!-- ======= PREVIEW TAB ======= -->
+<div id="tab-preview" class="tab-body preview-body" style="display:none">
+  <div class="preview-bar">
+    <button class="prev-btn active" onclick="setPrevSize('desktop',this)">🖥 Desktop</button>
+    <button class="prev-btn" onclick="setPrevSize('tablet',this)">📟 Tablet</button>
+    <button class="prev-btn" onclick="setPrevSize('mobile',this)">📱 Mobile</button>
+    <span class="prev-note">💡 Save first to see latest changes</span>
+  </div>
+  <div class="preview-area">
+    <div id="prevWrap" style="width:100%;height:100%;display:flex;justify-content:center">
+      <iframe id="prevFrame" src="{{ url_for('forms.view',slug=form.slug) }}"
+              style="width:100%;max-width:100%;height:100%;border:none;border-radius:12px;box-shadow:0 8px 36px rgba(0,0,0,.12);transition:max-width .3s"></iframe>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const FORM_ID = {{ form_id|tojson }};
+const SAVE_URL = {{ url_for('builder.save',form_id=form_id)|tojson }};
+const PUB_URL  = {{ url_for('builder.publish',form_id=form_id)|tojson }};
+const HOST     = {{ request.host_url|tojson }};
+const SLUG     = {{ form.slug|tojson }};
+let formState = {
+  title:       {{ form.title|tojson }},
+  description: {{ (form.description or '')|tojson }},
+  pages:       {{ form.pages|tojson }},
+  theme:       {{ form.theme|tojson }},
+  settings:    {{ form.settings|tojson }}
+};
+</script>
+<script src="{{ url_for('static',filename='js/builder.js') }}"></script>
+{% endblock %}

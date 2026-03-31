@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>{{ form.title }}</title>
+<link href="https://fonts.googleapis.com/css2?family={{ form.theme.font.replace(' ','+') }}:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:{{ form.theme.bg_color }};--hdr:{{ form.theme.header_color }};--acc:{{ form.theme.accent_color }};--txt:{{ form.theme.text_color }};--card:{{ form.theme.card_color }};--font:'{{ form.theme.font }}',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh}
+.fv-cover{background:var(--hdr);{% if form.theme.cover_image %}background-image:url('{{ form.theme.cover_image }}');background-size:cover;background-position:center;{% endif %}padding:0;position:relative;min-height:200px;display:flex;flex-direction:column;justify-content:flex-end}
+.fv-cover-overlay{background:linear-gradient(to bottom,rgba(0,0,0,0.1),rgba(0,0,0,0.55));padding:40px 24px 36px;flex:1;display:flex;flex-direction:column;justify-content:flex-end}
+.fv-title{font-size:clamp(1.8rem,5vw,2.6rem);font-weight:700;color:#fff;line-height:1.2;margin-bottom:8px}
+.fv-desc{color:rgba(255,255,255,0.75);font-size:1rem}
+/* Progress */
+{% if form.settings.show_progress %}
+.fv-progress{height:5px;background:rgba(0,0,0,0.1);position:sticky;top:0;z-index:10}
+.fv-progress-fill{height:100%;background:var(--acc);transition:width .4s ease;width:0}
+{% endif %}
+/* Page header badge */
+.fv-page-header{background:var(--card);border-bottom:2px solid var(--acc);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;max-width:680px;margin:0 auto;width:100%;border-radius:0}
+.fv-page-badge{font-size:0.78rem;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.08em;background:rgba(var(--acc-rgb,255,140,0),0.08);padding:4px 12px;border-radius:20px;border:1px solid var(--acc)}
+.fv-page-title{font-weight:600;font-size:1rem;color:var(--txt)}
+.fv-page-steps{display:flex;gap:6px;align-items:center}
+.fv-step{width:28px;height:6px;border-radius:3px;background:rgba(0,0,0,0.12);transition:background .3s}
+.fv-step.done{background:var(--acc)}
+.fv-step.active{background:var(--acc);opacity:.6}
+/* Wrapper */
+.fv-wrap{max-width:680px;margin:0 auto;padding:20px 16px 60px}
+.fv-page{animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+/* Field card */
+.fv-field{background:var(--card);border-radius:14px;padding:20px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.06)}
+.fv-label{font-weight:600;font-size:.95rem;margin-bottom:8px;display:block}
+.req{color:var(--acc);margin-left:3px}
+.fv-help{font-size:.82rem;color:#999;margin-bottom:10px}
+.fv-input{width:100%;padding:11px 14px;border:1.5px solid rgba(0,0,0,.12);border-radius:10px;font-family:inherit;font-size:.92rem;color:var(--txt);background:var(--bg);outline:none;transition:border-color .2s;appearance:none}
+.fv-input:focus{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 15%,transparent)}
+.fv-textarea{resize:vertical;min-height:90px}
+.fv-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='2' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
+/* Options */
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1.5px solid rgba(0,0,0,.1);border-radius:10px;cursor:pointer;transition:all .2s;font-size:.92rem}
+.opt:hover{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 5%,transparent)}
+.opt input{display:none}
+.opt-dot{width:18px;height:18px;border-radius:50%;border:2px solid #ccc;flex-shrink:0;transition:all .2s}
+.opt-box{width:18px;height:18px;border-radius:5px;border:2px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.opt:has(input:checked){border-color:var(--acc);background:color-mix(in srgb,var(--acc) 6%,transparent)}
+.opt:has(input[type=radio]:checked) .opt-dot{border-color:var(--acc);background:var(--acc);box-shadow:inset 0 0 0 3px var(--card)}
+.opt:has(input[type=checkbox]:checked) .opt-box{border-color:var(--acc);background:var(--acc)}
+.opt:has(input[type=checkbox]:checked) .opt-box::after{content:'✓';font-size:.7rem;color:white;font-weight:700}
+/* Rating */
+.stars{display:flex;gap:6px;flex-wrap:wrap}
+.star{background:none;border:none;font-size:2rem;cursor:pointer;color:#ddd;transition:color .15s,transform .15s;padding:2px}
+.star:hover,.star.on{color:#FFB347;transform:scale(1.15)}
+/* Scale */
+.scale-btns{display:flex;gap:6px;flex-wrap:wrap}
+.sc-btn{width:40px;height:40px;border:1.5px solid rgba(0,0,0,.12);border-radius:8px;background:none;cursor:pointer;font-family:inherit;font-size:.88rem;font-weight:600;transition:all .15s;color:var(--txt)}
+.sc-btn:hover{border-color:var(--acc);color:var(--acc)}
+.sc-btn.on{background:var(--acc);border-color:var(--acc);color:white}
+/* Section header / divider */
+.fv-sec-header h3{font-size:1.1rem;font-weight:700;margin-bottom:4px}
+.fv-sec-header p{font-size:.88rem;color:#999}
+.fv-divider{border:none;border-top:2px solid rgba(0,0,0,.08);margin:4px 0}
+/* Error */
+.fv-error{font-size:.78rem;color:#E63946;margin-top:6px;display:none}
+/* Nav */
+.fv-nav{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px}
+.btn-next,.btn-submit{padding:13px 32px;background:var(--acc);color:white;border:none;border-radius:12px;font-family:inherit;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 6px 20px color-mix(in srgb,var(--acc) 35%,transparent)}
+.btn-next:hover,.btn-submit:hover{transform:translateY(-2px);box-shadow:0 10px 28px color-mix(in srgb,var(--acc) 45%,transparent)}
+.btn-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn-back-page{padding:12px 24px;background:transparent;border:1.5px solid rgba(0,0,0,.12);border-radius:12px;font-family:inherit;font-size:.9rem;cursor:pointer;transition:all .2s;color:#888}
+.btn-back-page:hover{border-color:var(--acc);color:var(--acc)}
+/* Success */
+.fv-success{text-align:center;padding:60px 24px}
+.fv-success-icon{font-size:4rem;margin-bottom:20px}
+.fv-success h2{font-size:1.6rem;font-weight:700;margin-bottom:10px}
+.fv-success p{color:#aaa;font-size:.88rem;margin-top:16px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<!-- Cover -->
+<div class="fv-cover">
+  <div class="fv-cover-overlay">
+    <h1 class="fv-title">{{ form.title }}</h1>
+    {% if form.description %}<p class="fv-desc">{{ form.description }}</p>{% endif %}
+  </div>
+</div>
+
+{% if form.settings.show_progress %}
+<div class="fv-progress"><div class="fv-progress-fill" id="progressFill"></div></div>
+{% endif %}
+
+<div class="fv-wrap" id="fvWrap">
+  <!-- Success screen -->
+  <div class="fv-success hidden" id="successScreen">
+    <div class="fv-success-icon">🎉</div>
+    <h2>{{ form.settings.confirmation_message }}</h2>
+    <p>Powered by <strong>FormCraft</strong></p>
+  </div>
+
+  <!-- Pages -->
+  {% for page in form.pages %}
+  <div class="fv-page {{ 'hidden' if not loop.first }}" id="pg{{ loop.index0 }}" data-page="{{ loop.index0 }}">
+
+    <!-- Page header with step indicators -->
+    {% if form.pages|length > 1 %}
+    <div class="fv-page-header">
+      <div>
+        <div class="fv-page-badge">Page {{ loop.index }} of {{ form.pages|length }}</div>
+        {% if page.title and page.title != 'Page '+loop.index|string %}<div class="fv-page-title">{{ page.title }}</div>{% endif %}
+      </div>
+      <div class="fv-page-steps">
+        {% for p in form.pages %}
+        <div class="fv-step {{ 'done' if loop.index < loop.index }} {{ 'active' if loop.index == loop.index }}" id="step{{ loop.index0 }}"></div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% for field in page.fields %}
+    <div class="fv-field" data-fid="{{ field.id }}" data-type="{{ field.type }}">
+      {% if field.type == 'header' %}
+        <div class="fv-sec-header"><h3>{{ field.label }}</h3>{% if field.help %}<p>{{ field.help }}</p>{% endif %}</div>
+      {% elif field.type == 'divider' %}
+        <hr class="fv-divider">
+      {% else %}
+        <label class="fv-label">{{ field.label }}{% if field.required %}<span class="req">*</span>{% endif %}</label>
+        {% if field.help %}<p class="fv-help">{{ field.help }}</p>{% endif %}
+
+        {% if field.type in ['short_text'] %}<input type="text" class="fv-input" name="{{ field.id }}" placeholder="{{ field.placeholder or '' }}" {{ 'required' if field.required }}>
+        {% elif field.type == 'long_text' %}<textarea class="fv-input fv-textarea" name="{{ field.id }}" placeholder="{{ field.placeholder or '' }}" {{ 'required' if field.required }}></textarea>
+        {% elif field.type == 'number' %}<input type="number" class="fv-input" name="{{ field.id }}" placeholder="{{ field.placeholder or '0' }}" {{ 'required' if field.required }}>
+        {% elif field.type == 'email' %}<input type="email" class="fv-input" name="{{ field.id }}" placeholder="{{ field.placeholder or 'email@example.com' }}" {{ 'required' if field.required }}>
+        {% elif field.type == 'phone' %}<input type="tel" class="fv-input" name="{{ field.id }}" placeholder="{{ field.placeholder or '+91 XXXXX XXXXX' }}" {{ 'required' if field.required }}>
+        {% elif field.type == 'date' %}<input type="date" class="fv-input" name="{{ field.id }}" {{ 'required' if field.required }}>
+        {% elif field.type == 'time' %}<input type="time" class="fv-input" name="{{ field.id }}" {{ 'required' if field.required }}>
+        {% elif field.type == 'dropdown' %}
+          <select class="fv-input fv-select" name="{{ field.id }}" {{ 'required' if field.required }}>
+            <option value="">Select...</option>
+            {% for opt in field.options or [] %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}
+          </select>
+        {% elif field.type == 'radio' %}
+          <div class="opts">{% for opt in field.options or [] %}<label class="opt"><input type="radio" name="{{ field.id }}" value="{{ opt }}" {{ 'required' if field.required }}><span class="opt-dot"></span><span>{{ opt }}</span></label>{% endfor %}</div>
+        {% elif field.type == 'checkbox' %}
+          <div class="opts">{% for opt in field.options or [] %}<label class="opt"><input type="checkbox" name="{{ field.id }}" value="{{ opt }}"><span class="opt-box"></span><span>{{ opt }}</span></label>{% endfor %}</div>
+        {% elif field.type == 'rating' %}
+          <div class="stars">{% for i in range(1,(field.max_rating or 5)+1) %}<button type="button" class="star" data-v="{{ i }}" onclick="setStar(this,'{{ field.id }}')">★</button>{% endfor %}</div>
+          <input type="hidden" name="{{ field.id }}" id="r_{{ field.id }}">
+        {% elif field.type == 'scale' %}
+          <div class="scale-btns">{% for i in range(1,(field.scale_max or 10)+1) %}<button type="button" class="sc-btn" data-v="{{ i }}" onclick="setScale(this,'{{ field.id }}')">{{ i }}</button>{% endfor %}</div>
+          <input type="hidden" name="{{ field.id }}" id="s_{{ field.id }}">
+        {% elif field.type == 'file' %}<input type="file" class="fv-input" name="{{ field.id }}" {{ 'required' if field.required }}>
+        {% endif %}
+        <div class="fv-error" id="err_{{ field.id }}">This field is required.</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    <div class="fv-nav">
+      {% if loop.first %}<div></div>{% else %}<button type="button" class="btn-back-page" onclick="goPage({{ loop.index0-1 }})">← Back</button>{% endif %}
+      {% if loop.last %}<button type="button" class="btn-submit" id="submitBtn" onclick="submitForm()">{{ form.theme.button_text or 'Submit' }}</button>
+      {% else %}<button type="button" class="btn-next" onclick="goPage({{ loop.index0+1 }},{{ loop.index0 }})">Next →</button>{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+const TOTAL={{ form.pages|length }}, SUBMIT_URL={{ url_for('forms.submit',slug=form.slug)|tojson }}, REDIR={{ (form.settings.redirect_url or '')|tojson }};
+let cur=0;
+
+function goPage(next,cur_validate){
+  if(cur_validate!==undefined && !validate(cur_validate)) return;
+  document.getElementById('pg'+cur).classList.add('hidden');
+  cur=next;
+  document.getElementById('pg'+cur).classList.remove('hidden');
+  updateProgress(); updateSteps(); window.scrollTo(0,0);
+}
+
+function updateProgress(){
+  const f=document.getElementById('progressFill');
+  if(f) f.style.width=((cur+1)/TOTAL*100)+'%';
+}
+
+function updateSteps(){
+  document.querySelectorAll('.fv-step').forEach((s,i)=>{
+    s.className='fv-step'+(i<cur?' done':i===cur?' active':'');
+  });
+}
+
+function validate(pi){
+  let ok=true;
+  document.getElementById('pg'+pi).querySelectorAll('[required]').forEach(inp=>{
+    const w=inp.closest('.fv-field'), err=w?document.getElementById('err_'+w.dataset.fid):null;
+    let has=inp.value.trim()!=='';
+    if(inp.type==='radio'||inp.type==='checkbox'){
+      has=!!document.getElementById('pg'+pi).querySelector(`[name="${inp.name}"]:checked`);
+    }
+    if(!has){ok=false;if(err)err.style.display='block';}
+    else{if(err)err.style.display='none';}
+  });
+  return ok;
+}
+
+function setStar(btn,fid){
+  const v=+btn.dataset.v;
+  btn.closest('.stars').querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<v));
+  document.getElementById('r_'+fid).value=v;
+}
+
+function setScale(btn,fid){
+  btn.closest('.scale-btns').querySelectorAll('.sc-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('s_'+fid).value=btn.dataset.v;
+}
+
+function collectData(){
+  const d={};
+  document.querySelectorAll('.fv-field').forEach(w=>{
+    const fid=w.dataset.fid, type=w.dataset.type;
+    if(type==='checkbox') d[fid]=[...w.querySelectorAll(`[name="${fid}"]:checked`)].map(i=>i.value);
+    else if(type==='radio'){const c=w.querySelector(`[name="${fid}"]:checked`);d[fid]=c?c.value:'';}
+    else{const inp=w.querySelector(`[name="${fid}"]`);if(inp)d[fid]=inp.value;}
+  });
+  return d;
+}
+
+async function submitForm(){
+  if(!validate(cur))return;
+  const btn=document.getElementById('submitBtn');
+  btn.textContent='Submitting...';btn.disabled=true;
+  const res=await fetch(SUBMIT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(collectData())});
+  const r=await res.json();
+  if(r.success){
+    document.querySelectorAll('.fv-page').forEach(p=>p.classList.add('hidden'));
+    document.getElementById('successScreen').classList.remove('hidden');
+    if(REDIR) setTimeout(()=>location.href=REDIR,2000);
+  } else {btn.textContent='Submit';btn.disabled=false;}
+}
+
+updateProgress();updateSteps();
+</script>
+</body></html>

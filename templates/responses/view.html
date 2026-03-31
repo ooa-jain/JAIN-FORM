@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block title %}Responses — {{ form.title }}{% endblock %}
+{% block body_class %}app-page{% endblock %}
+{% block body %}
+<nav class="app-nav">
+  <div class="nav-brand">✦ FormCraft</div>
+  <div class="nav-right">
+    <a href="{{ url_for('dashboard.index') }}" class="btn-ghost-sm">← Dashboard</a>
+    <a href="{{ url_for('builder.edit', form_id=form_id) }}" class="btn-ghost-sm">Edit Form</a>
+  </div>
+</nav>
+<div class="app-body">
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">{{ form.title }}</h1>
+      <p class="page-sub">{{ responses|length }} response{{ 's' if responses|length != 1 }}
+        {% if form.settings.is_published %}
+        · <span style="color:#2D6A4F;font-weight:600">● Live</span>
+        {% endif %}
+      </p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <a href="{{ url_for('responses.export', form_id=form_id) }}" class="btn-primary">⬇ Export Excel</a>
+      <form action="{{ url_for('responses.clear', form_id=form_id) }}" method="POST"
+            onsubmit="return confirm('Delete all responses? This cannot be undone.')">
+        <button class="btn-danger-outline">🗑 Clear All</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="sn">{{ responses|length }}</div>
+      <div class="sl">Total Responses</div>
+    </div>
+    <div class="stat-card green">
+      <div class="sn">{{ form.pages|length }}</div>
+      <div class="sl">Pages</div>
+    </div>
+    <div class="stat-card blue">
+      {% set fc = namespace(n=0) %}
+      {% for p in form.pages %}{% set fc.n = fc.n + p.fields|length %}{% endfor %}
+      <div class="sn">{{ fc.n }}</div>
+      <div class="sl">Questions</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="sn">
+        {% if responses %}{{ responses[0].submitted_at.strftime('%d %b') }}{% else %}—{% endif %}
+      </div>
+      <div class="sl">Latest</div>
+    </div>
+  </div>
+
+  {% if not responses %}
+  <div class="empty-state">
+    <div class="empty-emoji">📭</div>
+    <h3>No responses yet</h3>
+    <p>Share your form to start collecting responses</p>
+    {% if form.settings.is_published %}
+    <button class="btn-primary" onclick="copyLink('{{ request.host_url }}f/{{ form.slug }}')">Copy Share Link</button>
+    {% else %}
+    <a href="{{ url_for('builder.edit', form_id=form_id) }}" class="btn-primary">Publish Form First</a>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table class="resp-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Submitted At</th>
+            {% for page in form.pages %}
+              {% for field in page.fields %}
+                {% if field.type not in ['header','divider'] %}
+                <th>{{ field.label }}</th>
+                {% endif %}
+              {% endfor %}
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for resp in responses %}
+          <tr onclick="openResp({{ loop.index0 }})">
+            <td>{{ loop.index }}</td>
+            <td>{{ resp.submitted_at.strftime('%d/%m/%Y %H:%M') }}</td>
+            {% for page in form.pages %}
+              {% for field in page.fields %}
+                {% if field.type not in ['header','divider'] %}
+                <td>
+                  {% set v = resp.data.get(field.id, '') %}
+                  {% if v is iterable and v is not string %}{{ v|join(', ') }}
+                  {% else %}{{ v or '—' }}{% endif %}
+                </td>
+                {% endif %}
+              {% endfor %}
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Response Detail Modal -->
+<div class="modal-overlay" id="respModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <h3 id="respTitle">Response Details</h3>
+      <button onclick="document.getElementById('respModal').style.display='none'">✕</button>
+    </div>
+    <div id="respBody" class="resp-detail"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Safe JSON passed from server — no tojson filter issues
+const RESPONSES = {{ responses_json | safe }};
+const PAGES = {{ form.pages | tojson }};
+
+function openResp(i) {
+  const r = RESPONSES[i];
+  const ts = r.submitted_at ? new Date(r.submitted_at).toLocaleString('en-IN') : '—';
+  document.getElementById('respTitle').textContent = 'Response #' + (i + 1) + ' — ' + ts;
+  let html = '';
+  PAGES.forEach(page => {
+    page.fields.forEach(field => {
+      if (field.type === 'header' || field.type === 'divider') return;
+      const v = r.data ? (r.data[field.id] || '—') : '—';
+      const display = Array.isArray(v) ? v.join(', ') : v;
+      html += `<div class="rd-row">
+        <div class="rd-label">${field.label}</div>
+        <div class="rd-val">${display}</div>
+      </div>`;
+    });
+  });
+  document.getElementById('respBody').innerHTML = html || '<p style="color:#aaa;padding:16px">No data</p>';
+  document.getElementById('respModal').style.display = 'flex';
+}
+
+function copyLink(url) {
+  navigator.clipboard.writeText(url).then(() => {
+    const t = document.getElementById('toast');
+    t.textContent = 'Link copied!';
+    t.className = 'toast success show';
+    setTimeout(() => t.classList.remove('show'), 2800);
+  });
+}
+</script>
+{% endblock %}
