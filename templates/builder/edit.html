@@ -18,6 +18,7 @@
   </div>
   <div class="bld-bar-r">
     <span id="saveStatus" class="save-txt">Saved ✓</span>
+    <button class="btn-ai-improve" onclick="openAIImprove()">✦ AI</button>
     <button id="pubBtn" class="btn-pub {{ 'is-live' if form.settings.is_published }}" onclick="togglePublish()">
       {{ '🔴 Unpublish' if form.settings.is_published else '🚀 Publish' }}
     </button>
@@ -265,6 +266,35 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- AI IMPROVE MODAL -->
+<div class="modal-overlay" id="aiModal" style="display:none" onclick="if(event.target===this)document.getElementById('aiModal').style.display='none'">
+  <div class="modal" style="max-width:520px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div style="width:36px;height:36px;background:linear-gradient(135deg,#FF8C00,#E07000);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;color:white;flex-shrink:0">✦</div>
+      <div>
+        <div style="font-weight:600;font-size:1rem">Improve with AI</div>
+        <div style="font-size:.8rem;color:#888">Tell Claude what to change, add, or remove</div>
+      </div>
+      <button onclick="document.getElementById('aiModal').style.display='none'" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:1.1rem;color:#aaa">✕</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+      <button class="ai-chip" onclick="useAIChip(this)" style="font-size:.76rem;padding:4px 10px;border:1.5px solid #E0E0E0;border-radius:20px;background:#FAFAFA;cursor:pointer;font-family:inherit">Add more fields</button>
+      <button class="ai-chip" onclick="useAIChip(this)" style="font-size:.76rem;padding:4px 10px;border:1.5px solid #E0E0E0;border-radius:20px;background:#FAFAFA;cursor:pointer;font-family:inherit">Split into 3 pages</button>
+      <button class="ai-chip" onclick="useAIChip(this)" style="font-size:.76rem;padding:4px 10px;border:1.5px solid #E0E0E0;border-radius:20px;background:#FAFAFA;cursor:pointer;font-family:inherit">Make it shorter</button>
+      <button class="ai-chip" onclick="useAIChip(this)" style="font-size:.76rem;padding:4px 10px;border:1.5px solid #E0E0E0;border-radius:20px;background:#FAFAFA;cursor:pointer;font-family:inherit">Change theme to blue</button>
+      <button class="ai-chip" onclick="useAIChip(this)" style="font-size:.76rem;padding:4px 10px;border:1.5px solid #E0E0E0;border-radius:20px;background:#FAFAFA;cursor:pointer;font-family:inherit">Add rating questions</button>
+      <button class="ai-chip" onclick="useAIChip(this)" style="font-size:.76rem;padding:4px 10px;border:1.5px solid #E0E0E0;border-radius:20px;background:#FAFAFA;cursor:pointer;font-family:inherit">Make all fields required</button>
+    </div>
+    <textarea id="aiImprovePrompt" style="width:100%;padding:11px 14px;border:1.5px solid #E0E0E0;border-radius:10px;font-family:inherit;font-size:.9rem;resize:vertical;min-height:80px;outline:none" placeholder="e.g. Add a section about prior work experience, change the theme to dark blue, make page 2 shorter..."></textarea>
+    <div style="font-size:.75rem;color:#aaa;margin-top:6px">Tip: Ctrl+Enter to generate</div>
+    <div id="aiImproveError" style="display:none;background:#FFF0F0;color:#E63946;border-radius:8px;padding:10px 12px;font-size:.84rem;margin-top:10px"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
+      <button onclick="document.getElementById('aiModal').style.display='none'" style="padding:10px 20px;border:1.5px solid #E0E0E0;border-radius:9px;background:none;font-family:inherit;cursor:pointer">Cancel</button>
+      <button id="aiImproveBtn" onclick="runAIImprove()" style="padding:10px 24px;background:linear-gradient(135deg,#FF8C00,#E07000);color:white;border:none;border-radius:9px;font-family:inherit;font-weight:600;cursor:pointer">✦ Improve Form</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const FORM_ID = {{ form_id|tojson }};

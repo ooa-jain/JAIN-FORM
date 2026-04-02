@@ -270,3 +270,51 @@ async function togglePublish(){
 
 function showToast(msg,type='info'){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.className='toast '+type+' show';clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800);}
 function copyLink(url){navigator.clipboard.writeText(url).then(()=>showToast('Link copied!','success'));}
+
+/* ===== AI IMPROVE ===== */
+function openAIImprove(){
+  document.getElementById('aiModal').style.display='flex';
+  document.getElementById('aiImprovePrompt').focus();
+  document.getElementById('aiImproveError').style.display='none';
+  // Allow Ctrl+Enter
+  document.getElementById('aiImprovePrompt').onkeydown = e=>{
+    if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)) runAIImprove();
+  };
+}
+
+function useAIChip(btn){
+  document.getElementById('aiImprovePrompt').value = btn.textContent;
+}
+
+async function runAIImprove(){
+  const prompt = document.getElementById('aiImprovePrompt').value.trim();
+  if(!prompt){ alert('Please describe what you want to change.'); return; }
+  const btn = document.getElementById('aiImproveBtn');
+  const errEl = document.getElementById('aiImproveError');
+  errEl.style.display='none';
+  btn.textContent='⏳ Improving...'; btn.disabled=true;
+
+  try {
+    const res = await fetch('/ai/improve', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ prompt, current_form: formState })
+    });
+    const data = await res.json();
+    if(!data.success) throw new Error(data.error||'Failed');
+
+    // Apply the improved form state
+    Object.assign(formState, data.form);
+    document.getElementById('formTitle').value = formState.title || '';
+    document.getElementById('cvTitle').textContent = formState.title || '';
+    document.getElementById('cvDesc').textContent = formState.description || '';
+    curPage = 0; selId = null;
+    renderAll(); refreshCanvas(); autoSave();
+    document.getElementById('aiModal').style.display='none';
+    document.getElementById('aiImprovePrompt').value='';
+    showToast('✦ Form improved by AI!','success');
+  } catch(e) {
+    errEl.textContent='⚠ '+e.message; errEl.style.display='block';
+  }
+  btn.textContent='✦ Improve Form'; btn.disabled=false;
+}

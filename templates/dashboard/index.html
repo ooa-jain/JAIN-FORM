@@ -5,18 +5,69 @@
 <nav class="app-nav">
   <div class="nav-brand">✦ FormCraft</div>
   <div class="nav-right">
+    <a href="{{ url_for('nomination.index') }}" class="btn-ghost-sm">📋 Nominations</a>
+    <a href="{{ url_for('nomination.admin') }}" class="btn-ghost-sm">📊 Nom. Admin</a>
     <div class="user-pill">
       <div class="user-init">{{ current_user.name[0].upper() }}</div>
       <span>{{ current_user.name }}</span>
     </div>
-    <a href="{{ url_for('nomination.index') }}" class="btn-ghost-sm">📋 Nominations</a>
-    <a href="{{ url_for('nomination.admin') }}" class="btn-ghost-sm">📊 Nom. Admin</a>
     <a href="{{ url_for('auth.logout') }}" class="btn-ghost-sm">Logout</a>
   </div>
 </nav>
+
 <div class="app-body">
+
+  <!-- AI GENERATOR BANNER -->
+  <div class="ai-banner" id="aiBanner">
+    <div class="ai-banner-left">
+      <div class="ai-badge">✦ AI</div>
+      <div>
+        <div class="ai-banner-title">Generate a form with AI</div>
+        <div class="ai-banner-sub">Describe your form and Claude will build it instantly</div>
+      </div>
+    </div>
+    <button class="ai-toggle-btn" onclick="toggleAIPanel()">Try it →</button>
+  </div>
+
+  <!-- AI PROMPT PANEL -->
+  <div class="ai-panel" id="aiPanel" style="display:none">
+    <div class="ai-panel-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="ai-icon">✦</div>
+        <div>
+          <div class="ai-panel-title">AI Form Generator</div>
+          <div class="ai-panel-sub">Powered by Claude · Describe your form in plain English</div>
+        </div>
+      </div>
+      <button class="ai-close" onclick="toggleAIPanel()">✕</button>
+    </div>
+
+    <div class="ai-examples">
+      <div class="ai-ex-label">Try an example:</div>
+      <div class="ai-ex-chips">
+        <button class="ai-chip" onclick="useExample(this)">Student feedback survey for semester end</button>
+        <button class="ai-chip" onclick="useExample(this)">Job application form for software engineer</button>
+        <button class="ai-chip" onclick="useExample(this)">Event registration form for university seminar</button>
+        <button class="ai-chip" onclick="useExample(this)">Patient intake form for clinic</button>
+        <button class="ai-chip" onclick="useExample(this)">Research survey on mental health awareness</button>
+        <button class="ai-chip" onclick="useExample(this)">Expert nomination form for academic committee</button>
+      </div>
+    </div>
+
+    <div class="ai-input-row">
+      <textarea id="aiPrompt" class="ai-textarea" placeholder="e.g. Create a 3-page student feedback form for the end of semester with questions about teaching quality, course content, and suggestions for improvement..." rows="3"></textarea>
+      <button class="ai-gen-btn" id="aiGenBtn" onclick="generateForm()">
+        <span id="aiGenTxt">✦ Generate Form</span>
+      </button>
+    </div>
+    <div class="ai-error" id="aiError" style="display:none"></div>
+  </div>
+
   <div class="page-head">
-    <div><h1 class="page-title">My Forms</h1><p class="page-sub">{{ forms|length }} form{{ 's' if forms|length!=1 }}</p></div>
+    <div>
+      <h1 class="page-title">My Forms</h1>
+      <p class="page-sub">{{ forms|length }} form{{ 's' if forms|length != 1 }}</p>
+    </div>
     <button class="btn-primary" onclick="document.getElementById('newModal').style.display='flex'">+ New Form</button>
   </div>
 
@@ -24,16 +75,20 @@
   <div class="empty-state">
     <div class="empty-emoji">📋</div>
     <h3>No forms yet</h3>
-    <p>Create your first form and start collecting responses</p>
-    <button class="btn-primary" onclick="document.getElementById('newModal').style.display='flex'">+ Create Form</button>
+    <p>Create your first form manually or use AI to generate one</p>
+    <button class="btn-primary" onclick="toggleAIPanel()">✦ Generate with AI</button>
   </div>
   {% else %}
   <div class="forms-grid">
     {% for f in forms %}
-    <div class="fcard">
+    <div class="fcard-outer">
       <div class="fcard-cover" style="background:{{ f.theme.header_color }}">
-        {% if f.theme.cover_image %}<img src="{{ f.theme.cover_image }}" alt="">{% endif %}
-        <span class="fcard-badge {{ 'live' if f.settings.is_published }}">{{ 'Live' if f.settings.is_published else 'Draft' }}</span>
+        {% if f.theme.cover_image and f.theme.cover_image.startswith('http') %}
+        <img src="{{ f.theme.cover_image }}" alt="">
+        {% endif %}
+        <span class="fcard-badge {{ 'live' if f.settings.is_published }}">
+          {{ 'Live' if f.settings.is_published else 'Draft' }}
+        </span>
       </div>
       <div class="fcard-body">
         <div class="fcard-title">{{ f.title }}</div>
@@ -61,6 +116,7 @@
   {% endif %}
 </div>
 
+<!-- New Form Modal -->
 <div class="modal-overlay" id="newModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal">
     <h3>New Form</h3>
@@ -73,5 +129,95 @@
     </form>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
+
+<script>
+const GENERATE_URL  = '/ai/generate';
+const CREATE_API_URL = '/forms/new-api';  // POST → {success, form_id}
+
+function toggleAIPanel(){
+  const p = document.getElementById('aiPanel');
+  const b = document.getElementById('aiBanner');
+  const show = p.style.display === 'none';
+  p.style.display = show ? 'block' : 'none';
+  b.style.display = show ? 'none' : 'flex';
+  if(show) document.getElementById('aiPrompt').focus();
+}
+
+function useExample(btn){
+  document.getElementById('aiPrompt').value = btn.textContent;
+  document.getElementById('aiPrompt').focus();
+}
+
+async function generateForm(){
+  const prompt = document.getElementById('aiPrompt').value.trim();
+  if(!prompt){ alert('Please describe the form you want to create.'); return; }
+
+  const btn  = document.getElementById('aiGenBtn');
+  const txt  = document.getElementById('aiGenTxt');
+  const err  = document.getElementById('aiError');
+  err.style.display = 'none';
+  btn.disabled = true;
+
+  try {
+    // Step 1 — Generate form JSON with AI
+    txt.innerHTML = '<span class="ai-spinner"></span> Thinking...';
+    const genRes = await fetch(GENERATE_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({prompt})
+    });
+    const genData = await genRes.json();
+    if(!genRes.ok || !genData.success){
+      throw new Error(genData.error || `AI error ${genRes.status}`);
+    }
+
+    // Step 2 — Create blank form in DB, get its ID back as JSON
+    txt.innerHTML = '<span class="ai-spinner"></span> Creating form...';
+    const createRes = await fetch(CREATE_API_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({title: genData.form.title || 'AI Generated Form'})
+    });
+    const rawText = await createRes.text();
+    let createData;
+    try { createData = JSON.parse(rawText); }
+    catch(e) { throw new Error('Server error creating form: ' + rawText.slice(0,120)); }
+    if(!createRes.ok || !createData.success){
+      throw new Error(createData.error || 'Could not create form in database');
+    }
+    const formId = createData.form_id;
+
+    // Step 3 — Save AI content into the form
+    txt.innerHTML = '<span class="ai-spinner"></span> Saving...';
+    const saveRes = await fetch('/builder/' + formId + '/save', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(genData.form)
+    });
+    const saveData = await saveRes.json();
+    if(!saveRes.ok || !saveData.success){
+      throw new Error('Could not save form content');
+    }
+
+    // Step 4 — Open builder
+    showToast('✦ Form generated! Opening builder...', 'success');
+    setTimeout(()=>{ window.location.href = '/builder/' + formId; }, 700);
+
+  } catch(e) {
+    err.textContent = '⚠ ' + e.message;
+    err.style.display = 'block';
+    btn.disabled = false;
+    txt.textContent = '✦ Generate Form';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  const ta = document.getElementById('aiPrompt');
+  if(ta) ta.addEventListener('keydown', e=>{
+    if(e.key==='Enter' && (e.ctrlKey||e.metaKey)) generateForm();
+  });
+});
+</script>
 {% endblock %}

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request
+from flask import Blueprint, render_template, redirect, url_for, request, jsonify
 from flask_login import login_required, current_user
 
 dashboard_bp = Blueprint('dashboard', __name__)
@@ -19,6 +19,15 @@ def new_form():
     from models.form import Form
     f = Form.create(current_user.id, request.form.get('title','Untitled Form'))
     return redirect(url_for('builder.edit', form_id=str(f['_id'])))
+
+@dashboard_bp.route('/forms/new-api', methods=['POST'])
+@login_required
+def new_form_api():
+    from models.form import Form
+    data = request.get_json() or {}
+    title = data.get('title', 'AI Generated Form')
+    f = Form.create(current_user.id, title)
+    return jsonify({'success': True, 'form_id': str(f['_id'])})
 
 @dashboard_bp.route('/forms/<form_id>/delete', methods=['POST'])
 @login_required
