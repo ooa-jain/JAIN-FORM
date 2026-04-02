@@ -13,22 +13,19 @@
   <div class="page-head">
     <div>
       <h1 class="page-title">Expert Nominations</h1>
-      <p class="page-sub">{{ nominations|length }} submission{{ 's' if nominations|length != 1 }} received</p>
+      <p class="page-sub">{{ nominations|length }} submission{{ 's' if nominations|length != 1 }} · {{ total_experts }} expert{{ 's' if total_experts != 1 }} named</p>
     </div>
-    <div style="display:flex;gap:10px">
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
       <button class="btn-primary" onclick="exportAll()">⬇ Export All CSV</button>
+      <button class="btn-ghost" onclick="copyLink('{{ request.host_url }}nomination/')">🔗 Copy Form Link</button>
     </div>
   </div>
 
   <div class="stats-row">
     <div class="stat-card"><div class="sn">{{ nominations|length }}</div><div class="sl">Total Submissions</div></div>
-    <div class="stat-card green">
-      {% set total_experts = namespace(n=0) %}
-      {% for nom in nominations %}{% set total_experts.n = total_experts.n + nom.experts|selectattr('name')|list|length %}{% endfor %}
-      <div class="sn">{{ total_experts.n }}</div><div class="sl">Total Experts Named</div>
-    </div>
+    <div class="stat-card green"><div class="sn">{{ total_experts }}</div><div class="sl">Total Experts Named</div></div>
     <div class="stat-card blue">
-      <div class="sn">{% if nominations %}{{ nominations[0].submitted_at.strftime('%d %b') }}{% else %}—{% endif %}</div>
+      <div class="sn">{% if nominations %}{{ nominations[0].submitted_at_str.split(',')[0] }}{% else %}—{% endif %}</div>
       <div class="sl">Latest Submission</div>
     </div>
   </div>
@@ -44,18 +41,17 @@
 
   {% for nom in nominations %}
   <div style="background:white;border-radius:16px;border:1px solid rgba(0,0,0,0.08);margin-bottom:20px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06)">
-    <!-- Header -->
     <div style="background:#1a1a2e;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
       <div>
-        <div style="font-family:'Playfair Display',serif;font-size:1.05rem;color:#f0dfa0;margin-bottom:2px">{{ nom.dept }}</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.05rem;color:#f0dfa0;margin-bottom:3px">{{ nom.dept }}</div>
         <div style="font-size:.8rem;color:rgba(255,255,255,.5)">
-          Submitted by {{ nom.submitted_by }} · {{ nom.submitted_email }} · {{ nom.submitted_at.strftime('%d %b %Y, %H:%M') if nom.submitted_at else '—' }}
+          {{ nom.submitted_by }} · {{ nom.submitted_email }} · {{ nom.submitted_at_str }}
         </div>
       </div>
-      {% set filled = nom.experts|selectattr('name')|list|length %}
-      <span style="background:rgba(184,150,62,.15);color:#f0dfa0;border:1px solid rgba(184,150,62,.3);padding:4px 14px;border-radius:20px;font-size:.78rem;font-weight:600">{{ filled }} expert{{ 's' if filled!=1 }}</span>
+      <span style="background:rgba(184,150,62,.15);color:#f0dfa0;border:1px solid rgba(184,150,62,.3);padding:4px 14px;border-radius:20px;font-size:.78rem;font-weight:600">
+        {{ nom.expert_count }} expert{{ 's' if nom.expert_count != 1 }}
+      </span>
     </div>
-    <!-- Experts grid -->
     <div style="padding:16px 22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">
       {% for expert in nom.experts %}
         {% if expert.name %}
@@ -63,10 +59,18 @@
           <div style="font-weight:600;font-size:.92rem;margin-bottom:4px;color:#1a1a2e">{{ expert.name }}</div>
           {% if expert.designation %}<div style="font-size:.8rem;color:#7a7a9a">{{ expert.designation }}</div>{% endif %}
           {% if expert.institution %}<div style="font-size:.8rem;color:#7a7a9a">{{ expert.institution }}</div>{% endif %}
-          {% if expert.domain %}<span style="display:inline-block;margin-top:6px;background:#fdf3e0;border:1px solid #f0d080;border-radius:12px;padding:2px 9px;font-size:.72rem;color:#8f5e1a">{{ expert.domain }}</span>{% endif %}
-          {% if expert.roles %}<div style="margin-top:6px;font-size:.75rem;color:#4a3f8f;font-weight:500">{{ expert.roles }}</div>{% endif %}
-          {% if expert.contact %}<div style="margin-top:4px;font-size:.75rem;color:#1d6a5a">{{ expert.contact }}</div>{% endif %}
-          {% if expert.reason %}<div style="margin-top:8px;font-size:.78rem;color:#555;line-height:1.5;border-top:1px solid #e4e0d4;padding-top:8px">{{ expert.reason }}</div>{% endif %}
+          {% if expert.domain %}
+          <span style="display:inline-block;margin-top:6px;background:#fdf3e0;border:1px solid #f0d080;border-radius:12px;padding:2px 9px;font-size:.72rem;color:#8f5e1a">{{ expert.domain }}</span>
+          {% endif %}
+          {% if expert.roles %}
+          <div style="margin-top:6px;font-size:.75rem;color:#4a3f8f;font-weight:500">{{ expert.roles }}</div>
+          {% endif %}
+          {% if expert.contact %}
+          <div style="margin-top:4px;font-size:.75rem;color:#1d6a5a">{{ expert.contact }}</div>
+          {% endif %}
+          {% if expert.reason %}
+          <div style="margin-top:8px;font-size:.78rem;color:#555;line-height:1.5;border-top:1px solid #e4e0d4;padding-top:8px">{{ expert.reason }}</div>
+          {% endif %}
         </div>
         {% endif %}
       {% endfor %}
@@ -78,23 +82,31 @@
 
 <div class="toast" id="toast"></div>
 <script>
-function copyLink(url){ navigator.clipboard.writeText(url).then(()=>{const t=document.getElementById('toast');t.textContent='Link copied!';t.className='toast success show';setTimeout(()=>t.classList.remove('show'),2800);}); }
+const NOMS = {{ nominations_json | safe }};
+
+function copyLink(url){
+  navigator.clipboard.writeText(url).then(()=>{
+    const t=document.getElementById('toast');
+    t.textContent='Link copied!';t.className='toast success show';
+    setTimeout(()=>t.classList.remove('show'),2800);
+  });
+}
+
 function exportAll(){
-  const noms = {{ nominations | tojson(default=str) }};
-  // Build CSV
-  let csv = 'Department,Submitted By,Email,Date,Expert #,Name,Designation,Institution,Domain,Contact,Roles,Why Recommend\n';
-  noms.forEach(nom => {
-    nom.experts.forEach((e, i) => {
-      if (!e.name) return;
-      const row = [nom.dept, nom.submitted_by, nom.submitted_email, nom.submission_date,
-        i+1, e.name, e.designation, e.institution, e.domain, e.contact, e.roles, e.reason];
-      csv += row.map(v => '"'+(v||'').replace(/"/g,'""')+'"').join(',') + '\n';
+  if(!NOMS.length){alert('No nominations to export.');return;}
+  let csv='Department,Submitted By,Email,Date,Expert #,Name,Designation,Institution,Domain,Contact,Roles,Why Recommend\n';
+  NOMS.forEach(nom=>{
+    nom.experts.forEach((e,i)=>{
+      if(!e.name)return;
+      const row=[nom.dept,nom.submitted_by,nom.submitted_email,nom.submission_date,
+        i+1,e.name,e.designation,e.institution,e.domain,e.contact,e.roles,e.reason];
+      csv+=row.map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',')+'\n';
     });
   });
-  const blob = new Blob([csv], {type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'All_Expert_Nominations.csv';
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='All_Expert_Nominations.csv';
   a.click();
 }
 </script>
