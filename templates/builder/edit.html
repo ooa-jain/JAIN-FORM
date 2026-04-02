@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{{ form.title }} — Builder{% endblock %}
+{% block title %}{{ form.title }} — FORM.AI Builder{% endblock %}
 {% block body_class %}builder-page{% endblock %}
 {% block body %}
 
@@ -34,23 +34,44 @@
   <!-- LEFT -->
   <div class="bleft" id="bleft">
     <div class="bleft-section">
-      <div class="bleft-label">ADD FIELD</div>
+      <div class="bleft-label">BASIC FIELDS</div>
       <div class="palette">
         <button class="pitem" onclick="addField('short_text')">✏️ Short Text</button>
         <button class="pitem" onclick="addField('long_text')">📝 Paragraph</button>
         <button class="pitem" onclick="addField('number')">🔢 Number</button>
         <button class="pitem" onclick="addField('email')">📧 Email</button>
         <button class="pitem" onclick="addField('phone')">📞 Phone</button>
+        <button class="pitem" onclick="addField('date')">📅 Date</button>
+        <button class="pitem" onclick="addField('time')">⏰ Time</button>
+        <button class="pitem" onclick="addField('file')">📎 File</button>
+      </div>
+    </div>
+    <div class="bleft-section">
+      <div class="bleft-label">CHOICE FIELDS</div>
+      <div class="palette">
         <button class="pitem" onclick="addField('radio')">🔘 Choice</button>
         <button class="pitem" onclick="addField('checkbox')">☑️ Checkbox</button>
         <button class="pitem" onclick="addField('dropdown')">▾ Dropdown</button>
-        <button class="pitem" onclick="addField('date')">📅 Date</button>
-        <button class="pitem" onclick="addField('time')">⏰ Time</button>
+        <button class="pitem" onclick="addField('radio_grid')" style="border-color:rgba(255,140,0,.4);background:#FFF9F0">⊞ Choice Grid</button>
+        <button class="pitem" onclick="addField('checkbox_grid')" style="border-color:rgba(255,140,0,.4);background:#FFF9F0">⊟ Checkbox Grid</button>
+      </div>
+    </div>
+    <div class="bleft-section">
+      <div class="bleft-label">RATING & MEDIA</div>
+      <div class="palette">
         <button class="pitem" onclick="addField('rating')">⭐ Rating</button>
         <button class="pitem" onclick="addField('scale')">📊 Scale</button>
-        <button class="pitem" onclick="addField('file')">📎 File</button>
+        <button class="pitem" onclick="addField('image_upload')">🖼 Image Drop</button>
+        <button class="pitem" onclick="addField('youtube')">▶ YouTube</button>
         <button class="pitem" onclick="addField('header')">𝐇 Header</button>
         <button class="pitem" onclick="addField('divider')">— Divider</button>
+      </div>
+    </div>
+    <div class="bleft-section">
+      <div class="bleft-label">QUIZ FIELDS</div>
+      <div class="palette">
+        <button class="pitem" onclick="addField('quiz_mc')" style="border-color:rgba(45,106,79,.4);background:#F0FFF4">🧠 Quiz MC</button>
+        <button class="pitem" onclick="addField('quiz_tf')" style="border-color:rgba(45,106,79,.4);background:#F0FFF4">✓✗ True/False</button>
       </div>
     </div>
     <div class="bleft-section">
@@ -60,7 +81,7 @@
     </div>
   </div>
 
-  <!-- Mobile toggle for left panel -->
+  <!-- Mobile toggle -->
   <button class="mob-fields-btn" onclick="toggleMobLeft()">+ Add Field</button>
 
   <!-- CENTER -->
@@ -99,6 +120,29 @@
         <label class="fg-label">Options</label>
         <div id="optList"></div>
         <button class="btn-addopt" onclick="addOpt()">+ Add Option</button>
+      </div>
+      <!-- Quiz correct answer -->
+      <div id="wCorrect" style="display:none">
+        <label class="fg-label">Correct Answer</label>
+        <select id="feCorrect" onchange="upd('correct_answer',this.value)" style="width:100%;padding:8px 12px;border:1.5px solid #E0E0E0;border-radius:8px;font-size:.85rem"></select>
+        <div class="fg" style="margin-top:8px"><label>Points</label><input type="number" id="fePoints" value="1" min="0" oninput="upd('points',+this.value)"></div>
+      </div>
+      <!-- Grid fields -->
+      <div id="wGrid" style="display:none">
+        <label class="fg-label">Rows</label>
+        <div id="rowList"></div>
+        <button class="btn-addopt" onclick="addRow()">+ Add Row</button>
+        <label class="fg-label" style="margin-top:10px">Columns</label>
+        <div id="colList"></div>
+        <button class="btn-addopt" onclick="addCol()">+ Add Column</button>
+      </div>
+      <!-- YouTube embed -->
+      <div id="wYoutube" style="display:none">
+        <div class="fg"><label>YouTube URL</label><input type="url" id="feYoutubeUrl" placeholder="https://www.youtube.com/watch?v=..." oninput="upd('youtube_url',this.value);updateYoutubeId(this.value)"></div>
+      </div>
+      <!-- Image drag-drop URL -->
+      <div id="wImageUrl" style="display:none">
+        <div class="fg"><label>Image URL</label><input type="url" id="feImageUrl" placeholder="https://images.unsplash.com/..." oninput="upd('image_url',this.value)"></div>
       </div>
       <div class="fg" id="wRating" style="display:none">
         <label>Max Stars</label>
@@ -149,7 +193,6 @@
           <button class="ctab" onclick="switchCoverTab('unsplash',this)">🖼 Search Unsplash</button>
           <button class="ctab" onclick="switchCoverTab('solid',this)">🎨 Solid Color</button>
         </div>
-        <!-- URL tab -->
         <div id="ctab-url">
           <div class="fg" style="margin-top:12px"><label>Image URL</label>
             <input type="url" id="th_cover" value="{{ form.theme.cover_image }}" placeholder="https://images.unsplash.com/..." oninput="previewCover()">
@@ -159,15 +202,13 @@
             {% if not form.theme.cover_image %}<span>No cover image</span>{% endif %}
           </div>
         </div>
-        <!-- Unsplash search tab -->
         <div id="ctab-unsplash" style="display:none">
           <div style="display:flex;gap:8px;margin-top:12px">
-            <input type="text" id="unsplashQ" placeholder="Search: nature, office, university..." style="flex:1">
+            <input type="text" id="unsplashQ" placeholder="Search: nature, office, university...">
             <button class="btn-primary" onclick="searchUnsplash()">Search</button>
           </div>
           <div id="unsplashResults" class="unsplash-grid"></div>
         </div>
-        <!-- Solid color tab -->
         <div id="ctab-solid" style="display:none;margin-top:12px">
           <p style="font-size:.82rem;color:#999;margin-bottom:10px">Pick a gradient or solid color for the header</p>
           <div class="solid-presets">
@@ -222,7 +263,7 @@
           <label class="sw"><input type="checkbox" id="st_notify" {{ 'checked' if form.settings.notify_on_submit }}><span class="sw-t"></span></label>
         </div>
         <div class="fg"><label>Send to email</label>
-          <input type="email" id="st_notify_email" value="{{ form.settings.notify_email }}" placeholder="officeofacademicaffairs@jainuniversity.ac.in">
+          <input type="email" id="st_notify_email" value="{{ form.settings.notify_email }}" placeholder="your@email.com">
         </div>
         <div class="info-box">
           <strong>Add to your .env to enable:</strong><br>
@@ -274,19 +315,19 @@
       <div style="width:36px;height:36px;background:linear-gradient(135deg,#FF8C00,#E07000);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;color:white;flex-shrink:0">✦</div>
       <div>
         <div style="font-weight:600;font-size:1rem">Improve with AI</div>
-        <div style="font-size:.8rem;color:#888">Tell FORM AI what to change, add, or remove</div>
+        <div style="font-size:.8rem;color:#888">Tell FORM.AI what to change, add, or remove</div>
       </div>
       <button onclick="document.getElementById('aiModal').style.display='none'" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:1.1rem;color:#aaa">✕</button>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
-      <button class="ai-chip" onclick="useAIChip(this)" style="font-size:.76rem;padding:4px 10px;border:1.5px solid #E0E0E0;border-radius:20px;background:#FAFAFA;cursor:pointer;font-family:inherit">Add more fields</button>
-      <button class="ai-chip" onclick="useAIChip(this)" style="font-size:.76rem;padding:4px 10px;border:1.5px solid #E0E0E0;border-radius:20px;background:#FAFAFA;cursor:pointer;font-family:inherit">Split into 3 pages</button>
-      <button class="ai-chip" onclick="useAIChip(this)" style="font-size:.76rem;padding:4px 10px;border:1.5px solid #E0E0E0;border-radius:20px;background:#FAFAFA;cursor:pointer;font-family:inherit">Make it shorter</button>
-      <button class="ai-chip" onclick="useAIChip(this)" style="font-size:.76rem;padding:4px 10px;border:1.5px solid #E0E0E0;border-radius:20px;background:#FAFAFA;cursor:pointer;font-family:inherit">Change theme to blue</button>
-      <button class="ai-chip" onclick="useAIChip(this)" style="font-size:.76rem;padding:4px 10px;border:1.5px solid #E0E0E0;border-radius:20px;background:#FAFAFA;cursor:pointer;font-family:inherit">Add rating questions</button>
-      <button class="ai-chip" onclick="useAIChip(this)" style="font-size:.76rem;padding:4px 10px;border:1.5px solid #E0E0E0;border-radius:20px;background:#FAFAFA;cursor:pointer;font-family:inherit">Make all fields required</button>
+      <button class="ai-chip" onclick="useAIChip(this)">Add more fields</button>
+      <button class="ai-chip" onclick="useAIChip(this)">Split into 3 pages</button>
+      <button class="ai-chip" onclick="useAIChip(this)">Make it shorter</button>
+      <button class="ai-chip" onclick="useAIChip(this)">Change theme to blue</button>
+      <button class="ai-chip" onclick="useAIChip(this)">Add quiz questions</button>
+      <button class="ai-chip" onclick="useAIChip(this)">Make all fields required</button>
     </div>
-    <textarea id="aiImprovePrompt" style="width:100%;padding:11px 14px;border:1.5px solid #E0E0E0;border-radius:10px;font-family:inherit;font-size:.9rem;resize:vertical;min-height:80px;outline:none" placeholder="e.g. Add a section about prior work experience, change the theme to dark blue, make page 2 shorter..."></textarea>
+    <textarea id="aiImprovePrompt" style="width:100%;padding:11px 14px;border:1.5px solid #E0E0E0;border-radius:10px;font-family:inherit;font-size:.9rem;resize:vertical;min-height:80px;outline:none" placeholder="e.g. Add a section about prior work experience, change the theme to dark blue, add a quiz section..."></textarea>
     <div style="font-size:.75rem;color:#aaa;margin-top:6px">Tip: Ctrl+Enter to generate</div>
     <div id="aiImproveError" style="display:none;background:#FFF0F0;color:#E63946;border-radius:8px;padding:10px 12px;font-size:.84rem;margin-top:10px"></div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
@@ -295,6 +336,22 @@
     </div>
   </div>
 </div>
+
+<style>
+/* Grid field preview */
+.grid-preview{overflow-x:auto}
+.grid-preview table{width:100%;border-collapse:collapse;font-size:.74rem}
+.grid-preview th,.grid-preview td{border:1px solid #E8E0D5;padding:5px 8px;text-align:center}
+.grid-preview th{background:#F5F5F5;font-weight:600;color:var(--mid)}
+.grid-preview td{color:#aaa}
+/* YouTube preview */
+.yt-preview{background:#000;border-radius:8px;padding:16px;text-align:center;color:rgba(255,255,255,.7);font-size:.84rem}
+.yt-preview .yt-icon{font-size:2rem;margin-bottom:6px}
+/* Image drop zone */
+.img-dropzone{border:2px dashed #E0E0E0;border-radius:8px;padding:20px;text-align:center;color:#ccc;font-size:.8rem}
+/* Quiz badge */
+.fc-quiz-badge{background:#F0FFF4;color:#2D6A4F;border:1px solid #C8E6C9;padding:2px 8px;border-radius:12px;font-size:.69rem;font-weight:600;margin-left:6px}
+</style>
 
 <script>
 const FORM_ID = {{ form_id|tojson }};

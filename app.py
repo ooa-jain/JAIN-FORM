@@ -27,13 +27,15 @@ def create_app():
     login_manager.login_view    = 'auth.login'
     login_manager.login_message = 'Please log in.'
 
-    from routes.auth      import auth_bp
+    from routes.auth       import auth_bp
     from routes.nomination import nomination_bp
     from routes.ai_builder  import ai_bp
-    from routes.dashboard import dashboard_bp
-    from routes.builder   import builder_bp
-    from routes.public    import public_bp
-    from routes.responses import responses_bp
+    from routes.dashboard  import dashboard_bp
+    from routes.builder    import builder_bp
+    from routes.public     import public_bp
+    from routes.responses  import responses_bp
+    from routes.newsletter import newsletter_bp
+    from routes.admin      import admin_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -42,6 +44,8 @@ def create_app():
     app.register_blueprint(responses_bp)
     app.register_blueprint(nomination_bp)
     app.register_blueprint(ai_bp)
+    app.register_blueprint(newsletter_bp)
+    app.register_blueprint(admin_bp)
 
     @login_manager.user_loader
     def load_user(user_id):

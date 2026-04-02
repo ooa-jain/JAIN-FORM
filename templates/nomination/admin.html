@@ -1,113 +1,368 @@
-{% extends 'base.html' %}
-{% block title %}Nominations Admin — FormCraft{% endblock %}
-{% block body_class %}app-page{% endblock %}
-{% block body %}
-<nav class="app-nav">
-  <div class="nav-brand">✦ FormCraft</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Nominations Admin — FORM.AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1a1a2e;--ink-mid:#3d3d5c;--ink-soft:#7a7a9a;
+  --gold:#b8963e;--gold-light:#f0dfa0;--gold-pale:#fdf8ed;
+  --cream:#fafaf7;--white:#fff;--border:#e4e0d4;
+  --teal:#1d6a5a;--teal-light:#e4f2ee;
+  --purple:#4a3f8f;--purple-light:#f0eeff;
+  --amber:#8f5e1a;--amber-light:#fdf3e0;
+  --error:#c0392b;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;font-size:14px}
+
+.top-nav{background:var(--ink);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:200;box-shadow:0 2px 16px rgba(0,0,0,.25)}
+.nav-brand{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--gold-light);font-weight:600}
+.nav-brand span{color:var(--gold)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.admin-badge{background:rgba(184,150,62,.15);color:var(--gold);border:1px solid rgba(184,150,62,.28);padding:3px 12px;border-radius:20px;font-size:.72rem;font-weight:600;letter-spacing:.06em}
+.nav-btn{font-family:'Outfit',sans-serif;font-size:.8rem;padding:5px 13px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:transparent;color:rgba(255,255,255,.58);cursor:pointer;text-decoration:none;transition:all .18s}
+.nav-btn:hover{border-color:var(--gold);color:var(--gold-light)}
+.nav-btn.danger:hover{border-color:var(--error);color:#ff8080;background:rgba(192,57,43,.08)}
+
+.main{max-width:1100px;margin:0 auto;padding:28px 20px 60px}
+
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:24px}
+.page-head h1{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:500;margin-bottom:3px}
+.page-head p{font-size:.82rem;color:var(--ink-soft)}
+.head-actions{display:flex;gap:9px;flex-wrap:wrap}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:24px}
+@media(max-width:700px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:var(--white);border-radius:14px;padding:16px 18px;box-shadow:0 2px 10px rgba(0,0,0,.06);border-left:4px solid var(--gold)}
+.stat-card.t{border-left-color:var(--teal)}.stat-card.p{border-left-color:var(--purple)}.stat-card.a{border-left-color:var(--amber)}
+.sn{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;line-height:1}
+.sl{font-size:.7rem;color:var(--ink-soft);margin-top:4px;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+
+.toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.search-wrap{flex:1;min-width:200px;position:relative}
+.search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:#bbb;pointer-events:none}
+.search-wrap input{width:100%;padding:9px 13px 9px 34px;border:1.5px solid var(--border);border-radius:9px;font-family:'Outfit',sans-serif;font-size:.86rem;background:var(--white);outline:none;color:var(--ink);transition:border-color .18s}
+.search-wrap input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,150,62,.1)}
+.chip{padding:7px 14px;border:1.5px solid var(--border);border-radius:20px;font-family:'Outfit',sans-serif;font-size:.77rem;cursor:pointer;background:var(--white);color:var(--ink-soft);transition:all .18s;white-space:nowrap}
+.chip.active,.chip:hover{border-color:var(--gold);color:var(--amber);background:var(--gold-pale)}
+.cnt{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;background:var(--gold);color:var(--ink);font-size:.63rem;font-weight:700;border-radius:50%;margin-left:4px}
+
+/* submission card */
+.nom-card{background:var(--white);border-radius:14px;border:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:14px;overflow:hidden;transition:box-shadow .2s}
+.nom-card:hover{box-shadow:0 6px 22px rgba(0,0,0,.09)}
+.nch{background:var(--ink);padding:15px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;cursor:pointer;user-select:none;transition:background .15s}
+.nch:hover{background:#24244a}
+.nch-l{display:flex;align-items:center;gap:12px}
+.nch-num{width:32px;height:32px;border-radius:50%;background:rgba(184,150,62,.15);border:1px solid rgba(184,150,62,.28);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:.92rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nch-dept{font-family:'Cormorant Garamond',serif;font-size:1.02rem;color:var(--gold-light);font-weight:500;margin-bottom:2px}
+.nch-meta{font-size:.73rem;color:rgba(255,255,255,.42);display:flex;gap:6px;flex-wrap:wrap}
+.sep{color:rgba(255,255,255,.18)}
+.nch-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.exp-badge{background:rgba(184,150,62,.12);color:var(--gold-light);border:1px solid rgba(184,150,62,.22);padding:3px 12px;border-radius:20px;font-size:.73rem;font-weight:600}
+.del-btn{padding:4px 11px;background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.25);color:#ff8a8a;border-radius:7px;font-family:'Outfit',sans-serif;font-size:.72rem;cursor:pointer;transition:all .18s}
+.del-btn:hover{background:rgba(192,57,43,.2);color:#ffb0b0}
+.arr{color:rgba(255,255,255,.35);font-size:.8rem;transition:transform .25s;flex-shrink:0}
+.nom-card.open .arr{transform:rotate(180deg)}
+
+/* body */
+.ncb{display:none;border-top:1px solid rgba(255,255,255,.05)}
+.nom-card.open .ncb{display:block}
+
+.sub-strip{background:#f7f6f3;padding:13px 20px;border-bottom:1px solid var(--border);display:flex;gap:22px;flex-wrap:wrap}
+.ss-item{}
+.ss-lbl{font-size:.65rem;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px}
+.ss-val{font-size:.86rem;color:var(--ink);font-weight:500}
+.ss-val a{color:var(--teal);text-decoration:none}
+.ss-val a:hover{text-decoration:underline}
+
+.experts-grid{padding:15px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+
+.ec{background:var(--cream);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .18s}
+.ec:hover{border-color:rgba(184,150,62,.4)}
+.ec-hdr{background:var(--ink);padding:10px 14px;display:flex;align-items:center;gap:9px}
+.ec-n{width:22px;height:22px;border-radius:50%;background:var(--gold);color:var(--ink);font-family:'Cormorant Garamond',serif;font-size:.78rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ec-name{font-size:.86rem;font-weight:500;color:var(--white)}
+.ec-desig{font-size:.7rem;color:rgba(255,255,255,.42);margin-top:1px}
+.ec-body{padding:11px 14px;display:flex;flex-direction:column;gap:6px}
+.ec-row{display:flex;align-items:flex-start;gap:7px}
+.ec-ico{font-size:.78rem;flex-shrink:0;opacity:.55;margin-top:2px}
+.ec-txt{font-size:.79rem;color:var(--ink-mid);line-height:1.45}
+.ec-txt a{color:var(--teal);text-decoration:none}
+.domain-tag{display:inline-block;background:var(--amber-light);border:1px solid rgba(143,94,26,.18);border-radius:12px;padding:2px 8px;font-size:.68rem;color:var(--amber);font-weight:500}
+.role-tag{display:inline-block;background:var(--purple-light);border:1px solid rgba(74,63,143,.16);border-radius:12px;padding:2px 8px;font-size:.68rem;color:var(--purple);font-weight:500;margin:2px 3px 2px 0}
+.ec-reason{margin-top:7px;padding-top:7px;border-top:1px solid var(--border);font-size:.77rem;color:var(--ink-soft);line-height:1.55;font-style:italic}
+.ec-reason::before{content:'\201C ';color:var(--gold);font-style:normal}
+.ec-reason::after{content:' \201D';color:var(--gold);font-style:normal}
+
+/* buttons */
+.btn{font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:600;padding:9px 18px;border-radius:9px;border:none;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.btn-ink{background:var(--ink);color:var(--gold-light)}
+.btn-ink:hover{background:#24244a}
+.btn-teal{background:var(--teal-light);color:var(--teal);border:1px solid rgba(29,106,90,.2)}
+.btn-teal:hover{background:#c0e0d8}
+.btn-gold{background:var(--gold-pale);color:var(--amber);border:1px solid rgba(184,150,62,.28)}
+.btn-gold:hover{background:#f5e5b4}
+
+/* empty */
+.empty{text-align:center;padding:70px 20px}
+.empty-ico{font-size:3rem;margin-bottom:13px}
+.empty h3{font-family:'Cormorant Garamond',serif;font-size:1.35rem;margin-bottom:6px}
+.empty p{font-size:.83rem;color:var(--ink-soft);margin-bottom:16px}
+
+.no-res{display:none;text-align:center;padding:38px;color:var(--ink-soft);font-size:.87rem}
+
+.toast{position:fixed;bottom:22px;right:22px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:.82rem;font-weight:500;box-shadow:0 8px 28px rgba(0,0,0,.2);transform:translateY(80px);opacity:0;transition:all .4s cubic-bezier(.34,1.56,.64,1);z-index:9999;max-width:300px;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-left:4px solid var(--teal)}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-brand">◈ FORM<span>.AI</span></div>
   <div class="nav-right">
-    <a href="{{ url_for('nomination.index') }}" class="btn-ghost-sm">📋 Nomination Form</a>
-    <a href="{{ url_for('dashboard.index') }}" class="btn-ghost-sm">← Dashboard</a>
+    <span class="admin-badge">NOMINATION ADMIN</span>
+    <a class="nav-btn" href="/nomination/" target="_blank">View Form</a>
+    <a class="nav-btn danger" href="{{ url_for('nomination.admin_logout') }}">Logout</a>
   </div>
 </nav>
-<div class="app-body">
+
+<div class="main">
+
   <div class="page-head">
     <div>
-      <h1 class="page-title">Expert Nominations</h1>
-      <p class="page-sub">{{ nominations|length }} submission{{ 's' if nominations|length != 1 }} · {{ total_experts }} expert{{ 's' if total_experts != 1 }} named</p>
+      <h1>📋 Expert Nominations</h1>
+      <p>All submissions · Jain University Thought Leaders Network</p>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn-primary" onclick="exportAll()">⬇ Export All CSV</button>
-      <button class="btn-ghost" onclick="copyLink('{{ request.host_url }}nomination/')">🔗 Copy Form Link</button>
+    <div class="head-actions">
+      <button class="btn btn-teal" onclick="exportAll()">⬇ Export CSV</button>
+      <button class="btn btn-gold" onclick="shareLink()">🔗 Share Form</button>
     </div>
   </div>
 
   <div class="stats-row">
-    <div class="stat-card"><div class="sn">{{ nominations|length }}</div><div class="sl">Total Submissions</div></div>
-    <div class="stat-card green"><div class="sn">{{ total_experts }}</div><div class="sl">Total Experts Named</div></div>
-    <div class="stat-card blue">
-      <div class="sn">{% if nominations %}{{ nominations[0].submitted_at_str.split(',')[0] }}{% else %}—{% endif %}</div>
-      <div class="sl">Latest Submission</div>
+    <div class="stat-card">
+      <div class="sn">{{ nominations|length }}</div>
+      <div class="sl">Submissions</div>
     </div>
+    <div class="stat-card t">
+      <div class="sn">{{ total_experts }}</div>
+      <div class="sl">Experts Named</div>
+    </div>
+    <div class="stat-card p">
+      <div class="sn">{{ nominations|map(attribute='dept')|unique|list|length }}</div>
+      <div class="sl">Departments</div>
+    </div>
+    <div class="stat-card a">
+      <div class="sn">{% if nominations %}{{ nominations[0].submitted_at_str.split(',')[0] }}{% else %}—{% endif %}</div>
+      <div class="sl">Latest Entry</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M13 13l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" id="searchInput" placeholder="Search by dept, name, expert…" oninput="filterCards()">
+    </div>
+    <button class="chip active" data-f="all" onclick="setFilter(this)">All <span class="cnt">{{ nominations|length }}</span></button>
+    <button class="chip" data-f="many" onclick="setFilter(this)">4+ Experts</button>
+    <button class="chip" data-f="recent" onclick="setFilter(this)">This Month</button>
+    <button class="chip" id="expBtn" onclick="toggleExpandAll()">⊞ Expand All</button>
   </div>
 
   {% if not nominations %}
-  <div class="empty-state">
-    <div class="empty-emoji">📭</div>
+  <div class="empty">
+    <div class="empty-ico">📭</div>
     <h3>No nominations yet</h3>
-    <p>Share the nomination form link to start collecting submissions</p>
-    <button class="btn-primary" onclick="copyLink('{{ request.host_url }}nomination/')">Copy Form Link</button>
+    <p>Share the form link so departments can start submitting</p>
+    <button class="btn btn-gold" onclick="shareLink()">🔗 Copy Form Link</button>
   </div>
   {% else %}
 
+  <div id="cards">
   {% for nom in nominations %}
-  <div style="background:white;border-radius:16px;border:1px solid rgba(0,0,0,0.08);margin-bottom:20px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06)">
-    <div style="background:#1a1a2e;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-      <div>
-        <div style="font-family:'Playfair Display',serif;font-size:1.05rem;color:#f0dfa0;margin-bottom:3px">{{ nom.dept }}</div>
-        <div style="font-size:.8rem;color:rgba(255,255,255,.5)">
-          {{ nom.submitted_by }} · {{ nom.submitted_email }} · {{ nom.submitted_at_str }}
+  <div class="nom-card" id="card-{{ nom._id }}"
+       data-dept="{{ nom.dept|lower }}"
+       data-who="{{ nom.submitted_by|lower }} {{ nom.submitted_email|lower }}"
+       data-experts="{{ nom.experts|map(attribute='name')|select|join(' ')|lower }}"
+       data-count="{{ nom.expert_count }}"
+       data-date="{{ nom.submission_date }}">
+
+    <div class="nch" onclick="toggle('{{ nom._id }}')">
+      <div class="nch-l">
+        <div class="nch-num">{{ loop.index }}</div>
+        <div>
+          <div class="nch-dept">{{ nom.dept }}</div>
+          <div class="nch-meta">
+            <span>{{ nom.submitted_by }}</span>
+            <span class="sep">·</span>
+            <span>{{ nom.submitted_at_str }}</span>
+            {% if nom.submission_date %}<span class="sep">·</span><span>{{ nom.submission_date }}</span>{% endif %}
+          </div>
         </div>
       </div>
-      <span style="background:rgba(184,150,62,.15);color:#f0dfa0;border:1px solid rgba(184,150,62,.3);padding:4px 14px;border-radius:20px;font-size:.78rem;font-weight:600">
-        {{ nom.expert_count }} expert{{ 's' if nom.expert_count != 1 }}
-      </span>
+      <div class="nch-r">
+        <span class="exp-badge">{{ nom.expert_count }} expert{{ 's' if nom.expert_count != 1 }}</span>
+        <button class="del-btn" onclick="event.stopPropagation();deleteNom('{{ nom._id }}')">🗑 Delete</button>
+        <span class="arr">▼</span>
+      </div>
     </div>
-    <div style="padding:16px 22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">
-      {% for expert in nom.experts %}
-        {% if expert.name %}
-        <div style="background:#fafaf7;border:1px solid #e4e0d4;border-radius:10px;padding:14px">
-          <div style="font-weight:600;font-size:.92rem;margin-bottom:4px;color:#1a1a2e">{{ expert.name }}</div>
-          {% if expert.designation %}<div style="font-size:.8rem;color:#7a7a9a">{{ expert.designation }}</div>{% endif %}
-          {% if expert.institution %}<div style="font-size:.8rem;color:#7a7a9a">{{ expert.institution }}</div>{% endif %}
-          {% if expert.domain %}
-          <span style="display:inline-block;margin-top:6px;background:#fdf3e0;border:1px solid #f0d080;border-radius:12px;padding:2px 9px;font-size:.72rem;color:#8f5e1a">{{ expert.domain }}</span>
+
+    <div class="ncb">
+      <!-- Submitter info -->
+      <div class="sub-strip">
+        <div class="ss-item"><div class="ss-lbl">Department</div><div class="ss-val">{{ nom.dept }}</div></div>
+        <div class="ss-item"><div class="ss-lbl">Submitted By</div><div class="ss-val">{{ nom.submitted_by }}</div></div>
+        <div class="ss-item"><div class="ss-lbl">Email</div><div class="ss-val"><a href="mailto:{{ nom.submitted_email }}">{{ nom.submitted_email }}</a></div></div>
+        <div class="ss-item"><div class="ss-lbl">Form Date</div><div class="ss-val">{{ nom.submission_date or '—' }}</div></div>
+        <div class="ss-item"><div class="ss-lbl">Received</div><div class="ss-val">{{ nom.submitted_at_str }}</div></div>
+      </div>
+
+      <!-- Expert cards -->
+      <div class="experts-grid">
+        {% for expert in nom.experts %}
+          {% if expert.name and expert.name.strip() %}
+          <div class="ec">
+            <div class="ec-hdr">
+              <div class="ec-n">{{ loop.index }}</div>
+              <div>
+                <div class="ec-name">{{ expert.name }}</div>
+                {% if expert.designation %}<div class="ec-desig">{{ expert.designation }}</div>{% endif %}
+              </div>
+            </div>
+            <div class="ec-body">
+              {% if expert.institution %}
+              <div class="ec-row"><span class="ec-ico">🏢</span><span class="ec-txt">{{ expert.institution }}</span></div>
+              {% endif %}
+              {% if expert.domain %}
+              <div class="ec-row"><span class="ec-ico">🔬</span><div><span class="domain-tag">{{ expert.domain }}</span></div></div>
+              {% endif %}
+              {% if expert.contact %}
+              <div class="ec-row">
+                <span class="ec-ico">📧</span>
+                <span class="ec-txt">
+                  {% if '@' in (expert.contact or '') %}
+                    <a href="mailto:{{ expert.contact }}">{{ expert.contact }}</a>
+                  {% elif 'linkedin' in (expert.contact or '').lower() %}
+                    <a href="{{ expert.contact }}" target="_blank">{{ expert.contact }}</a>
+                  {% else %}
+                    {{ expert.contact }}
+                  {% endif %}
+                </span>
+              </div>
+              {% endif %}
+              {% if expert.roles %}
+              <div class="ec-row">
+                <span class="ec-ico">🎯</span>
+                <div>{% for r in expert.roles.split(' | ') %}<span class="role-tag">{{ r.strip() }}</span>{% endfor %}</div>
+              </div>
+              {% endif %}
+              {% if expert.reason %}
+              <div class="ec-reason">{{ expert.reason }}</div>
+              {% endif %}
+            </div>
+          </div>
           {% endif %}
-          {% if expert.roles %}
-          <div style="margin-top:6px;font-size:.75rem;color:#4a3f8f;font-weight:500">{{ expert.roles }}</div>
-          {% endif %}
-          {% if expert.contact %}
-          <div style="margin-top:4px;font-size:.75rem;color:#1d6a5a">{{ expert.contact }}</div>
-          {% endif %}
-          {% if expert.reason %}
-          <div style="margin-top:8px;font-size:.78rem;color:#555;line-height:1.5;border-top:1px solid #e4e0d4;padding-top:8px">{{ expert.reason }}</div>
-          {% endif %}
-        </div>
-        {% endif %}
-      {% endfor %}
+        {% endfor %}
+      </div>
     </div>
   </div>
   {% endfor %}
-  {% endif %}
-</div>
+  </div>
 
+  <div class="no-res" id="noRes">No submissions match your search.</div>
+  {% endif %}
+
+</div><!-- /main -->
 <div class="toast" id="toast"></div>
+
 <script>
 const NOMS = {{ nominations_json | safe }};
+const HOST = {{ request.host_url | tojson }};
+let expanded = false;
 
-function copyLink(url){
-  navigator.clipboard.writeText(url).then(()=>{
-    const t=document.getElementById('toast');
-    t.textContent='Link copied!';t.className='toast success show';
-    setTimeout(()=>t.classList.remove('show'),2800);
+function toggle(id){
+  document.getElementById('card-'+id).classList.toggle('open');
+}
+
+function toggleExpandAll(){
+  expanded = !expanded;
+  document.querySelectorAll('.nom-card').forEach(c => {
+    expanded ? c.classList.add('open') : c.classList.remove('open');
   });
+  document.getElementById('expBtn').textContent = expanded ? '⊟ Collapse All' : '⊞ Expand All';
+}
+
+function filterCards(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let n = 0;
+  document.querySelectorAll('.nom-card').forEach(c => {
+    const hit = !q || [c.dataset.dept, c.dataset.who, c.dataset.experts].join(' ').includes(q);
+    c.style.display = hit ? '' : 'none';
+    if(hit) n++;
+  });
+  document.getElementById('noRes').style.display = n ? 'none' : 'block';
+}
+
+const today = new Date();
+function setFilter(btn){
+  document.querySelectorAll('.chip[data-f]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const f = btn.dataset.f;
+  document.querySelectorAll('.nom-card').forEach(c => {
+    let show = true;
+    if(f === 'many') show = parseInt(c.dataset.count || 0) >= 4;
+    else if(f === 'recent'){
+      const d = new Date(c.dataset.date);
+      show = !isNaN(d) && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+    }
+    c.style.display = show ? '' : 'none';
+  });
+}
+
+async function deleteNom(id){
+  if(!confirm('Permanently delete this submission?')) return;
+  const res = await fetch('/nomination/delete/'+id, {method:'POST'});
+  const d = await res.json();
+  if(d.success){
+    const card = document.getElementById('card-'+id);
+    if(card){ card.style.transition='all .35s'; card.style.opacity='0'; card.style.maxHeight='0'; setTimeout(()=>card.remove(), 360); }
+    showToast('Submission deleted','success');
+  } else showToast('Error: '+(d.error||'Failed'),'info');
+}
+
+function shareLink(){
+  const url = HOST + 'nomination/';
+  navigator.clipboard.writeText(url)
+    .then(() => showToast('🔗 Form link copied — share with departments!','success'))
+    .catch(() => prompt('Copy this link:', url));
 }
 
 function exportAll(){
-  if(!NOMS.length){alert('No nominations to export.');return;}
-  let csv='Department,Submitted By,Email,Date,Expert #,Name,Designation,Institution,Domain,Contact,Roles,Why Recommend\n';
-  NOMS.forEach(nom=>{
-    nom.experts.forEach((e,i)=>{
-      if(!e.name)return;
-      const row=[nom.dept,nom.submitted_by,nom.submitted_email,nom.submission_date,
-        i+1,e.name,e.designation,e.institution,e.domain,e.contact,e.roles,e.reason];
-      csv+=row.map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',')+'\n';
+  if(!NOMS.length){ alert('Nothing to export'); return; }
+  let csv = 'Department,Submitted By,Email,Form Date,Received,Expert #,Name,Designation,Institution,Domain,Contact,Roles,Why Recommend\n';
+  NOMS.forEach(n => {
+    (n.experts||[]).filter(e=>e.name&&e.name.trim()).forEach((e,i)=>{
+      const row=[n.dept,n.submitted_by,n.submitted_email,n.submission_date||'',n.submitted_at||'',
+        i+1,e.name,e.designation||'',e.institution||'',e.domain||'',e.contact||'',e.roles||'',e.reason||''];
+      csv += row.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')+'\n';
     });
   });
-  const blob=new Blob([csv],{type:'text/csv'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='All_Expert_Nominations.csv';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = 'Expert_Nominations_'+new Date().toISOString().slice(0,10)+'.csv';
   a.click();
 }
+
+function showToast(msg, type='info'){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast '+type+' show';
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'),3200);
+}
 </script>
-{% endblock %}
+</body>
+</html>

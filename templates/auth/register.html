@@ -1,34 +1,62 @@
 {% extends 'base.html' %}
-{% block title %}Sign Up — FormCraft{% endblock %}
+{% block title %}Sign Up — FORM.AI{% endblock %}
 {% block body_class %}auth-page{% endblock %}
 {% block body %}
 <div class="auth-wrap">
   <div class="auth-left">
-    <div class="auth-brand">✦ FormCraft</div>
+    <div class="auth-brand">
+      <span class="brand-icon">◈</span>
+      <span class="brand-text">FORM<span class="brand-ai">.AI</span></span>
+    </div>
     <h1 class="auth-headline">Create forms<br>in <em>minutes</em></h1>
-    <p class="auth-pitch">Free to use. No credit card required. Start collecting responses today.</p>
+    <p class="auth-pitch">Free to use. No credit card required. Start collecting responses and sending newsletters today.</p>
     <div class="auth-features">
-      <div class="af-item">✅ Unlimited forms</div>
-      <div class="af-item">✅ MongoDB-powered storage</div>
-      <div class="af-item">✅ Share with a link</div>
-      <div class="af-item">✅ Email notifications</div>
+      <div class="af-item"><span class="af-icon">⬡</span> Unlimited forms & newsletters</div>
+      <div class="af-item"><span class="af-icon">⬡</span> MongoDB-powered storage</div>
+      <div class="af-item"><span class="af-icon">⬡</span> Share with a link</div>
+      <div class="af-item"><span class="af-icon">⬡</span> Email notifications & newsletters</div>
+    </div>
+    <div class="auth-floating-shapes">
+      <div class="shape s1"></div>
+      <div class="shape s2"></div>
+      <div class="shape s3"></div>
     </div>
   </div>
   <div class="auth-right">
     <div class="auth-card">
+      <div class="auth-logo-sm">◈ FORM<span>.AI</span></div>
       <h2 class="auth-title">Create account</h2>
-      <p class="auth-sub">Start building beautiful forms</p>
+      <p class="auth-sub">Start building beautiful forms & newsletters</p>
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% for cat,msg in messages %}<div class="alert alert-{{cat}}">{{msg}}</div>{% endfor %}
       {% endwith %}
       <form method="POST">
-        <div class="fg"><label>Full name</label><input type="text" name="name" placeholder="Your name" required></div>
-        <div class="fg"><label>Email</label><input type="email" name="email" placeholder="you@email.com" required></div>
-        <div class="fg"><label>Password</label><input type="password" name="password" placeholder="Min 6 characters" required minlength="6"></div>
+        <div class="fg"><label>Full name</label><div class="input-wrap"><span class="input-icon">◎</span><input type="text" name="name" placeholder="Your name" required></div></div>
+        <div class="fg"><label>Email address</label><div class="input-wrap"><span class="input-icon">✉</span><input type="email" name="email" placeholder="you@email.com" required></div></div>
+        <div class="fg"><label>Password</label><div class="input-wrap"><span class="input-icon">◉</span><input type="password" name="password" placeholder="Min 6 characters" required minlength="6"></div></div>
         <button class="btn-primary w-full" type="submit">Create account →</button>
       </form>
-      <p class="auth-footer">Have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+      <p class="auth-footer">Have an account? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
     </div>
   </div>
 </div>
+
+<style>
+.auth-brand { display:flex; align-items:center; gap:10px; margin-bottom:48px; }
+.brand-icon { font-size:1.8rem; color:var(--mango); }
+.brand-text { font-size:1.5rem; font-weight:800; color:#fff; letter-spacing:-0.02em; }
+.brand-ai { color:var(--mango); }
+.auth-logo-sm { font-size:1rem; font-weight:800; color:var(--dark); letter-spacing:-0.02em; margin-bottom:20px; }
+.auth-logo-sm span { color:var(--mango); }
+.af-icon { color:var(--mango); margin-right:6px; }
+.auth-floating-shapes { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+.shape { position:absolute; border-radius:50%; opacity:0.06; }
+.s1 { width:300px; height:300px; background:var(--mango); top:-100px; right:-100px; }
+.s2 { width:200px; height:200px; background:#fff; bottom:100px; left:-50px; }
+.s3 { width:150px; height:150px; background:var(--mango); bottom:-50px; right:100px; }
+.auth-left { position:relative; }
+.input-wrap { position:relative; }
+.input-wrap .input-icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#aaa; font-size:.85rem; pointer-events:none; }
+.input-wrap input { padding-left:36px !important; }
+</style>
 {% endblock %}

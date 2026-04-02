@@ -6,173 +6,146 @@
 <title>Expert Nomination Form – Jain University</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --ink: #1a1a2e; --ink-mid: #3d3d5c; --ink-soft: #7a7a9a;
-  --gold: #b8963e; --gold-light: #f0dfa0; --gold-pale: #fdf8ed;
-  --cream: #fafaf7; --white: #ffffff; --border: #e4e0d4; --border-strong: #c8c0a8;
-  --teal: #1d6a5a; --teal-light: #e4f2ee; --purple: #4a3f8f;
-  --amber: #8f5e1a; --amber-light: #fdf3e0;
-  --success: #1a6b45; --success-bg: #e6f7ef;
-  --radius: 10px; --radius-lg: 16px;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1a1a2e;--ink-mid:#3d3d5c;--ink-soft:#7a7a9a;
+  --gold:#b8963e;--gold-light:#f0dfa0;--gold-pale:#fdf8ed;
+  --cream:#fafaf7;--white:#ffffff;--border:#e4e0d4;--border-strong:#c8c0a8;
+  --teal:#1d6a5a;--teal-light:#e4f2ee;--purple:#4a3f8f;
+  --amber:#8f5e1a;--amber-light:#fdf3e0;
+  --success:#1a6b45;--success-bg:#e6f7ef;
+  --error:#c0392b;--error-bg:#fdf0ee;
+  --radius:10px;--radius-lg:16px;
 }
-html { scroll-behavior: smooth; }
-body { font-family: 'Outfit', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; font-size: 14px; line-height: 1.6; }
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;font-size:14px;line-height:1.6}
 
-/* ===== TOP NAV ===== */
-.top-nav {
-  background: var(--ink);
-  padding: 0 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 52px;
-  position: sticky;
-  top: 0;
-  z-index: 200;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.25);
-}
-.nav-brand {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.15rem;
-  color: var(--gold-light);
-  letter-spacing: 0.02em;
-  font-weight: 500;
-  text-decoration: none;
-}
-.nav-brand span { color: var(--gold); }
-.nav-links { display: flex; align-items: center; gap: 6px; }
-.nav-link {
-  padding: 6px 14px;
-  border-radius: 7px;
-  font-size: 0.82rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.2s;
-  font-family: 'Outfit', sans-serif;
-}
-.nav-link-ghost { color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.1); }
-.nav-link-ghost:hover { color: var(--gold-light); border-color: var(--gold); }
-.nav-link-active { background: rgba(184,150,62,0.15); color: var(--gold-light); border: 1px solid rgba(184,150,62,0.3); }
-.nav-link-cta { background: var(--gold); color: var(--ink); font-weight: 600; border: 1px solid var(--gold); }
-.nav-link-cta:hover { background: var(--gold-light); }
+/* minimal nav - no auth links */
+.top-nav{background:var(--ink);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200;box-shadow:0 2px 16px rgba(0,0,0,.25)}
+.nav-brand{font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--gold-light);letter-spacing:.02em;font-weight:500;text-decoration:none}
+.nav-brand span{color:var(--gold)}
 
-.top-banner { background: linear-gradient(90deg, #12122a, #1a1a2e, #12122a); color: var(--gold-light); text-align: center; padding: 8px 2rem; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500; border-bottom: 1px solid rgba(184,150,62,0.2); }
+.top-banner{background:linear-gradient(90deg,#12122a,#1a1a2e,#12122a);color:var(--gold-light);text-align:center;padding:8px 2rem;font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:500;border-bottom:1px solid rgba(184,150,62,.2)}
 
-.hero { background: var(--ink); padding: 3rem 2rem 2.5rem; position: relative; overflow: hidden; }
-.hero::before { content:''; position:absolute; top:-60px; right:-60px; width:300px; height:300px; border-radius:50%; border:1px solid rgba(184,150,62,0.15); }
-.hero::after { content:''; position:absolute; bottom:-80px; left:-40px; width:200px; height:200px; border-radius:50%; border:1px solid rgba(184,150,62,0.1); }
-.hero-inner { max-width:900px; margin:0 auto; position:relative; z-index:1; }
-.hero-eyebrow { display:flex; align-items:center; gap:10px; margin-bottom:1rem; }
-.hero-line { height:1px; width:40px; background:var(--gold); }
-.hero-eyebrow span { font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:var(--gold); font-weight:500; }
-.hero h1 { font-family:'Cormorant Garamond',serif; font-size:clamp(28px,5vw,42px); font-weight:500; color:var(--white); line-height:1.2; margin-bottom:1rem; }
-.hero h1 em { color:var(--gold-light); font-style:italic; }
-.hero-desc { font-size:13px; color:rgba(255,255,255,0.65); max-width:600px; line-height:1.7; margin-bottom:1.5rem; }
-.domain-tags { display:flex; flex-wrap:wrap; gap:8px; }
-.domain-tag { font-size:11px; font-weight:500; padding:4px 14px; border-radius:20px; letter-spacing:0.04em; }
-.dt-l { background:rgba(74,63,143,0.3); color:#c8c4f0; border:1px solid rgba(74,63,143,0.4); }
-.dt-t { background:rgba(29,106,90,0.3); color:#a0d4c8; border:1px solid rgba(29,106,90,0.4); }
-.dt-i { background:rgba(143,94,26,0.3); color:#f0c87a; border:1px solid rgba(143,94,26,0.4); }
+.hero{background:var(--ink);padding:3rem 2rem 2.5rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-60px;right:-60px;width:300px;height:300px;border-radius:50%;border:1px solid rgba(184,150,62,.15)}
+.hero::after{content:'';position:absolute;bottom:-80px;left:-40px;width:200px;height:200px;border-radius:50%;border:1px solid rgba(184,150,62,.1)}
+.hero-inner{max-width:900px;margin:0 auto;position:relative;z-index:1}
+.hero-eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
+.hero-line{height:1px;width:40px;background:var(--gold)}
+.hero-eyebrow span{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:500}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,5vw,42px);font-weight:500;color:var(--white);line-height:1.2;margin-bottom:1rem}
+.hero h1 em{color:var(--gold-light);font-style:italic}
+.hero-desc{font-size:13px;color:rgba(255,255,255,.65);max-width:600px;line-height:1.7;margin-bottom:1.5rem}
+.domain-tags{display:flex;flex-wrap:wrap;gap:8px}
+.domain-tag{font-size:11px;font-weight:500;padding:4px 14px;border-radius:20px;letter-spacing:.04em}
+.dt-l{background:rgba(74,63,143,.3);color:#c8c4f0;border:1px solid rgba(74,63,143,.4)}
+.dt-t{background:rgba(29,106,90,.3);color:#a0d4c8;border:1px solid rgba(29,106,90,.4)}
+.dt-i{background:rgba(143,94,26,.3);color:#f0c87a;border:1px solid rgba(143,94,26,.4)}
 
-.main { max-width:980px; margin:0 auto; padding:2.5rem 1.5rem 4rem; }
-.section-label { display:flex; align-items:center; gap:10px; margin-bottom:1.25rem; }
-.section-label span { font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink-soft); font-weight:500; }
-.section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+.main{max-width:980px;margin:0 auto;padding:2.5rem 1.5rem 4rem}
+.section-label{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem}
+.section-label span{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
 
-.dept-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.5rem; margin-bottom:2rem; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; }
+.dept-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:2rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
 
-.field { display:flex; flex-direction:column; gap:5px; }
-.field label { font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-soft); font-weight:500; }
-.field input,.field select,.field textarea { font-family:'Outfit',sans-serif; font-size:13px; color:var(--ink); background:var(--cream); border:1px solid var(--border); border-radius:8px; padding:8px 12px; transition:border-color 0.15s,background 0.15s,box-shadow 0.15s; width:100%; }
-.field input:focus,.field select:focus,.field textarea:focus { outline:none; border-color:var(--gold); background:var(--white); box-shadow:0 0 0 3px rgba(184,150,62,0.12); }
-.field textarea { resize:vertical; min-height:60px; line-height:1.5; }
-.field select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a7a9a'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:28px; cursor:pointer; }
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}
+.field input,.field select,.field textarea{font-family:'Outfit',sans-serif;font-size:13px;color:var(--ink);background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:8px 12px;transition:border-color .15s,background .15s,box-shadow .15s;width:100%}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold);background:var(--white);box-shadow:0 0 0 3px rgba(184,150,62,.12)}
+.field textarea{resize:vertical;min-height:60px;line-height:1.5}
+.field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a7a9a'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;cursor:pointer}
 
-.expert-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:2rem; }
-@media(max-width:860px){ .expert-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-@media(max-width:540px){ .expert-grid { grid-template-columns:1fr; } .top-nav{padding:0 1rem} .nav-links .nav-link-ghost{display:none} }
+/* "Other" domain text input */
+.other-domain-wrap{display:none;margin-top:6px}
+.other-domain-wrap.show{display:block}
+.other-domain-wrap input{width:100%;font-family:'Outfit',sans-serif;font-size:13px;color:var(--ink);background:var(--white);border:1px solid var(--gold);border-radius:8px;padding:8px 12px;outline:none;box-shadow:0 0 0 3px rgba(184,150,62,.1);transition:all .2s}
 
-.expert-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; transition:border-color 0.2s,box-shadow 0.2s; animation: fadeUp 0.4s ease both; }
-.expert-card:focus-within { border-color:var(--gold); box-shadow:0 4px 20px rgba(184,150,62,0.1); }
-.expert-card-header { background:var(--ink); padding:12px 16px; display:flex; align-items:center; gap:10px; }
-.expert-num { width:26px; height:26px; border-radius:50%; background:var(--gold); color:var(--ink); font-family:'Cormorant Garamond',serif; font-size:13px; font-weight:500; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.expert-card-title { font-size:12px; font-weight:500; color:var(--white); letter-spacing:0.04em; }
-.expert-card-sub { font-size:10px; color:rgba(255,255,255,0.4); letter-spacing:0.06em; }
-.expert-card-body { padding:14px 16px; display:flex; flex-direction:column; gap:10px; }
+.expert-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:2rem}
+@media(max-width:860px){.expert-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.expert-grid{grid-template-columns:1fr}.top-nav{padding:0 1rem}}
 
-.chips-wrap { display:flex; flex-wrap:wrap; gap:5px; margin-top:2px; }
-.chip { font-size:10px; padding:3px 9px; border-radius:12px; border:1px solid var(--border-strong); cursor:pointer; color:var(--ink-soft); background:var(--cream); transition:all 0.12s; user-select:none; font-family:'Outfit',sans-serif; }
-.chip:hover { border-color:var(--gold); color:var(--amber); }
-.chip.active { background:var(--amber-light); border-color:var(--gold); color:var(--amber); font-weight:500; }
+.expert-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:border-color .2s,box-shadow .2s;animation:fadeUp .4s ease both}
+.expert-card:focus-within{border-color:var(--gold);box-shadow:0 4px 20px rgba(184,150,62,.1)}
+.expert-card-header{background:var(--ink);padding:12px 16px;display:flex;align-items:center;gap:10px}
+.expert-num{width:26px;height:26px;border-radius:50%;background:var(--gold);color:var(--ink);font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.expert-card-title{font-size:12px;font-weight:500;color:var(--white);letter-spacing:.04em}
+.expert-card-sub{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.06em}
+.expert-card-body{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
 
-.success-box { display:none; background:var(--success-bg); border:1px solid #a8d8bf; border-radius:var(--radius-lg); padding:1.5rem; margin-bottom:1.5rem; }
-.success-box h3 { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:500; color:var(--success); margin-bottom:6px; }
-.success-box p { font-size:13px; color:#2d6b4a; line-height:1.7; }
-.steps-list { display:flex; flex-direction:column; gap:10px; margin-top:14px; }
-.step-row { display:flex; align-items:flex-start; gap:12px; background:white; border:1px solid #c0e0d0; border-radius:10px; padding:12px 14px; }
-.step-badge { width:24px; height:24px; border-radius:50%; background:var(--success); color:#fff; font-size:11px; font-weight:500; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
-.step-text { font-size:12px; color:#1a5c3a; line-height:1.6; }
-.step-text strong { font-weight:500; color:var(--success); }
+/* delete expert button */
+.expert-delete-btn{margin-top:4px;padding:5px 12px;background:none;border:1px solid #e0c0b8;border-radius:7px;color:var(--error);font-family:'Outfit',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;align-self:flex-end}
+.expert-delete-btn:hover{background:var(--error-bg);border-color:var(--error)}
 
-/* DB saved badge */
-.db-badge { display:inline-flex; align-items:center; gap:6px; background:#e6f7ef; border:1px solid #a8d8bf; border-radius:20px; padding:4px 12px; font-size:11px; color:var(--success); font-weight:500; margin-top:10px; }
-.db-dot { width:7px; height:7px; border-radius:50%; background:var(--success); animation: pulse 1.5s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.chips-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+.chip{font-size:10px;padding:3px 9px;border-radius:12px;border:1px solid var(--border-strong);cursor:pointer;color:var(--ink-soft);background:var(--cream);transition:all .12s;user-select:none;font-family:'Outfit',sans-serif}
+.chip:hover{border-color:var(--gold);color:var(--amber)}
+.chip.active{background:var(--amber-light);border-color:var(--gold);color:var(--amber);font-weight:500}
 
-.modal-overlay { display:none; position:fixed; inset:0; background:rgba(10,10,20,0.55); z-index:300; align-items:center; justify-content:center; padding:1rem; }
-.modal-overlay.open { display:flex; }
-.modal { background:var(--white); border-radius:var(--radius-lg); padding:2rem; max-width:460px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
-.modal-title { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:500; color:var(--ink); margin-bottom:4px; }
-.modal-sub { font-size:12px; color:var(--ink-soft); margin-bottom:1.25rem; line-height:1.6; }
-.modal-sub strong { color:var(--ink); font-weight:500; }
-.modal-divider { height:1px; background:var(--border); margin:1rem 0; }
-.modal-reminder { background:#fff8e6; border:1px solid #f0d080; border-radius:8px; padding:10px 14px; font-size:12px; color:#7a5500; margin-bottom:14px; line-height:1.5; }
-.modal-reminder strong { font-weight:500; }
+.success-box{display:none;background:var(--success-bg);border:1px solid #a8d8bf;border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem}
+.success-box h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;color:var(--success);margin-bottom:6px}
+.success-box p{font-size:13px;color:#2d6b4a;line-height:1.7}
+.steps-list{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.step-row{display:flex;align-items:flex-start;gap:12px;background:white;border:1px solid #c0e0d0;border-radius:10px;padding:12px 14px}
+.step-badge{width:24px;height:24px;border-radius:50%;background:var(--success);color:#fff;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-text{font-size:12px;color:#1a5c3a;line-height:1.6}
+.step-text strong{font-weight:500;color:var(--success)}
+.db-badge{display:inline-flex;align-items:center;gap:6px;background:#e6f7ef;border:1px solid #a8d8bf;border-radius:20px;padding:4px 12px;font-size:11px;color:var(--success);font-weight:500;margin-top:10px}
+.db-dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-.email-option { display:flex; align-items:center; gap:12px; padding:12px 14px; border:1px solid var(--border); border-radius:10px; margin-bottom:8px; cursor:pointer; text-decoration:none; transition:border-color 0.15s,background 0.15s; }
-.email-option:hover { border-color:var(--gold); background:var(--gold-pale); }
-.email-icon { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.ei-gmail { background:#fdecea; } .ei-outlook { background:#e8f0fe; } .ei-default { background:var(--cream); border:1px solid var(--border); }
-.email-option-label { font-size:13px; font-weight:500; color:var(--ink); }
-.email-option-desc { font-size:11px; color:var(--ink-soft); }
-.arrow { color:#ccc; font-size:16px; margin-left:auto; }
+/* Add expert button */
+.add-expert-row{display:flex;justify-content:center;margin-bottom:1.5rem}
+.add-expert-btn{padding:10px 24px;background:transparent;border:1.5px dashed var(--border-strong);border-radius:10px;color:var(--ink-soft);font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;transition:all .2s}
+.add-expert-btn:hover{border-color:var(--gold);color:var(--amber)}
 
-.manual-box { background:var(--cream); border:1px solid var(--border); border-radius:8px; padding:12px 14px; }
-.manual-box p { font-size:12px; color:var(--ink-soft); margin-bottom:6px; }
-.manual-email { font-size:12px; font-weight:500; color:var(--purple); font-family:monospace; letter-spacing:0.02em; word-break:break-all; }
-.copy-btn { margin-top:8px; font-size:11px; padding:4px 12px; border-radius:6px; border:1px solid var(--border-strong); background:var(--white); cursor:pointer; color:var(--ink-mid); font-family:'Outfit',sans-serif; transition:all 0.12s; }
-.copy-btn:hover { background:var(--gold-pale); border-color:var(--gold); }
-.modal-close { margin-top:1rem; width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; background:transparent; font-family:'Outfit',sans-serif; font-size:13px; color:var(--ink-soft); cursor:pointer; }
-.modal-close:hover { background:var(--cream); color:var(--ink); }
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,10,20,.55);z-index:300;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:var(--radius-lg);padding:2rem;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:var(--ink);margin-bottom:4px}
+.modal-sub{font-size:12px;color:var(--ink-soft);margin-bottom:1.25rem;line-height:1.6}
+.modal-sub strong{color:var(--ink);font-weight:500}
+.modal-divider{height:1px;background:var(--border);margin:1rem 0}
+.modal-reminder{background:#fff8e6;border:1px solid #f0d080;border-radius:8px;padding:10px 14px;font-size:12px;color:#7a5500;margin-bottom:14px;line-height:1.5}
+.modal-reminder strong{font-weight:500}
+.email-option{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;text-decoration:none;transition:border-color .15s,background .15s}
+.email-option:hover{border-color:var(--gold);background:var(--gold-pale)}
+.email-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ei-gmail{background:#fdecea}.ei-outlook{background:#e8f0fe}.ei-default{background:var(--cream);border:1px solid var(--border)}
+.email-option-label{font-size:13px;font-weight:500;color:var(--ink)}
+.email-option-desc{font-size:11px;color:var(--ink-soft)}
+.arrow{color:#ccc;font-size:16px;margin-left:auto}
+.manual-box{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.manual-box p{font-size:12px;color:var(--ink-soft);margin-bottom:6px}
+.manual-email{font-size:12px;font-weight:500;color:var(--purple);font-family:monospace;letter-spacing:.02em;word-break:break-all}
+.copy-btn{margin-top:8px;font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid var(--border-strong);background:var(--white);cursor:pointer;color:var(--ink-mid);font-family:'Outfit',sans-serif;transition:all .12s}
+.copy-btn:hover{background:var(--gold-pale);border-color:var(--gold)}
+.modal-close{margin-top:1rem;width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:transparent;font-family:'Outfit',sans-serif;font-size:13px;color:var(--ink-soft);cursor:pointer}
+.modal-close:hover{background:var(--cream);color:var(--ink)}
 
-.btn-row { display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; align-items:center; }
-.btn { font-family:'Outfit',sans-serif; font-size:13px; font-weight:500; padding:11px 24px; border-radius:8px; border:none; cursor:pointer; transition:all 0.15s; letter-spacing:0.02em; white-space:nowrap; }
-.btn:active { transform:scale(0.98); }
-.btn-primary { background:var(--ink); color:var(--gold-light); border:1px solid var(--ink); }
-.btn-primary:hover { background:var(--purple); border-color:var(--purple); }
-.btn-primary:disabled { background:#b0b0c0; border-color:#b0b0c0; color:#fff; cursor:not-allowed; transform:none; }
-.btn-csv { display:none; background:var(--teal-light); color:var(--teal); border:1px solid #a0cfc5; }
-.btn-csv:hover { background:#cce8e2; }
-.btn-email { display:none; background:var(--gold-pale); color:var(--amber); border:1px solid var(--gold-light); }
-.btn-email:hover { background:#f5e8c0; }
+.btn-row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;align-items:center}
+.btn{font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;padding:11px 24px;border-radius:8px;border:none;cursor:pointer;transition:all .15s;letter-spacing:.02em;white-space:nowrap}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--ink);color:var(--gold-light);border:1px solid var(--ink)}
+.btn-primary:hover{background:var(--purple);border-color:var(--purple)}
+.btn-primary:disabled{background:#b0b0c0;border-color:#b0b0c0;color:#fff;cursor:not-allowed;transform:none}
+.btn-csv{display:none;background:var(--teal-light);color:var(--teal);border:1px solid #a0cfc5}
+.btn-csv:hover{background:#cce8e2}
+.btn-email{display:none;background:var(--gold-pale);color:var(--amber);border:1px solid var(--gold-light)}
+.btn-email:hover{background:#f5e8c0}
 
-.form-footer { margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
-.footer-brand { font-family:'Cormorant Garamond',serif; font-size:14px; color:var(--ink-soft); font-style:italic; }
-.footer-note { font-size:11px; color:var(--ink-soft); }
-@keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+.form-footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.footer-brand{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-soft);font-style:italic}
+.footer-note{font-size:11px;color:var(--ink-soft)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
 
-<!-- TOP NAV -->
+<!-- TOP NAV — no auth links, no external navigation -->
 <nav class="top-nav">
-  <a href="/" class="nav-brand">✦ Form<span>Craft</span></a>
-  <div class="nav-links">
-    <a href="{{ url_for('nomination.index') }}" class="nav-link nav-link-active">📋 Expert Nomination</a>
-    <a href="{{ url_for('auth.login') }}" class="nav-link nav-link-ghost">Login</a>
-    <a href="{{ url_for('auth.register') }}" class="nav-link nav-link-cta">Create Forms</a>
-  </div>
+  <a href="#" class="nav-brand">◈ FORM<span>.AI</span></a>
 </nav>
 
 <div class="top-banner">Jain (Deemed-to-be University) &nbsp;·&nbsp; Office of Academic Affairs &nbsp;·&nbsp; Thought Leaders Network Initiative</div>
@@ -202,19 +175,18 @@ body { font-family: 'Outfit', sans-serif; background: var(--cream); color: var(-
   <div class="section-label"><span>Expert Recommendations (2–6)</span></div>
   <div class="expert-grid" id="expert-grid"></div>
 
+  <!-- Add Expert button -->
+  <div class="add-expert-row">
+    <button class="add-expert-btn" id="addExpertBtn" onclick="addExpertCard()">+ Add Another Expert</button>
+  </div>
+
   <div class="success-box" id="success-box">
-    <h3>✅ Nominations saved & compiled</h3>
+    <h3>✅ Nominations saved &amp; compiled</h3>
     <p>Your expert recommendations have been <strong>saved to the database</strong> and are ready for email submission. Please complete both steps below.</p>
     <div class="db-badge"><span class="db-dot"></span> Saved to Jain University database</div>
     <div class="steps-list" style="margin-top:14px">
-      <div class="step-row">
-        <div class="step-badge">1</div>
-        <div class="step-text"><strong>Download CSV.</strong> Save the nominations file to your device to attach in Step 2.</div>
-      </div>
-      <div class="step-row">
-        <div class="step-badge">2</div>
-        <div class="step-text"><strong>Send via Email.</strong> Click "Send via Email", attach the CSV, and send from your official Jain University email ID.</div>
-      </div>
+      <div class="step-row"><div class="step-badge">1</div><div class="step-text"><strong>Download CSV.</strong> Save the nominations file to your device to attach in Step 2.</div></div>
+      <div class="step-row"><div class="step-badge">2</div><div class="step-text"><strong>Send via Email.</strong> Click "Send via Email", attach the CSV, and send from your official Jain University email ID.</div></div>
     </div>
   </div>
 
@@ -236,31 +208,21 @@ body { font-family: 'Outfit', sans-serif; background: var(--cream); color: var(-
     <div class="modal-title">Send your nominations</div>
     <div class="modal-sub">Choose your preferred email option. Subject and body will be pre-filled.<br><br><strong>Important:</strong> Send from your official Jain University email ID.</div>
     <div class="modal-reminder"><strong>Have you downloaded the CSV?</strong> Remember to attach it before hitting Send.</div>
-
     <a class="email-option" id="gmail-link" href="#" target="_blank">
-      <div class="email-icon ei-gmail">
-        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M4.5 10A2.5 2.5 0 002 12.5v23A2.5 2.5 0 004.5 38H10V20.5L24 30l14-9.5V38h5.5A2.5 2.5 0 0046 35.5v-23A2.5 2.5 0 0043.5 10H4.5z"/><path fill="#FBBC05" d="M2 12.5L24 27l22-14.5"/><path fill="#34A853" d="M10 38H4.5A2.5 2.5 0 012 35.5V12.5L10 18v20z"/><path fill="#4285F4" d="M46 12.5V35.5A2.5 2.5 0 0143.5 38H38V18l8-5.5z"/><path fill="#C5221F" d="M24 27L2 12.5A2.5 2.5 0 014.5 10h39A2.5 2.5 0 0146 12.5L24 27z"/></svg>
-      </div>
+      <div class="email-icon ei-gmail"><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M4.5 10A2.5 2.5 0 002 12.5v23A2.5 2.5 0 004.5 38H10V20.5L24 30l14-9.5V38h5.5A2.5 2.5 0 0046 35.5v-23A2.5 2.5 0 0043.5 10H4.5z"/><path fill="#FBBC05" d="M2 12.5L24 27l22-14.5"/><path fill="#34A853" d="M10 38H4.5A2.5 2.5 0 012 35.5V12.5L10 18v20z"/><path fill="#4285F4" d="M46 12.5V35.5A2.5 2.5 0 0143.5 38H38V18l8-5.5z"/><path fill="#C5221F" d="M24 27L2 12.5A2.5 2.5 0 014.5 10h39A2.5 2.5 0 0146 12.5L24 27z"/></svg></div>
       <div style="flex:1"><div class="email-option-label">Open in Gmail</div><div class="email-option-desc">Opens Gmail in your browser</div></div>
       <span class="arrow">→</span>
     </a>
-
     <a class="email-option" id="outlook-link" href="#" target="_blank">
-      <div class="email-icon ei-outlook">
-        <svg width="20" height="20" viewBox="0 0 48 48"><rect width="48" height="48" rx="6" fill="#0078D4"/><path d="M6 14l18 12L42 14" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/><rect x="6" y="14" width="36" height="24" rx="2" fill="none" stroke="white" stroke-width="2.5"/></svg>
-      </div>
+      <div class="email-icon ei-outlook"><svg width="20" height="20" viewBox="0 0 48 48"><rect width="48" height="48" rx="6" fill="#0078D4"/><path d="M6 14l18 12L42 14" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/><rect x="6" y="14" width="36" height="24" rx="2" fill="none" stroke="white" stroke-width="2.5"/></svg></div>
       <div style="flex:1"><div class="email-option-label">Open in Outlook</div><div class="email-option-desc">Opens Outlook Web or desktop app</div></div>
       <span class="arrow">→</span>
     </a>
-
     <a class="email-option" id="mailto-link" href="#">
-      <div class="email-icon ei-default">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7a7a9a" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>
-      </div>
+      <div class="email-icon ei-default"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7a7a9a" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg></div>
       <div style="flex:1"><div class="email-option-label">Open default mail app</div><div class="email-option-desc">Apple Mail, Thunderbird, system default</div></div>
       <span class="arrow">→</span>
     </a>
-
     <div class="modal-divider"></div>
     <div class="manual-box">
       <p>Prefer to compose manually? Send to:</p>
@@ -272,153 +234,211 @@ body { font-family: 'Outfit', sans-serif; background: var(--cream); color: var(-
 </div>
 
 <script>
-(function() {
-  var HEAD_EMAIL = 'officeofacademicaffairs@jainuniversity.ac.in';
-  var SUBMIT_URL = '/nomination/submit';
+(function(){
+  var HEAD_EMAIL='officeofacademicaffairs@jainuniversity.ac.in';
+  var SUBMIT_URL='/nomination/submit';
 
-  var domains = ['Linguistics', 'Digital Humanities', 'Indian Knowledge Systems (IKS)', 'Interdisciplinary', 'Other'];
-  var roles   = ['Adjunct Faculty', 'Industry Mentor', 'Professor of Practice', 'SIG Member', 'Strategic Advisor'];
-  var fieldDefs = [
-    { id:'name',        label:'Full name',                 type:'input',    placeholder:'Dr. Firstname Lastname',            req:true },
-    { id:'designation', label:'Current designation',       type:'input',    placeholder:'Professor / Director / Researcher', req:false },
-    { id:'institution', label:'Institution / Organisation', type:'input',    placeholder:'University or company name',        req:false },
-    { id:'domain',      label:'Domain',                    type:'select',   options:domains,                                 req:false },
-    { id:'contact',     label:'Email / LinkedIn',          type:'input',    placeholder:'contact@institution.edu',           req:false },
-    { id:'reason',      label:'Why recommend?',            type:'textarea', placeholder:'Briefly describe expertise...',     req:false }
+  var domains=['Linguistics','Digital Humanities','Indian Knowledge Systems (IKS)','Interdisciplinary','Other'];
+  var roles=['Adjunct Faculty','Industry Mentor','Professor of Practice','SIG Member','Strategic Advisor'];
+  var fieldDefs=[
+    {id:'name',        label:'Full name',                 type:'input',    placeholder:'Dr. Firstname Lastname',            req:true},
+    {id:'designation', label:'Current designation',       type:'input',    placeholder:'Professor / Director / Researcher', req:false},
+    {id:'institution', label:'Institution / Organisation', type:'input',    placeholder:'University or company name',        req:false},
+    {id:'domain',      label:'Domain',                    type:'select',   options:domains,                                 req:false},
+    {id:'contact',     label:'Email / LinkedIn',          type:'input',    placeholder:'contact@institution.edu',           req:false},
+    {id:'reason',      label:'Why recommend?',            type:'textarea', placeholder:'Briefly describe expertise...',     req:false}
   ];
 
-  var grid = document.getElementById('expert-grid');
-  for (var i = 1; i <= 6; i++) {
-    var card = document.createElement('div');
-    card.className = 'expert-card';
-    card.style.animationDelay = (i * 0.05) + 's';
-    var isReq = (i <= 2);
-    var html = '<div class="expert-card-header"><div class="expert-num">' + i + '</div><div><div class="expert-card-title">Expert ' + i + '</div><div class="expert-card-sub">' + (isReq ? 'Required' : 'Optional') + '</div></div></div><div class="expert-card-body">';
-    for (var j = 0; j < fieldDefs.length; j++) {
-      var f = fieldDefs[j];
-      html += '<div class="field"><label>' + f.label + (f.req && i===1 ? ' *' : '') + '</label>';
-      if (f.type === 'input') {
-        html += '<input type="text" id="e'+i+'_'+f.id+'" placeholder="'+f.placeholder+'">';
-      } else if (f.type === 'select') {
-        html += '<select id="e'+i+'_'+f.id+'"><option value="">Select domain</option>';
-        for (var k=0;k<f.options.length;k++) html += '<option value="'+f.options[k]+'">'+f.options[k]+'</option>';
-        html += '</select>';
+  var expertCount=0;
+  var grid=document.getElementById('expert-grid');
+
+  function buildExpertCard(i){
+    var isReq=(i<=2);
+    var card=document.createElement('div');
+    card.className='expert-card';
+    card.id='expert-card-'+i;
+    card.style.animationDelay=(i*0.05)+'s';
+
+    var html='<div class="expert-card-header"><div class="expert-num">'+i+'</div><div><div class="expert-card-title">Expert '+i+'</div><div class="expert-card-sub">'+(isReq?'Required':'Optional')+'</div></div></div><div class="expert-card-body" id="expert-body-'+i+'">';
+
+    for(var j=0;j<fieldDefs.length;j++){
+      var f=fieldDefs[j];
+      html+='<div class="field"><label>'+f.label+(f.req&&i===1?' *':'')+'</label>';
+
+      if(f.type==='input'){
+        html+='<input type="text" id="e'+i+'_'+f.id+'" placeholder="'+f.placeholder+'">';
+      } else if(f.type==='select'){
+        html+='<select id="e'+i+'_'+f.id+'" onchange="handleDomainChange(this,'+i+')">';
+        html+='<option value="">Select domain</option>';
+        for(var k=0;k<f.options.length;k++) html+='<option value="'+f.options[k]+'">'+f.options[k]+'</option>';
+        html+='</select>';
+        /* "Other" textbox that appears below */
+        html+='<div class="other-domain-wrap" id="otherWrap'+i+'"><input type="text" id="e'+i+'_domain_other" placeholder="Please specify domain..."></div>';
       } else {
-        html += '<textarea id="e'+i+'_'+f.id+'" placeholder="'+f.placeholder+'"></textarea>';
+        html+='<textarea id="e'+i+'_'+f.id+'" placeholder="'+f.placeholder+'"></textarea>';
       }
-      html += '</div>';
+      html+='</div>';
     }
-    html += '<div class="field"><label>Suggested role(s)</label><div class="chips-wrap" id="roles'+i+'">';
-    for (var r=0;r<roles.length;r++) html += '<span class="chip" onclick="toggleChip(this)">'+roles[r]+'</span>';
-    html += '</div></div></div>';
-    card.innerHTML = html;
-    grid.appendChild(card);
+
+    html+='<div class="field"><label>Suggested role(s)</label><div class="chips-wrap" id="roles'+i+'">';
+    for(var r=0;r<roles.length;r++) html+='<span class="chip" onclick="toggleChip(this)">'+roles[r]+'</span>';
+    html+='</div></div>';
+
+    /* Delete button — only for optional experts (i > 2) */
+    if(i>2){
+      html+='<button class="expert-delete-btn" onclick="deleteExpert('+i+')">🗑 Remove Expert</button>';
+    }
+    html+='</div>';
+
+    card.innerHTML=html;
+    return card;
   }
 
-  // Set today's date
-  var dateEl = document.getElementById('sub-date');
-  if (dateEl) {
-    var today = new Date();
-    dateEl.value = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  /* Initialise with 6 experts */
+  function initExperts(){
+    for(var i=1;i<=6;i++){
+      expertCount=i;
+      grid.appendChild(buildExpertCard(i));
+    }
+    updateAddBtn();
+  }
+
+  /* Show / hide "Other" domain text box */
+  window.handleDomainChange=function(sel,i){
+    var wrap=document.getElementById('otherWrap'+i);
+    if(wrap){
+      if(sel.value==='Other') wrap.classList.add('show');
+      else wrap.classList.remove('show');
+    }
+  };
+
+  window.addExpertCard=function(){
+    if(expertCount>=10){alert('Maximum 10 experts per submission.');return;}
+    expertCount++;
+    grid.appendChild(buildExpertCard(expertCount));
+    updateAddBtn();
+  };
+
+  window.deleteExpert=function(i){
+    var card=document.getElementById('expert-card-'+i);
+    if(card) card.remove();
+  };
+
+  function updateAddBtn(){
+    document.getElementById('addExpertBtn').style.display=expertCount>=10?'none':'block';
+  }
+
+  /* Set today's date */
+  var dateEl=document.getElementById('sub-date');
+  if(dateEl){
+    var today=new Date();
+    dateEl.value=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
   }
 
   var compiledData=null, emailSubject='', emailBody='';
+  window.toggleChip=function(el){el.classList.toggle('active');};
 
-  window.toggleChip = function(el) { el.classList.toggle('active'); };
+  function getVal(id){var el=document.getElementById(id);return el?el.value:'';}
 
-  function getVal(id) { var el=document.getElementById(id); return el?el.value:''; }
-
-  window.submitForm = async function() {
-    var dept=getVal('dept-name').trim(), subName=getVal('sub-name').trim(), subEmail=getVal('sub-email').trim();
-    if (!dept)     { alert('Please enter your department name.'); return; }
-    if (!subName)  { alert('Please enter your name.'); return; }
-    if (!subEmail) { alert('Please enter your official email.'); return; }
-    if (!getVal('e1_name').trim()) { alert("Please fill in Expert 1's full name."); return; }
-    if (!getVal('e2_name').trim()) { alert("Please fill in Expert 2's full name (required)."); return; }
-
-    compiledData = { dept:dept, subName:subName, subEmail:subEmail, date:getVal('sub-date'), experts:[] };
-    for (var i=1;i<=6;i++) {
-      var selectedRoles=[], chips=document.querySelectorAll('#roles'+i+' .chip.active');
-      for (var c=0;c<chips.length;c++) selectedRoles.push(chips[c].textContent);
-      compiledData.experts.push({
-        name:getVal('e'+i+'_name'), designation:getVal('e'+i+'_designation'),
-        institution:getVal('e'+i+'_institution'), domain:getVal('e'+i+'_domain'),
-        contact:getVal('e'+i+'_contact'), reason:getVal('e'+i+'_reason'),
+  function collectExperts(){
+    var experts=[];
+    for(var i=1;i<=expertCount;i++){
+      var card=document.getElementById('expert-card-'+i);
+      if(!card)continue;
+      var domainVal=getVal('e'+i+'_domain');
+      if(domainVal==='Other'){
+        var other=getVal('e'+i+'_domain_other');
+        if(other)domainVal=other;
+      }
+      var selectedRoles=[],chips=card.querySelectorAll('#roles'+i+' .chip.active');
+      for(var c=0;c<chips.length;c++)selectedRoles.push(chips[c].textContent);
+      experts.push({
+        name:getVal('e'+i+'_name'),designation:getVal('e'+i+'_designation'),
+        institution:getVal('e'+i+'_institution'),domain:domainVal,
+        contact:getVal('e'+i+'_contact'),reason:getVal('e'+i+'_reason'),
         roles:selectedRoles.join(' | ')
       });
     }
+    return experts;
+  }
 
-    // Save to DB
-    try {
-      var btn = document.getElementById('btn-submit');
-      btn.textContent = 'Saving...'; btn.disabled = true;
-      var res = await fetch(SUBMIT_URL, {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(compiledData)
-      });
-      var result = await res.json();
-      if (!result.success) throw new Error('Save failed');
-    } catch(e) {
-      console.warn('DB save failed, continuing offline:', e);
-    }
+  window.submitForm=async function(){
+    var dept=getVal('dept-name').trim(),subName=getVal('sub-name').trim(),subEmail=getVal('sub-email').trim();
+    if(!dept){alert('Please enter your department name.');return;}
+    if(!subName){alert('Please enter your name.');return;}
+    if(!subEmail){alert('Please enter your official email.');return;}
+    var experts=collectExperts();
+    var filledExperts=experts.filter(function(e){return e.name.trim();});
+    if(filledExperts.length<2){alert('Please fill in at least 2 experts\' full names.');return;}
 
-    var filledExperts = compiledData.experts.filter(function(e){return e.name.trim();});
-    var expertSummary = '';
-    for (var idx=0;idx<filledExperts.length;idx++) {
+    compiledData={dept:dept,subName:subName,subEmail:subEmail,date:getVal('sub-date'),experts:experts};
+
+    /* Save to DB */
+    try{
+      var btn=document.getElementById('btn-submit');
+      btn.textContent='Saving...';btn.disabled=true;
+      var res=await fetch(SUBMIT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(compiledData)});
+      var result=await res.json();
+      if(!result.success)throw new Error('Save failed');
+    }catch(e){console.warn('DB save failed, continuing offline:',e);}
+
+    var expertSummary='';
+    for(var idx=0;idx<filledExperts.length;idx++){
       var e=filledExperts[idx];
-      expertSummary += 'Expert '+(idx+1)+': '+e.name+(e.designation?', '+e.designation:'')+(e.institution?', '+e.institution:'')+'\n';
+      expertSummary+='Expert '+(idx+1)+': '+e.name+(e.designation?', '+e.designation:'')+(e.institution?', '+e.institution:'')+'\n';
     }
-
-    emailSubject = 'Expert Nominations – '+dept+' – '+compiledData.date;
-    emailBody = 'Dear Office of Academic Affairs,\n\nKindly find attached the Expert Nomination Form submitted by '+dept+' on '+compiledData.date+'. The file contains our recommendations for thought leaders and practitioners across Linguistics, Digital Humanities, and Indian Knowledge Systems for the Thought Leaders Network initiative.\n\nSummary of Nominations ('+filledExperts.length+' expert'+(filledExperts.length!==1?'s':'')+':\n'+expertSummary+'\nNote: Please find the complete nomination details in the attached CSV file.\n\nWarm regards,\n'+subName+'\n'+dept+'\n'+subEmail;
+    emailSubject='Expert Nominations – '+dept+' – '+compiledData.date;
+    emailBody='Dear Office of Academic Affairs,\n\nKindly find attached the Expert Nomination Form submitted by '+dept+' on '+compiledData.date+'.\n\nSummary ('+filledExperts.length+' expert'+(filledExperts.length!==1?'s':'')+':\n'+expertSummary+'\nNote: Please find the complete nomination details in the attached CSV file.\n\nWarm regards,\n'+subName+'\n'+dept+'\n'+subEmail;
 
     document.getElementById('success-box').style.display='block';
     document.getElementById('btn-csv').style.display='inline-block';
     document.getElementById('btn-email').style.display='inline-block';
     var submitBtn=document.getElementById('btn-submit');
-    submitBtn.disabled=true; submitBtn.textContent='✓ Submitted';
+    submitBtn.disabled=true;submitBtn.textContent='✓ Submitted';
     document.getElementById('success-box').scrollIntoView({behavior:'smooth',block:'nearest'});
   };
 
-  function esc(val) { if(!val)return'""'; return'"'+String(val).replace(/"/g,'""')+'"'; }
+  function esc(val){if(!val)return'""';return'"'+String(val).replace(/"/g,'""')+'"';}
 
-  window.downloadCSV = function() {
-    if (!compiledData) return;
+  window.downloadCSV=function(){
+    if(!compiledData)return;
     var d=compiledData;
     var csv='Jain (Deemed-to-be University) – Expert Nomination Form\nOffice of Academic Affairs – Thought Leaders Network Initiative\n\n'
       +'Department,'+esc(d.dept)+'\nSubmitted By,'+esc(d.subName)+'\nEmail,'+esc(d.subEmail)+'\nDate,'+esc(d.date)+'\n\n';
-    var headers=['Expert 1','Expert 2','Expert 3','Expert 4','Expert 5','Expert 6'];
+    var filledExperts=d.experts.filter(function(e){return e.name&&e.name.trim();});
+    var headers=filledExperts.map(function(_,i){return 'Expert '+(i+1);});
     var rowLabels=['Full Name','Designation','Institution / Organisation','Domain','Email / LinkedIn','Why Recommend?','Suggested Role(s)'];
     var expertFields=['name','designation','institution','domain','contact','reason','roles'];
     csv+='Field,'+headers.map(esc).join(',')+'\n';
-    for (var ri=0;ri<rowLabels.length;ri++) {
+    for(var ri=0;ri<rowLabels.length;ri++){
       var field=expertFields[ri];
-      csv+=esc(rowLabels[ri])+','+d.experts.map(function(e){return esc(e[field]);}).join(',')+'\n';
+      csv+=esc(rowLabels[ri])+','+filledExperts.map(function(e){return esc(e[field]);}).join(',')+'\n';
     }
     var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
     var url=URL.createObjectURL(blob);
     var a=document.createElement('a');
-    a.href=url; a.download=d.dept.replace(/\s+/g,'_')+'_Expert_Nominations_'+d.date+'.csv';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    a.href=url;a.download=d.dept.replace(/\s+/g,'_')+'_Expert_Nominations_'+d.date+'.csv';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
   };
 
-  window.openEmailModal = function() {
-    if (!compiledData) { alert('Please submit the form first.'); return; }
-    var subj=encodeURIComponent(emailSubject), body=encodeURIComponent(emailBody), to=encodeURIComponent(HEAD_EMAIL);
+  window.openEmailModal=function(){
+    if(!compiledData){alert('Please submit the form first.');return;}
+    var subj=encodeURIComponent(emailSubject),body=encodeURIComponent(emailBody),to=encodeURIComponent(HEAD_EMAIL);
     document.getElementById('gmail-link').href='https://mail.google.com/mail/?view=cm&fs=1&to='+to+'&su='+subj+'&body='+body;
     document.getElementById('outlook-link').href='https://outlook.office.com/mail/deeplink/compose?to='+to+'&subject='+subj+'&body='+body;
     document.getElementById('mailto-link').href='mailto:'+HEAD_EMAIL+'?subject='+subj+'&body='+body;
     document.getElementById('modal-overlay').classList.add('open');
   };
 
-  window.closeModal = function() { document.getElementById('modal-overlay').classList.remove('open'); };
-
-  window.copyEmail = function() {
-    navigator.clipboard.writeText(HEAD_EMAIL).then(function() {
-      var btn=document.getElementById('copy-btn'); btn.textContent='Copied!';
+  window.closeModal=function(){document.getElementById('modal-overlay').classList.remove('open');};
+  window.copyEmail=function(){
+    navigator.clipboard.writeText(HEAD_EMAIL).then(function(){
+      var btn=document.getElementById('copy-btn');btn.textContent='Copied!';
       setTimeout(function(){btn.textContent='Copy address';},2000);
     });
   };
+
+  initExperts();
 })();
 </script>
 </body>

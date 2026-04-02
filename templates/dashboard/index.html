@@ -1,12 +1,16 @@
 {% extends 'base.html' %}
-{% block title %}My Forms — FormCraft{% endblock %}
+{% block title %}My Workspace — FORM.AI{% endblock %}
 {% block body_class %}app-page{% endblock %}
 {% block body %}
 <nav class="app-nav">
-  <div class="nav-brand">✦ FormCraft</div>
+  <div class="nav-brand">◈ FORM<span style="color:var(--mango)">.AI</span></div>
   <div class="nav-right">
+    <a href="{{ url_for('newsletter.index') }}" class="btn-ghost-sm">📰 Newsletters</a>
     <a href="{{ url_for('nomination.index') }}" class="btn-ghost-sm">📋 Nominations</a>
-    <a href="{{ url_for('nomination.admin') }}" class="btn-ghost-sm">📊 Nom. Admin</a>
+    {% if current_user.email in ['admin@formcraft.ai', 'admin@jainuniversity.ac.in'] or current_user.id == admin_id|default('') %}
+    <a href="{{ url_for('admin_panel.index') }}" class="btn-ghost-sm" style="color:#FFB347;border-color:rgba(255,140,0,.3)">⚡ Admin</a>
+    {% endif %}
+    <a href="{{ url_for('admin_panel.index') }}" class="btn-ghost-sm" style="color:#FFB347;border-color:rgba(255,140,0,.3)">⚡ Admin</a>
     <div class="user-pill">
       <div class="user-init">{{ current_user.name[0].upper() }}</div>
       <span>{{ current_user.name }}</span>
@@ -17,13 +21,37 @@
 
 <div class="app-body">
 
+  <!-- QUICK CREATE SECTION -->
+  <div class="quick-create-row">
+    <div class="qc-card" onclick="document.getElementById('newModal').style.display='flex'">
+      <div class="qc-icon">📋</div>
+      <div class="qc-label">New Form</div>
+      <div class="qc-sub">Survey, quiz, feedback</div>
+    </div>
+    <div class="qc-card" onclick="toggleAIPanel()">
+      <div class="qc-icon">✦</div>
+      <div class="qc-label">AI Form</div>
+      <div class="qc-sub">Generate with AI</div>
+    </div>
+    <div class="qc-card" onclick="window.location.href='{{ url_for('newsletter.index') }}'">
+      <div class="qc-icon">📰</div>
+      <div class="qc-label">Newsletter</div>
+      <div class="qc-sub">Create & send emails</div>
+    </div>
+    <div class="qc-card" onclick="document.getElementById('quizModal').style.display='flex'">
+      <div class="qc-icon">🧠</div>
+      <div class="qc-label">Quiz Builder</div>
+      <div class="qc-sub">Grid layout & scoring</div>
+    </div>
+  </div>
+
   <!-- AI GENERATOR BANNER -->
   <div class="ai-banner" id="aiBanner">
     <div class="ai-banner-left">
       <div class="ai-badge">✦ AI</div>
       <div>
         <div class="ai-banner-title">Generate a form with AI</div>
-        <div class="ai-banner-sub">Describe your form and FORM AI will build it instantly</div>
+        <div class="ai-banner-sub">Describe your form and FORM.AI will build it instantly</div>
       </div>
     </div>
     <button class="ai-toggle-btn" onclick="toggleAIPanel()">Try it →</button>
@@ -36,12 +64,11 @@
         <div class="ai-icon">✦</div>
         <div>
           <div class="ai-panel-title">AI Form Generator</div>
-          <div class="ai-panel-sub">Powered by FORM AI· Describe your form in plain English</div>
+          <div class="ai-panel-sub">Powered by FORM.AI · Describe your form in plain English</div>
         </div>
       </div>
       <button class="ai-close" onclick="toggleAIPanel()">✕</button>
     </div>
-
     <div class="ai-examples">
       <div class="ai-ex-label">Try an example:</div>
       <div class="ai-ex-chips">
@@ -53,7 +80,6 @@
         <button class="ai-chip" onclick="useExample(this)">Expert nomination form for academic committee</button>
       </div>
     </div>
-
     <div class="ai-input-row">
       <textarea id="aiPrompt" class="ai-textarea" placeholder="e.g. Create a 3-page student feedback form for the end of semester with questions about teaching quality, course content, and suggestions for improvement..." rows="3"></textarea>
       <button class="ai-gen-btn" id="aiGenBtn" onclick="generateForm()">
@@ -130,11 +156,37 @@
   </div>
 </div>
 
+<!-- Quiz Modal -->
+<div class="modal-overlay" id="quizModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal">
+    <h3>🧠 New Quiz</h3>
+    <p style="font-size:.85rem;color:#888;margin-bottom:16px">Create a quiz with grid view, scoring, and multiple choice options</p>
+    <form action="{{ url_for('dashboard.new_form') }}" method="POST">
+      <div class="fg"><label>Quiz title</label><input type="text" name="title" placeholder="e.g. Science Quiz Chapter 5" required autofocus></div>
+      <input type="hidden" name="form_type" value="quiz">
+      <div class="modal-btns">
+        <button type="button" class="btn-ghost" onclick="document.getElementById('quizModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn-primary">Create Quiz →</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
+
+<style>
+.quick-create-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.qc-card{background:#fff;border-radius:var(--r-lg);padding:20px;text-align:center;cursor:pointer;border:1.5px solid var(--bd);transition:all .2s;box-shadow:var(--sh)}
+.qc-card:hover{border-color:var(--mango);transform:translateY(-2px);box-shadow:0 8px 28px rgba(255,140,0,.15)}
+.qc-icon{font-size:1.8rem;margin-bottom:8px}
+.qc-label{font-weight:700;font-size:.92rem;margin-bottom:3px}
+.qc-sub{font-size:.75rem;color:#aaa}
+@media(max-width:768px){.quick-create-row{grid-template-columns:repeat(2,1fr)}}
+</style>
 
 <script>
 const GENERATE_URL  = '/ai/generate';
-const CREATE_API_URL = '/forms/new-api';  // POST → {success, form_id}
+const CREATE_API_URL = '/forms/new-api';
 
 function toggleAIPanel(){
   const p = document.getElementById('aiPanel');
@@ -153,58 +205,29 @@ function useExample(btn){
 async function generateForm(){
   const prompt = document.getElementById('aiPrompt').value.trim();
   if(!prompt){ alert('Please describe the form you want to create.'); return; }
-
   const btn  = document.getElementById('aiGenBtn');
   const txt  = document.getElementById('aiGenTxt');
   const err  = document.getElementById('aiError');
   err.style.display = 'none';
   btn.disabled = true;
-
   try {
-    // Step 1 — Generate form JSON with AI
     txt.innerHTML = '<span class="ai-spinner"></span> Thinking...';
-    const genRes = await fetch(GENERATE_URL, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({prompt})
-    });
+    const genRes = await fetch(GENERATE_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
     const genData = await genRes.json();
-    if(!genRes.ok || !genData.success){
-      throw new Error(genData.error || `AI error ${genRes.status}`);
-    }
-
-    // Step 2 — Create blank form in DB, get its ID back as JSON
+    if(!genRes.ok || !genData.success) throw new Error(genData.error || `AI error ${genRes.status}`);
     txt.innerHTML = '<span class="ai-spinner"></span> Creating form...';
-    const createRes = await fetch(CREATE_API_URL, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({title: genData.form.title || 'AI Generated Form'})
-    });
+    const createRes = await fetch(CREATE_API_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title: genData.form.title || 'AI Generated Form'})});
     const rawText = await createRes.text();
     let createData;
-    try { createData = JSON.parse(rawText); }
-    catch(e) { throw new Error('Server error creating form: ' + rawText.slice(0,120)); }
-    if(!createRes.ok || !createData.success){
-      throw new Error(createData.error || 'Could not create form in database');
-    }
+    try { createData = JSON.parse(rawText); } catch(e) { throw new Error('Server error creating form: ' + rawText.slice(0,120)); }
+    if(!createRes.ok || !createData.success) throw new Error(createData.error || 'Could not create form in database');
     const formId = createData.form_id;
-
-    // Step 3 — Save AI content into the form
     txt.innerHTML = '<span class="ai-spinner"></span> Saving...';
-    const saveRes = await fetch('/builder/' + formId + '/save', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(genData.form)
-    });
+    const saveRes = await fetch('/builder/' + formId + '/save', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(genData.form)});
     const saveData = await saveRes.json();
-    if(!saveRes.ok || !saveData.success){
-      throw new Error('Could not save form content');
-    }
-
-    // Step 4 — Open builder
+    if(!saveRes.ok || !saveData.success) throw new Error('Could not save form content');
     showToast('✦ Form generated! Opening builder...', 'success');
     setTimeout(()=>{ window.location.href = '/builder/' + formId; }, 700);
-
   } catch(e) {
     err.textContent = '⚠ ' + e.message;
     err.style.display = 'block';

@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+{% block title %}Admin Panel — FORM.AI{% endblock %}
+{% block body_class %}app-page{% endblock %}
+{% block body %}
+<nav class="app-nav">
+  <div class="nav-brand">◈ FORM<span style="color:var(--mango)">.AI</span> <span style="font-size:.7rem;background:var(--mango);color:#1A1A2E;padding:2px 8px;border-radius:4px;font-weight:700;margin-left:6px">ADMIN</span></div>
+  <div class="nav-right">
+    <a href="{{ url_for('dashboard.index') }}" class="btn-ghost-sm">← Dashboard</a>
+    <div class="user-pill"><div class="user-init">{{ current_user.name[0].upper() }}</div><span>{{ current_user.name }}</span></div>
+  </div>
+</nav>
+<div class="app-body">
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">⚡ Admin Panel</h1>
+      <p class="page-sub">Full system overview and management</p>
+    </div>
+    <button class="btn-primary" onclick="document.getElementById('notifyModal').style.display='flex'">📣 Send Notification</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+    <div class="stat-card"><div class="sn">{{ total_users }}</div><div class="sl">Total Users</div></div>
+    <div class="stat-card green"><div class="sn">{{ total_forms }}</div><div class="sl">Total Forms</div></div>
+    <div class="stat-card blue"><div class="sn">{{ total_responses }}</div><div class="sl">Total Responses</div></div>
+    <div class="stat-card purple"><div class="sn">{{ total_newsletters }}</div><div class="sl">Newsletters</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:4px;background:#F0EEE8;padding:4px;border-radius:10px;margin-bottom:20px;width:fit-content">
+    <button class="tab active" onclick="showAdminTab('users',this)" style="padding:8px 18px;font-size:.85rem">👥 Users ({{ total_users }})</button>
+    <button class="tab" onclick="showAdminTab('forms',this)" style="padding:8px 18px;font-size:.85rem">📋 Forms ({{ total_forms }})</button>
+  </div>
+
+  <!-- USERS TABLE -->
+  <div id="tab-users">
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table class="resp-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Forms</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td style="font-weight:600">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="width:28px;height:28px;border-radius:50%;background:var(--mango);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0">{{ user.name[0].upper() if user.name else '?' }}</div>
+                  {{ user.name }}
+                </div>
+              </td>
+              <td>{{ user.email }}</td>
+              <td><span style="background:#FFF5E8;color:var(--mango-d);padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:600">{{ user.form_count }}</span></td>
+              <td>{{ user.created_str }}</td>
+              <td>
+                <div style="display:flex;gap:6px">
+                  <button class="btn-xs" onclick="notifyUser('{{ user._id }}','{{ user.name }}','{{ user.email }}')">📣 Notify</button>
+                  {% if user._id != current_user.id %}
+                  <button class="btn-xs" style="color:var(--error);border-color:var(--error)" onclick="deleteUser('{{ user._id }}','{{ user.name }}')">🗑 Delete</button>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORMS TABLE -->
+  <div id="tab-forms" style="display:none">
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table class="resp-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Form Title</th>
+              <th>Owner</th>
+              <th>Status</th>
+              <th>Responses</th>
+              <th>Updated</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for form in forms %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td style="font-weight:600;max-width:200px">{{ form.title }}</td>
+              <td>{{ form.user_name }}</td>
+              <td>
+                {% if form.settings.is_published %}
+                <span style="background:rgba(45,106,79,.1);color:#2D6A4F;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600">● Live</span>
+                {% else %}
+                <span style="background:#F5F5F5;color:#999;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600">Draft</span>
+                {% endif %}
+              </td>
+              <td>{{ form.response_count_real }}</td>
+              <td>{{ form.updated_str }}</td>
+              <td>
+                <div style="display:flex;gap:6px">
+                  {% if form.settings.is_published %}
+                  <a href="/f/{{ form.slug }}" target="_blank" class="btn-xs">🔗 View</a>
+                  {% endif %}
+                  <button class="btn-xs" style="color:var(--error);border-color:var(--error)" onclick="adminDeleteForm('{{ form._id }}','{{ form.title|replace("'","\\'")|e }}')">🗑 Delete</button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notify Modal -->
+<div class="modal-overlay" id="notifyModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head">
+      <h3>📣 Send Notification</h3>
+      <button onclick="document.getElementById('notifyModal').style.display='none'">✕</button>
+    </div>
+    <div class="fg">
+      <label>Send to</label>
+      <select id="notifyTarget">
+        <option value="all">All Users</option>
+        {% for user in users %}
+        <option value="{{ user._id }}">{{ user.name }} ({{ user.email }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="fg">
+      <label>Subject</label>
+      <input type="text" id="notifySubject" placeholder="e.g. Important update from FORM.AI">
+    </div>
+    <div class="fg">
+      <label>Message</label>
+      <textarea id="notifyMessage" rows="5" placeholder="Write your message here..."></textarea>
+    </div>
+    <div id="notifyStatus" style="display:none;background:#F0FFF4;border:1px solid #C8E6C9;border-radius:9px;padding:10px;font-size:.84rem;color:var(--leaf);margin-bottom:12px"></div>
+    <div id="notifyError" style="display:none;background:#FFF0F0;border:1px solid #FFCDD2;border-radius:9px;padding:10px;font-size:.84rem;color:var(--error);margin-bottom:12px"></div>
+    <div class="modal-btns">
+      <button class="btn-ghost" onclick="document.getElementById('notifyModal').style.display='none'">Cancel</button>
+      <button class="btn-primary" onclick="sendNotification()">📣 Send</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function showAdminTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.getElementById('tab-users').style.display = name === 'users' ? 'block' : 'none';
+  document.getElementById('tab-forms').style.display = name === 'forms' ? 'block' : 'none';
+}
+
+function notifyUser(userId, name, email) {
+  document.getElementById('notifyTarget').value = userId;
+  document.getElementById('notifySubject').value = 'Message from FORM.AI admin';
+  document.getElementById('notifyModal').style.display = 'flex';
+}
+
+async function deleteUser(userId, name) {
+  if(!confirm(`Delete user "${name}" and ALL their forms? This cannot be undone.`)) return;
+  const res = await fetch('/admin/delete-user/' + userId, { method: 'POST' });
+  const d = await res.json();
+  if(d.success) { showToast('User deleted', 'success'); setTimeout(() => location.reload(), 1000); }
+  else showToast('Error: ' + d.error, 'info');
+}
+
+async function adminDeleteForm(formId, title) {
+  if(!confirm(`Delete form "${title}" and all its responses?`)) return;
+  const res = await fetch('/admin/delete-form/' + formId, { method: 'POST' });
+  const d = await res.json();
+  if(d.success) { showToast('Form deleted', 'success'); setTimeout(() => location.reload(), 1000); }
+  else showToast('Error: ' + d.error, 'info');
+}
+
+async function sendNotification() {
+  const target = document.getElementById('notifyTarget').value;
+  const subject = document.getElementById('notifySubject').value.trim();
+  const message = document.getElementById('notifyMessage').value.trim();
+  const statusEl = document.getElementById('notifyStatus');
+  const errEl = document.getElementById('notifyError');
+  statusEl.style.display = 'none'; errEl.style.display = 'none';
+
+  if(!subject || !message) { errEl.textContent = 'Subject and message are required'; errEl.style.display = 'block'; return; }
+  const res = await fetch('/admin/notify', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ target, subject, message })
+  });
+  const d = await res.json();
+  if(d.success) {
+    statusEl.textContent = `✅ Sent to ${d.sent_count} user(s)`;
+    statusEl.style.display = 'block';
+    showToast('Notification sent!', 'success');
+  } else {
+    errEl.textContent = '⚠ ' + (d.error || 'Failed to send');
+    errEl.style.display = 'block';
+  }
+}
+
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast');
+  if(!t) return;
+  t.textContent = msg; t.className = 'toast ' + type + ' show';
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+{% endblock %}
