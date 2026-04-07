@@ -26,15 +26,30 @@ def new_form_api():
     from models.form import Form
     data = request.get_json() or {}
     title = data.get('title', 'AI Generated Form')
+    presentation_style = data.get('default_style', 'form')
+
     f = Form.create(current_user.id, title)
-    return jsonify({'success': True, 'form_id': str(f['_id'])})
+    form_id = str(f['_id'])
+
+    # Immediately persist the presentation_style so public view reads it
+    if presentation_style:
+        Form.update(form_id, {
+            'settings.presentation_style': presentation_style
+        })
+
+    return jsonify({
+        'success': True,
+        'form_id': form_id,
+        'presentation_style': presentation_style
+    })
 
 @dashboard_bp.route('/forms/<form_id>/delete', methods=['POST'])
 @login_required
 def delete_form(form_id):
     from models.form import Form
     f = Form.get_by_id(form_id)
-    if f and f['user_id'] == current_user.id: Form.delete(form_id)
+    if f and f['user_id'] == current_user.id:
+        Form.delete(form_id)
     return redirect(url_for('dashboard.index'))
 
 @dashboard_bp.route('/forms/<form_id>/duplicate', methods=['POST'])
@@ -44,7 +59,10 @@ def duplicate_form(form_id):
     orig = Form.get_by_id(form_id)
     if orig and orig['user_id'] == current_user.id:
         nf = Form.create(current_user.id, orig['title']+' (Copy)')
-        Form.update(str(nf['_id']),{
-            'pages':orig['pages'],'theme':orig['theme'],
-            'settings':orig['settings'],'description':orig.get('description','')})
+        Form.update(str(nf['_id']), {
+            'pages':    orig['pages'],
+            'theme':    orig['theme'],
+            'settings': orig['settings'],
+            'description': orig.get('description','')
+        })
     return redirect(url_for('dashboard.index'))
