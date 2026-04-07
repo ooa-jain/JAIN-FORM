@@ -7,9 +7,6 @@
   <div class="nav-right">
     <a href="{{ url_for('newsletter.index') }}" class="btn-ghost-sm">📰 Newsletters</a>
     <a href="{{ url_for('nomination.index') }}" class="btn-ghost-sm">📋 Nominations</a>
-    {% if current_user.email in ['admin@formcraft.ai', 'admin@jainuniversity.ac.in'] or current_user.id == admin_id|default('') %}
-    <a href="{{ url_for('admin_panel.index') }}" class="btn-ghost-sm" style="color:#FFB347;border-color:rgba(255,140,0,.3)">⚡ Admin</a>
-    {% endif %}
     <a href="{{ url_for('admin_panel.index') }}" class="btn-ghost-sm" style="color:#FFB347;border-color:rgba(255,140,0,.3)">⚡ Admin</a>
     <div class="user-pill">
       <div class="user-init">{{ current_user.name[0].upper() }}</div>
@@ -21,9 +18,9 @@
 
 <div class="app-body">
 
-  <!-- QUICK CREATE SECTION -->
+  <!-- QUICK CREATE -->
   <div class="quick-create-row">
-    <div class="qc-card" onclick="document.getElementById('newModal').style.display='flex'">
+    <div class="qc-card" onclick="openStyleChooser('manual')">
       <div class="qc-icon">📋</div>
       <div class="qc-label">New Form</div>
       <div class="qc-sub">Survey, quiz, feedback</div>
@@ -36,16 +33,16 @@
     <div class="qc-card" onclick="window.location.href='{{ url_for('newsletter.index') }}'">
       <div class="qc-icon">📰</div>
       <div class="qc-label">Newsletter</div>
-      <div class="qc-sub">Create & send emails</div>
+      <div class="qc-sub">Create &amp; send emails</div>
     </div>
-    <div class="qc-card" onclick="document.getElementById('quizModal').style.display='flex'">
+    <div class="qc-card" onclick="openStyleChooser('quiz')">
       <div class="qc-icon">🧠</div>
       <div class="qc-label">Quiz Builder</div>
-      <div class="qc-sub">Grid layout & scoring</div>
+      <div class="qc-sub">Grid layout &amp; scoring</div>
     </div>
   </div>
 
-  <!-- AI GENERATOR BANNER -->
+  <!-- AI BANNER -->
   <div class="ai-banner" id="aiBanner">
     <div class="ai-banner-left">
       <div class="ai-badge">✦ AI</div>
@@ -57,7 +54,7 @@
     <button class="ai-toggle-btn" onclick="toggleAIPanel()">Try it →</button>
   </div>
 
-  <!-- AI PROMPT PANEL -->
+  <!-- AI PANEL -->
   <div class="ai-panel" id="aiPanel" style="display:none">
     <div class="ai-panel-header">
       <div style="display:flex;align-items:center;gap:10px">
@@ -82,7 +79,7 @@
     </div>
     <div class="ai-input-row">
       <textarea id="aiPrompt" class="ai-textarea" placeholder="e.g. Create a 3-page student feedback form for the end of semester with questions about teaching quality, course content, and suggestions for improvement..." rows="3"></textarea>
-      <button class="ai-gen-btn" id="aiGenBtn" onclick="generateForm()">
+      <button class="ai-gen-btn" id="aiGenBtn" onclick="openAIStyleChooser()">
         <span id="aiGenTxt">✦ Generate Form</span>
       </button>
     </div>
@@ -94,7 +91,7 @@
       <h1 class="page-title">My Forms</h1>
       <p class="page-sub">{{ forms|length }} form{{ 's' if forms|length != 1 }}</p>
     </div>
-    <button class="btn-primary" onclick="document.getElementById('newModal').style.display='flex'">+ New Form</button>
+    <button class="btn-primary" onclick="openStyleChooser('manual')">+ New Form</button>
   </div>
 
   {% if not forms %}
@@ -142,33 +139,153 @@
   {% endif %}
 </div>
 
-<!-- New Form Modal -->
-<div class="modal-overlay" id="newModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
-  <div class="modal">
-    <h3>New Form</h3>
-    <form action="{{ url_for('dashboard.new_form') }}" method="POST">
-      <div class="fg"><label>Form title</label><input type="text" name="title" placeholder="e.g. Student Feedback Survey" required autofocus></div>
-      <div class="modal-btns">
-        <button type="button" class="btn-ghost" onclick="document.getElementById('newModal').style.display='none'">Cancel</button>
-        <button type="submit" class="btn-primary">Create →</button>
+<!-- ══════════════════════════════════════════════════════
+     STYLE CHOOSER MODAL — shown before creating any form
+     ══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="styleChooserModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:20px;overflow:hidden;width:100%;max-width:620px;box-shadow:0 24px 80px rgba(0,0,0,.25)">
+
+    <!-- Header -->
+    <div style="background:#1A1A2E;padding:26px 30px 22px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:.68rem;font-weight:700;letter-spacing:.14em;color:rgba(255,255,255,.35);text-transform:uppercase">New Form</div>
+        <button onclick="document.getElementById('styleChooserModal').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:1.15rem;line-height:1;padding:2px 6px;border-radius:5px;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.3)'">✕</button>
       </div>
-    </form>
+      <div style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff;margin-bottom:4px">How should your form look?</div>
+      <div style="font-size:.8rem;color:rgba(255,255,255,.42)">Choose a presentation style — you can always switch inside the builder</div>
+    </div>
+
+    <!-- Style cards -->
+    <div style="padding:20px 22px 16px;background:#F5F4F1;display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+      <!-- Classic Form -->
+      <div id="styleOptForm" onclick="selectStyle('form')" style="cursor:pointer;border-radius:14px;border:2px solid #E2DDD8;background:#fff;overflow:hidden;transition:all .22s">
+        <!-- Preview -->
+        <div style="background:#1A1A2E;padding:16px 14px 12px">
+          <div style="font-size:.48rem;color:rgba(255,255,255,.35);letter-spacing:.08em;margin-bottom:4px">◈ FORM.AI</div>
+          <div style="font-size:.68rem;font-weight:700;color:#fff;margin-bottom:2px;font-family:'Playfair Display',serif">Form Title</div>
+          <div style="font-size:.5rem;color:rgba(255,255,255,.45)">Click to add description</div>
+        </div>
+        <div style="padding:10px 12px;background:#FAFAF8">
+          <div style="background:#fff;border:1px solid #E2DDD8;border-radius:6px;padding:6px 9px;margin-bottom:6px">
+            <div style="font-size:.47rem;color:#bbb;margin-bottom:3px">Your name *</div>
+            <div style="height:6px;background:#F0EEE8;border-radius:3px;width:65%"></div>
+          </div>
+          <div style="background:#fff;border:1px solid #E2DDD8;border-radius:6px;padding:6px 9px;margin-bottom:8px">
+            <div style="font-size:.47rem;color:#bbb;margin-bottom:3px">Email address</div>
+            <div style="height:6px;background:#F0EEE8;border-radius:3px;width:80%"></div>
+          </div>
+          <div style="background:#FF8C00;border-radius:20px;padding:4px 10px;display:inline-block;font-size:.47rem;font-weight:700;color:#fff">Submit →</div>
+        </div>
+        <!-- Label -->
+        <div style="padding:10px 13px 13px;border-top:1px solid #F0EEE8">
+          <div style="font-weight:700;font-size:.86rem;margin-bottom:3px;display:flex;align-items:center;gap:6px">
+            <span>📋</span> Classic Form
+            <span id="formStyleCheck" style="display:none;margin-left:auto;color:#FF8C00;font-size:.95rem;font-weight:900">✓</span>
+          </div>
+          <div style="font-size:.7rem;color:#aaa;line-height:1.55">Card-based layout. One field at a time. Best for surveys, registrations &amp; feedback.</div>
+        </div>
+      </div>
+
+      <!-- Webpage Style -->
+      <div id="styleOptWeb" onclick="selectStyle('web')" style="cursor:pointer;border-radius:14px;border:2px solid #E2DDD8;background:#fff;overflow:hidden;transition:all .22s">
+        <!-- Preview -->
+        <div style="background:linear-gradient(135deg,#1A1A2E 0%,#2D1B00 100%);padding:16px 14px 12px;min-height:72px;display:flex;flex-direction:column;justify-content:flex-end;position:relative">
+          <div style="font-size:.66rem;font-weight:700;color:#fff;font-family:'Playfair Display',serif;margin-bottom:2px">Form Title</div>
+          <div style="font-size:.48rem;color:rgba(255,255,255,.45);margin-bottom:6px">Scroll to explore</div>
+          <div style="display:flex;gap:5px">
+            <div style="background:#FF8C00;border-radius:20px;padding:3px 8px;font-size:.44rem;font-weight:700;color:#1A1A2E">Get Started</div>
+            <div style="background:transparent;border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:3px 7px;font-size:.44rem;color:rgba(255,255,255,.65)">View Questions</div>
+          </div>
+        </div>
+        <div style="padding:10px 12px;background:#FAFAF8">
+          <div style="background:#fff;border-radius:8px;border:1px solid #E2DDD8;padding:6px 9px;margin-bottom:6px;position:relative">
+            <div style="position:absolute;top:5px;right:7px;width:13px;height:13px;border-radius:50%;background:#FFF5E8;display:flex;align-items:center;justify-content:center;font-size:.42rem;color:#FF8C00;font-weight:700">1</div>
+            <div style="font-size:.47rem;color:#888;margin-bottom:3px">Your name</div>
+            <div style="height:6px;background:#F0EEE8;border-radius:3px;width:58%"></div>
+          </div>
+          <div style="background:#FF8C00;border-radius:20px;padding:4px 10px;display:inline-block;font-size:.47rem;font-weight:700;color:#fff">Continue →</div>
+        </div>
+        <div style="padding:10px 13px 13px;border-top:1px solid #F0EEE8">
+          <div style="font-weight:700;font-size:.86rem;margin-bottom:3px;display:flex;align-items:center;gap:6px">
+            <span>🌐</span> Webpage Style
+            <span id="webStyleCheck" style="display:none;margin-left:auto;color:#FF8C00;font-size:.95rem;font-weight:900">✓</span>
+          </div>
+          <div style="font-size:.7rem;color:#aaa;line-height:1.55">Full-screen hero + scrollable form. Looks like a landing page or website.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Title + action -->
+    <div style="padding:0 22px 22px;background:#F5F4F1;border-top:1px solid #EEECEA">
+      <div style="padding-top:14px;margin-bottom:12px">
+        <label style="display:block;font-size:.68rem;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px">Form title</label>
+        <input type="text" id="styleChooserTitle" placeholder="e.g. Student Feedback Survey"
+          style="width:100%;padding:11px 14px;border:1.5px solid #E2DDD8;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.92rem;color:#1A1A2E;background:#fff;outline:none;transition:border-color .2s"
+          onfocus="this.style.borderColor='#FF8C00';this.style.boxShadow='0 0 0 3px rgba(255,140,0,.1)'"
+          onblur="this.style.borderColor='#E2DDD8';this.style.boxShadow='none'">
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onclick="document.getElementById('styleChooserModal').style.display='none'"
+          style="flex:1;padding:11px;border:1.5px solid #E2DDD8;border-radius:10px;background:#fff;font-family:'DM Sans',sans-serif;font-size:.88rem;color:#aaa;cursor:pointer;transition:all .18s"
+          onmouseover="this.style.borderColor='#ccc'" onmouseout="this.style.borderColor='#E2DDD8'">Cancel</button>
+        <button id="styleCreateBtn" onclick="createWithStyle()"
+          style="flex:2;padding:11px 24px;background:linear-gradient(135deg,#FF8C00,#CC7000);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .18s;box-shadow:0 4px 14px rgba(255,140,0,.28)"
+          onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+          <span id="styleCreateTxt">Create Form →</span>
+        </button>
+      </div>
+      <div style="text-align:center;margin-top:10px;font-size:.7rem;color:#bbb">
+        Selected: <strong id="selectedStyleLabel" style="color:#FF8C00">Classic Form</strong> · Click a card above to switch
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- Quiz Modal -->
-<div class="modal-overlay" id="quizModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
-  <div class="modal">
-    <h3>🧠 New Quiz</h3>
-    <p style="font-size:.85rem;color:#888;margin-bottom:16px">Create a quiz with grid view, scoring, and multiple choice options</p>
-    <form action="{{ url_for('dashboard.new_form') }}" method="POST">
-      <div class="fg"><label>Quiz title</label><input type="text" name="title" placeholder="e.g. Science Quiz Chapter 5" required autofocus></div>
-      <input type="hidden" name="form_type" value="quiz">
-      <div class="modal-btns">
-        <button type="button" class="btn-ghost" onclick="document.getElementById('quizModal').style.display='none'">Cancel</button>
-        <button type="submit" class="btn-primary">Create Quiz →</button>
+<!-- ══════════════════════════
+     AI STYLE CHOOSER MODAL
+     ══════════════════════════ -->
+<div class="modal-overlay" id="aiStyleModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:20px;overflow:hidden;width:100%;max-width:520px;box-shadow:0 24px 80px rgba(0,0,0,.28)">
+    <!-- Header -->
+    <div style="background:#1A1A2E;padding:22px 26px 20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:32px;height:32px;background:linear-gradient(135deg,#FF8C00,#CC7000);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.95rem;color:#fff">✦</div>
+          <div style="font-size:.68rem;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.38);text-transform:uppercase">AI Generate</div>
+        </div>
+        <button onclick="document.getElementById('aiStyleModal').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:1.1rem;padding:2px 6px;border-radius:5px">✕</button>
       </div>
-    </form>
+      <div style="font-family:'Playfair Display',serif;font-size:1.35rem;color:#fff;margin-bottom:3px">Choose your form's presentation</div>
+      <div style="font-size:.78rem;color:rgba(255,255,255,.38)">AI generates the content — you pick how it's displayed</div>
+    </div>
+    <!-- Options -->
+    <div style="padding:20px 22px 22px;background:#F5F4F1">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+        <div id="aiStyleForm" onclick="selectAIStyle('form')"
+          style="background:#fff;border:2px solid #E2DDD8;border-radius:13px;padding:18px 14px;cursor:pointer;transition:all .2s;text-align:center">
+          <div style="font-size:1.8rem;margin-bottom:8px">📋</div>
+          <div style="font-weight:700;font-size:.9rem;margin-bottom:3px">Classic Form</div>
+          <div style="font-size:.72rem;color:#bbb;margin-bottom:8px">Card-style · Clean fields</div>
+          <div id="aiFormCheck" style="display:none;color:#FF8C00;font-size:.75rem;font-weight:700;background:#FFF5E8;border-radius:20px;padding:3px 10px;display:none">✓ Selected</div>
+        </div>
+        <div id="aiStyleWeb" onclick="selectAIStyle('web')"
+          style="background:#fff;border:2px solid #E2DDD8;border-radius:13px;padding:18px 14px;cursor:pointer;transition:all .2s;text-align:center">
+          <div style="font-size:1.8rem;margin-bottom:8px">🌐</div>
+          <div style="font-weight:700;font-size:.9rem;margin-bottom:3px">Webpage Style</div>
+          <div style="font-size:.72rem;color:#bbb;margin-bottom:8px">Hero + landing page</div>
+          <div id="aiWebCheck" style="display:none;color:#FF8C00;font-size:.75rem;font-weight:700;background:#FFF5E8;border-radius:20px;padding:3px 10px;display:none">✓ Selected</div>
+        </div>
+      </div>
+      <button id="aiStyleGenBtn" onclick="generateFormWithStyle()"
+        style="width:100%;padding:13px;background:linear-gradient(135deg,#FF8C00,#CC7000);color:#fff;border:none;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(255,140,0,.3);transition:all .2s">
+        <span id="aiStyleGenTxt">✦ Generate Form</span>
+      </button>
+      <div style="text-align:center;margin-top:10px;font-size:.7rem;color:#bbb">
+        Selected: <strong id="aiSelectedStyleLabel" style="color:#FF8C00">Classic Form</strong>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -185,62 +302,187 @@
 </style>
 
 <script>
-const GENERATE_URL  = '/ai/generate';
+const GENERATE_URL   = '/ai/generate';
 const CREATE_API_URL = '/forms/new-api';
 
-function toggleAIPanel(){
-  const p = document.getElementById('aiPanel');
-  const b = document.getElementById('aiBanner');
-  const show = p.style.display === 'none';
-  p.style.display = show ? 'block' : 'none';
-  b.style.display = show ? 'none' : 'flex';
-  if(show) document.getElementById('aiPrompt').focus();
+let chosenStyle    = 'form'; // 'form' | 'web'
+let chooserContext = 'manual';
+let aiChosenStyle  = 'form';
+
+/* ── Style Chooser (manual / quiz) ── */
+function openStyleChooser(ctx) {
+  chooserContext = ctx;
+  chosenStyle = 'form';
+  document.getElementById('styleChooserModal').style.display = 'flex';
+  document.getElementById('styleChooserTitle').value = '';
+  setTimeout(() => document.getElementById('styleChooserTitle').focus(), 120);
+  updateStyleUI();
 }
 
-function useExample(btn){
-  document.getElementById('aiPrompt').value = btn.textContent;
-  document.getElementById('aiPrompt').focus();
+function selectStyle(s) {
+  chosenStyle = s;
+  updateStyleUI();
 }
 
-async function generateForm(){
-  const prompt = document.getElementById('aiPrompt').value.trim();
-  if(!prompt){ alert('Please describe the form you want to create.'); return; }
-  const btn  = document.getElementById('aiGenBtn');
-  const txt  = document.getElementById('aiGenTxt');
-  const err  = document.getElementById('aiError');
-  err.style.display = 'none';
+function updateStyleUI() {
+  const cards  = { form: 'styleOptForm',  web: 'styleOptWeb'  };
+  const checks = { form: 'formStyleCheck', web: 'webStyleCheck' };
+  Object.keys(cards).forEach(s => {
+    const el = document.getElementById(cards[s]);
+    const ch = document.getElementById(checks[s]);
+    if (chosenStyle === s) {
+      el.style.borderColor = '#FF8C00';
+      el.style.boxShadow   = '0 0 0 3px rgba(255,140,0,.1)';
+      ch.style.display = 'inline';
+    } else {
+      el.style.borderColor = '#E2DDD8';
+      el.style.boxShadow   = 'none';
+      ch.style.display = 'none';
+    }
+  });
+  document.getElementById('selectedStyleLabel').textContent =
+    chosenStyle === 'web' ? 'Webpage Style' : 'Classic Form';
+}
+
+async function createWithStyle() {
+  const title = document.getElementById('styleChooserTitle').value.trim() ||
+    (chooserContext === 'quiz' ? 'New Quiz' : 'Untitled Form');
+  const btn = document.getElementById('styleCreateBtn');
+  const txt = document.getElementById('styleCreateTxt');
   btn.disabled = true;
+  txt.textContent = 'Creating…';
+
   try {
-    txt.innerHTML = '<span class="ai-spinner"></span> Thinking...';
-    const genRes = await fetch(GENERATE_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+    const res = await fetch(CREATE_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, default_style: chosenStyle })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    // Store chosen style so builder can read it
+    try { localStorage.setItem('formStyle_' + d.form_id, chosenStyle); } catch(e) {}
+    showToast('Opening builder…', 'success');
+    setTimeout(() => { window.location.href = '/builder/' + d.form_id; }, 500);
+  } catch(e) {
+    showToast('Error: ' + e.message, 'info');
+    btn.disabled = false;
+    txt.textContent = 'Create Form →';
+  }
+}
+
+/* ── AI Style Chooser ── */
+function openAIStyleChooser() {
+  const prompt = document.getElementById('aiPrompt').value.trim();
+  if (!prompt) { alert('Please describe the form you want to create.'); return; }
+  aiChosenStyle = 'form';
+  updateAIStyleUI();
+  document.getElementById('aiStyleModal').style.display = 'flex';
+}
+
+function selectAIStyle(s) {
+  aiChosenStyle = s;
+  updateAIStyleUI();
+}
+
+function updateAIStyleUI() {
+  const cards  = { form: 'aiStyleForm',  web: 'aiStyleWeb'  };
+  const checks = { form: 'aiFormCheck',  web: 'aiWebCheck'  };
+  Object.keys(cards).forEach(s => {
+    const el = document.getElementById(cards[s]);
+    const ch = document.getElementById(checks[s]);
+    if (aiChosenStyle === s) {
+      el.style.borderColor    = '#FF8C00';
+      el.style.background     = '#FFF9F0';
+      el.style.boxShadow      = '0 0 0 3px rgba(255,140,0,.1)';
+      ch.style.display = 'block';
+    } else {
+      el.style.borderColor = '#E2DDD8';
+      el.style.background  = '#fff';
+      el.style.boxShadow   = 'none';
+      ch.style.display = 'none';
+    }
+  });
+  document.getElementById('aiSelectedStyleLabel').textContent =
+    aiChosenStyle === 'web' ? 'Webpage Style' : 'Classic Form';
+}
+
+async function generateFormWithStyle() {
+  const prompt = document.getElementById('aiPrompt').value.trim();
+  const btn    = document.getElementById('aiStyleGenBtn');
+  const txt    = document.getElementById('aiStyleGenTxt');
+  const errEl  = document.getElementById('aiError');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+
+  try {
+    txt.innerHTML = '<span class="ai-spinner"></span> Thinking…';
+    const genRes  = await fetch(GENERATE_URL, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
     const genData = await genRes.json();
-    if(!genRes.ok || !genData.success) throw new Error(genData.error || `AI error ${genRes.status}`);
-    txt.innerHTML = '<span class="ai-spinner"></span> Creating form...';
-    const createRes = await fetch(CREATE_API_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title: genData.form.title || 'AI Generated Form'})});
+    if (!genRes.ok || !genData.success) throw new Error(genData.error || `AI error ${genRes.status}`);
+
+    txt.innerHTML = '<span class="ai-spinner"></span> Creating…';
+    const createRes  = await fetch(CREATE_API_URL, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: genData.form.title || 'AI Generated Form', default_style: aiChosenStyle })
+    });
     const rawText = await createRes.text();
     let createData;
-    try { createData = JSON.parse(rawText); } catch(e) { throw new Error('Server error creating form: ' + rawText.slice(0,120)); }
-    if(!createRes.ok || !createData.success) throw new Error(createData.error || 'Could not create form in database');
+    try { createData = JSON.parse(rawText); } catch(e) { throw new Error('Server error: ' + rawText.slice(0, 120)); }
+    if (!createRes.ok || !createData.success) throw new Error(createData.error || 'Could not create form');
+
     const formId = createData.form_id;
-    txt.innerHTML = '<span class="ai-spinner"></span> Saving...';
-    const saveRes = await fetch('/builder/' + formId + '/save', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(genData.form)});
+    try { localStorage.setItem('formStyle_' + formId, aiChosenStyle); } catch(e) {}
+
+    txt.innerHTML = '<span class="ai-spinner"></span> Saving…';
+    const saveRes  = await fetch('/builder/' + formId + '/save', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(genData.form)
+    });
     const saveData = await saveRes.json();
-    if(!saveRes.ok || !saveData.success) throw new Error('Could not save form content');
-    showToast('✦ Form generated! Opening builder...', 'success');
-    setTimeout(()=>{ window.location.href = '/builder/' + formId; }, 700);
+    if (!saveRes.ok || !saveData.success) throw new Error('Could not save form');
+
+    document.getElementById('aiStyleModal').style.display = 'none';
+    showToast('✦ Form generated! Opening builder…', 'success');
+    setTimeout(() => { window.location.href = '/builder/' + formId; }, 700);
   } catch(e) {
-    err.textContent = '⚠ ' + e.message;
-    err.style.display = 'block';
+    errEl.textContent = '⚠ ' + e.message;
+    errEl.style.display = 'block';
+    document.getElementById('aiStyleModal').style.display = 'none';
     btn.disabled = false;
     txt.textContent = '✦ Generate Form';
   }
 }
 
-document.addEventListener('DOMContentLoaded', ()=>{
-  const ta = document.getElementById('aiPrompt');
-  if(ta) ta.addEventListener('keydown', e=>{
-    if(e.key==='Enter' && (e.ctrlKey||e.metaKey)) generateForm();
+/* ── Existing helpers ── */
+function toggleAIPanel() {
+  const p = document.getElementById('aiPanel');
+  const b = document.getElementById('aiBanner');
+  const show = p.style.display === 'none';
+  p.style.display = show ? 'block' : 'none';
+  b.style.display = show ? 'none' : 'flex';
+  if (show) document.getElementById('aiPrompt').focus();
+}
+function useExample(btn) { document.getElementById('aiPrompt').value = btn.textContent; }
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg; t.className = 'toast ' + type + ' show';
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('aiPrompt').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) openAIStyleChooser();
   });
+  document.getElementById('styleChooserTitle').addEventListener('keydown', e => {
+    if (e.key === 'Enter') createWithStyle();
+  });
+  updateStyleUI();
+  updateAIStyleUI();
 });
 </script>
 {% endblock %}
