@@ -3,390 +3,673 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>{{ form.title }}</title>
-<link href="https://fonts.googleapis.com/css2?family={{ form.theme.font.replace(' ','+') }}:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family={{ form.theme.font.replace(' ','+') }}:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 <style>
-:root{--bg:{{ form.theme.bg_color }};--hdr:{{ form.theme.header_color }};--acc:{{ form.theme.accent_color }};--txt:{{ form.theme.text_color }};--card:{{ form.theme.card_color }};--font:'{{ form.theme.font }}',sans-serif}
+/* ══════════════════════════════════════════
+   FORM.AI PUBLIC FORM — Website + Form Mode
+   ══════════════════════════════════════════ */
+:root{
+  --bg:{{ form.theme.bg_color }};
+  --hdr:{{ form.theme.header_color }};
+  --acc:{{ form.theme.accent_color }};
+  --txt:{{ form.theme.text_color }};
+  --card:{{ form.theme.card_color }};
+  --font:'{{ form.theme.font }}',sans-serif;
+  --acc-rgb:255,140,0;
+  --r:14px;--r-xl:22px;
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh}
-.fv-cover{background:var(--hdr);{% if form.theme.cover_image %}background-image:url('{{ form.theme.cover_image }}');background-size:cover;background-position:center;{% endif %}padding:0;position:relative;min-height:200px;display:flex;flex-direction:column;justify-content:flex-end}
-.fv-cover-overlay{background:linear-gradient(to bottom,rgba(0,0,0,0.1),rgba(0,0,0,0.55));padding:40px 24px 36px;flex:1;display:flex;flex-direction:column;justify-content:flex-end}
-.fv-title{font-size:clamp(1.8rem,5vw,2.6rem);font-weight:700;color:#fff;line-height:1.2;margin-bottom:8px}
-.fv-desc{color:rgba(255,255,255,0.75);font-size:1rem}
-{% if form.settings.show_progress %}
-.fv-progress{height:5px;background:rgba(0,0,0,0.1);position:sticky;top:0;z-index:10}
-.fv-progress-fill{height:100%;background:var(--acc);transition:width .4s ease;width:0}
-{% endif %}
-.fv-page-header{background:var(--card);border-bottom:2px solid var(--acc);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;max-width:680px;margin:0 auto;width:100%}
-.fv-page-badge{font-size:0.78rem;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.08em;background:rgba(255,255,255,0.1);padding:4px 12px;border-radius:20px;border:1px solid var(--acc)}
-.fv-page-title{font-weight:600;font-size:1rem;color:var(--txt)}
-.fv-page-steps{display:flex;gap:6px;align-items:center}
-.fv-step{width:28px;height:6px;border-radius:3px;background:rgba(0,0,0,0.12);transition:background .3s}
-.fv-step.done{background:var(--acc)}.fv-step.active{background:var(--acc);opacity:.6}
-.fv-wrap{max-width:680px;margin:0 auto;padding:20px 16px 60px}
-.fv-page{animation:fadeUp .3s ease}
-@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-.fv-field{background:var(--card);border-radius:14px;padding:20px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.06)}
-.fv-label{font-weight:600;font-size:.95rem;margin-bottom:8px;display:block}
-.req{color:var(--acc);margin-left:3px}
-.fv-help{font-size:.82rem;color:#999;margin-bottom:10px}
-.fv-input{width:100%;padding:11px 14px;border:1.5px solid rgba(0,0,0,.12);border-radius:10px;font-family:inherit;font-size:.92rem;color:var(--txt);background:var(--bg);outline:none;transition:border-color .2s;appearance:none}
-.fv-input:focus{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 15%,transparent)}
-.fv-textarea{resize:vertical;min-height:90px}
-.fv-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='2' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
-.opts{display:flex;flex-direction:column;gap:8px}
-.opt{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1.5px solid rgba(0,0,0,.1);border-radius:10px;cursor:pointer;transition:all .2s;font-size:.92rem}
-.opt:hover{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 5%,transparent)}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+
+/* ══ MODE TOGGLE FAB ══ */
+.mode-fab{position:fixed;top:18px;right:18px;z-index:1000;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.92);border:1.5px solid rgba(0,0,0,.1);border-radius:40px;padding:7px 14px 7px 10px;box-shadow:0 4px 20px rgba(0,0,0,.15);backdrop-filter:blur(10px);cursor:pointer;font-family:var(--font);font-size:.78rem;font-weight:600;color:#333;transition:all .25s}
+.mode-fab:hover{box-shadow:0 8px 28px rgba(0,0,0,.2);transform:translateY(-1px)}
+.mode-dot{width:8px;height:8px;border-radius:50%;background:var(--acc);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
+
+/* ══════════════════════
+   WEBSITE MODE
+   ══════════════════════ */
+body.web-mode .form-mode-wrap{display:none}
+body.web-mode .web-mode-wrap{display:block}
+body:not(.web-mode) .form-mode-wrap{display:block}
+body:not(.web-mode) .web-mode-wrap{display:none}
+
+/* === WEB HERO === */
+.web-hero{background:var(--hdr);{% if form.theme.cover_image and form.theme.cover_image.startswith('http') %}background-image:url('{{ form.theme.cover_image }}');background-size:cover;background-position:center;{% elif form.theme.cover_image and form.theme.cover_image.startswith('linear') %}background:{{ form.theme.cover_image }};{% endif %}min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:40px 24px}
+.web-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.52) 0%,rgba(0,0,0,.3) 50%,rgba(0,0,0,.55) 100%)}
+.web-hero-content{position:relative;z-index:1;text-align:center;max-width:780px;animation:heroIn .8s cubic-bezier(.22,1,.36,1) both}
+@keyframes heroIn{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+.web-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:40px;padding:6px 16px;font-size:.78rem;font-weight:600;color:rgba(255,255,255,.85);letter-spacing:.1em;margin-bottom:24px;backdrop-filter:blur(8px);animation:heroIn .8s .1s both}
+.web-title{font-family:'Playfair Display',serif;font-size:clamp(2.4rem,6vw,4.5rem);font-weight:900;color:#fff;line-height:1.1;margin-bottom:18px;text-shadow:0 4px 24px rgba(0,0,0,.3)}
+.web-desc{color:rgba(255,255,255,.78);font-size:clamp(1rem,2vw,1.25rem);line-height:1.65;max-width:560px;margin:0 auto 36px;animation:heroIn .8s .2s both}
+.web-cta-wrap{display:flex;gap:13px;justify-content:center;flex-wrap:wrap;animation:heroIn .8s .3s both}
+.web-cta-primary{padding:16px 40px;background:var(--acc);color:#fff;border:none;border-radius:40px;font-family:var(--font);font-size:1rem;font-weight:700;cursor:pointer;transition:all .22s;box-shadow:0 8px 30px rgba(0,0,0,.25),0 0 0 0 var(--acc);letter-spacing:.02em;display:flex;align-items:center;gap:9px}
+.web-cta-primary:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 16px 44px rgba(0,0,0,.3)}
+.web-cta-secondary{padding:16px 32px;background:transparent;color:#fff;border:2px solid rgba(255,255,255,.4);border-radius:40px;font-family:var(--font);font-size:1rem;font-weight:600;cursor:pointer;transition:all .22s;backdrop-filter:blur(4px)}
+.web-cta-secondary:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.6)}
+.web-scroll-hint{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;color:rgba(255,255,255,.45);font-size:.75rem;animation:bounce 2s infinite}
+.web-scroll-hint svg{animation:scrollDown 2s infinite}
+@keyframes bounce{0%,100%{opacity:.5}50%{opacity:.9}}
+@keyframes scrollDown{0%{transform:translateY(0)}50%{transform:translateY(5px)}100%{transform:translateY(0)}}
+
+/* === WEB SECTIONS === */
+.web-sections{padding:80px 20px}
+.web-section{max-width:760px;margin:0 auto 80px}
+.web-sec-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--acc);margin-bottom:10px;opacity:.9}
+.web-sec-title{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,3vw,2.3rem);font-weight:700;margin-bottom:14px;line-height:1.2}
+.web-sec-divider{width:48px;height:4px;background:var(--acc);border-radius:2px;margin-bottom:22px}
+.web-sec-text{font-size:1.02rem;line-height:1.75;color:color-mix(in srgb,var(--txt) 80%,transparent);margin-bottom:18px}
+/* web field card */
+.web-field-card{background:var(--card);border-radius:var(--r-xl);padding:28px 32px;margin-bottom:16px;box-shadow:0 4px 24px rgba(0,0,0,.07);border:1.5px solid rgba(0,0,0,.06);transition:all .28s;position:relative;overflow:hidden}
+.web-field-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--acc);border-radius:0 2px 2px 0;transform:scaleY(0);transition:transform .28s}
+.web-field-card:focus-within::before{transform:scaleY(1)}
+.web-field-card:focus-within{border-color:color-mix(in srgb,var(--acc) 40%,transparent);box-shadow:0 8px 36px rgba(0,0,0,.1),0 0 0 3px color-mix(in srgb,var(--acc) 8%,transparent)}
+.web-field-num{position:absolute;top:22px;right:24px;width:28px;height:28px;border-radius:50%;background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--acc);font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.web-field-label{font-weight:700;font-size:1.05rem;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.web-field-help{font-size:.84rem;color:color-mix(in srgb,var(--txt) 55%,transparent);margin-bottom:14px;line-height:1.55}
+.web-req{color:var(--acc);margin-left:3px;font-size:.9rem}
+
+/* yt / image blocks */
+.web-yt-wrap{position:relative;padding-bottom:56.25%;border-radius:14px;overflow:hidden;background:#000;margin-top:4px}
+.web-yt-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+.web-section-hdr-blk{padding:20px 32px;border-radius:14px;background:var(--hdr);margin-bottom:14px}
+.web-section-hdr-blk h3{font-family:'Playfair Display',serif;font-size:1.3rem;color:#fff;font-weight:700}
+
+/* web nav */
+.web-bottom-nav{display:flex;justify-content:space-between;align-items:center;margin-top:30px;flex-wrap:wrap;gap:12px}
+.web-btn-submit{padding:16px 44px;background:var(--acc);color:#fff;border:none;border-radius:40px;font-family:var(--font);font-size:1rem;font-weight:700;cursor:pointer;transition:all .22s;box-shadow:0 6px 24px color-mix(in srgb,var(--acc) 38%,transparent);display:flex;align-items:center;gap:9px;letter-spacing:.02em}
+.web-btn-submit:hover{transform:translateY(-2px);box-shadow:0 12px 36px color-mix(in srgb,var(--acc) 45%,transparent)}
+.web-btn-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.web-btn-back{padding:14px 28px;background:transparent;border:2px solid rgba(0,0,0,.12);border-radius:40px;font-family:var(--font);font-size:.93rem;cursor:pointer;transition:all .2s;color:#888}
+.web-btn-back:hover{border-color:var(--acc);color:var(--acc)}
+.web-btn-next{padding:16px 36px;background:var(--acc);color:#fff;border:none;border-radius:40px;font-family:var(--font);font-size:.95rem;font-weight:700;cursor:pointer;transition:all .22s;box-shadow:0 6px 20px color-mix(in srgb,var(--acc) 32%,transparent);display:flex;align-items:center;gap:8px}
+.web-btn-next:hover{transform:translateY(-2px)}
+
+/* web success */
+.web-success{display:none;min-height:100vh;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:60px 24px;background:var(--hdr)}
+.web-success-ring{width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:3rem;margin:0 auto 28px;animation:ringIn .7s cubic-bezier(.34,1.56,.64,1)}
+@keyframes ringIn{from{transform:scale(0) rotate(-180deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
+.web-success h2{font-family:'Playfair Display',serif;font-size:2.5rem;color:#fff;font-weight:900;margin-bottom:13px}
+.web-success p{color:rgba(255,255,255,.7);font-size:1.05rem;max-width:440px}
+
+/* ══════════════════════
+   FORM (CLASSIC) MODE
+   ══════════════════════ */
+.fv-cover{background:var(--hdr);{% if form.theme.cover_image and form.theme.cover_image.startswith('http') %}background-image:url('{{ form.theme.cover_image }}');background-size:cover;background-position:center;{% elif form.theme.cover_image and form.theme.cover_image.startswith('linear') %}background:{{ form.theme.cover_image }};{% endif %}min-height:220px;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden}
+.fv-cover::before{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.05),rgba(0,0,0,.52))}
+.fv-cover-inner{position:relative;z-index:1;padding:40px 26px 34px;max-width:700px;margin:0 auto;width:100%}
+.fv-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:30px;padding:4px 13px;font-size:.72rem;font-weight:600;color:rgba(255,255,255,.8);letter-spacing:.08em;margin-bottom:12px;backdrop-filter:blur(4px)}
+.fv-title{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,5vw,2.7rem);font-weight:900;color:#fff;line-height:1.15;margin-bottom:9px;text-shadow:0 2px 10px rgba(0,0,0,.2)}
+.fv-desc{color:rgba(255,255,255,.76);font-size:.96rem;line-height:1.65;max-width:540px}
+/* progress */
+.fv-prog{height:4px;background:rgba(0,0,0,.08);position:sticky;top:0;z-index:50}
+.fv-prog-fill{height:100%;background:var(--acc);transition:width .5s cubic-bezier(.34,1.56,.64,1);width:0}
+/* wrap */
+.fv-wrap{max-width:700px;margin:0 auto;padding:22px 16px 80px}
+/* page head */
+.fv-page-hdr{background:var(--card);border-radius:12px;padding:13px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;box-shadow:0 2px 10px rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.06)}
+.fv-pg-badge{font-size:.71rem;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.1em;background:color-mix(in srgb,var(--acc) 10%,transparent);padding:3px 11px;border-radius:20px;border:1px solid color-mix(in srgb,var(--acc) 28%,transparent)}
+.fv-steps{display:flex;gap:5px}
+.fv-step{width:30px;height:5px;border-radius:3px;background:rgba(0,0,0,.1);transition:all .3s}
+.fv-step.done{background:var(--acc)}.fv-step.cur{background:var(--acc);opacity:.55}
+/* page animation */
+.fv-page{animation:pgIn .38s cubic-bezier(.22,1,.36,1) both}
+@keyframes pgIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+/* field cards */
+.fv-field{background:var(--card);border-radius:var(--r);padding:20px 22px;margin-bottom:11px;box-shadow:0 2px 10px rgba(0,0,0,.05);border:1.5px solid rgba(0,0,0,.06);transition:border-color .2s,box-shadow .2s;position:relative}
+.fv-field:focus-within{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 10%,transparent),0 2px 10px rgba(0,0,0,.05)}
+.fv-label{font-weight:600;font-size:.95rem;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.fv-req{color:var(--acc);font-size:.85rem}
+.fv-help{font-size:.81rem;color:color-mix(in srgb,var(--txt) 55%,transparent);margin-bottom:10px;line-height:1.55}
+.fv-err{font-size:.77rem;color:#E63946;margin-top:7px;display:none;animation:errIn .2s ease}
+@keyframes errIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+.fv-err.show{display:flex;align-items:center;gap:5px}
+.fv-err::before{content:'⚠';font-size:.78rem}
+/* inputs */
+.fv-inp{width:100%;padding:11px 14px;border:1.5px solid rgba(0,0,0,.12);border-radius:10px;font-family:var(--font);font-size:.92rem;color:var(--txt);background:color-mix(in srgb,var(--bg) 60%,var(--card));outline:none;transition:all .2s;-webkit-appearance:none;appearance:none}
+.fv-inp:focus{border-color:var(--acc);background:var(--card);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 11%,transparent)}
+.fv-textarea{resize:vertical;min-height:90px;line-height:1.6}
+.fv-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%23999' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:42px;cursor:pointer}
+/* options */
+.opts{display:flex;flex-direction:column;gap:7px}
+.opt{display:flex;align-items:center;gap:12px;padding:11px 15px;border:1.5px solid rgba(0,0,0,.1);border-radius:11px;cursor:pointer;transition:all .2s;font-size:.92rem;user-select:none;position:relative}
+.opt:hover{border-color:color-mix(in srgb,var(--acc) 50%,transparent);background:color-mix(in srgb,var(--acc) 4%,transparent)}
 .opt input{display:none}
-.opt-dot{width:18px;height:18px;border-radius:50%;border:2px solid #ccc;flex-shrink:0;transition:all .2s}
-.opt-box{width:18px;height:18px;border-radius:5px;border:2px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.opt-dot{width:19px;height:19px;border-radius:50%;border:2px solid #ccc;flex-shrink:0;transition:all .2s;background:#fff;display:flex;align-items:center;justify-content:center}
+.opt-dot::after{content:'';width:9px;height:9px;border-radius:50%;background:var(--acc);transform:scale(0);transition:transform .2s}
+.opt-box{width:19px;height:19px;border-radius:6px;border:2px solid #ccc;flex-shrink:0;transition:all .2s;background:#fff;display:flex;align-items:center;justify-content:center;font-size:.74rem;color:#fff;font-weight:700}
 .opt:has(input:checked){border-color:var(--acc);background:color-mix(in srgb,var(--acc) 6%,transparent)}
-.opt:has(input[type=radio]:checked) .opt-dot{border-color:var(--acc);background:var(--acc);box-shadow:inset 0 0 0 3px var(--card)}
+.opt:has(input[type=radio]:checked) .opt-dot{border-color:var(--acc)}
+.opt:has(input[type=radio]:checked) .opt-dot::after{transform:scale(1)}
 .opt:has(input[type=checkbox]:checked) .opt-box{border-color:var(--acc);background:var(--acc)}
-.opt:has(input[type=checkbox]:checked) .opt-box::after{content:'✓';font-size:.7rem;color:white;font-weight:700}
-.stars{display:flex;gap:6px;flex-wrap:wrap}
-.star{background:none;border:none;font-size:2rem;cursor:pointer;color:#ddd;transition:color .15s,transform .15s;padding:2px}
-.star:hover,.star.on{color:#FFB347;transform:scale(1.15)}
-.scale-btns{display:flex;gap:6px;flex-wrap:wrap}
-.sc-btn{width:40px;height:40px;border:1.5px solid rgba(0,0,0,.12);border-radius:8px;background:none;cursor:pointer;font-family:inherit;font-size:.88rem;font-weight:600;transition:all .15s;color:var(--txt)}
-.sc-btn:hover{border-color:var(--acc);color:var(--acc)}
-.sc-btn.on{background:var(--acc);border-color:var(--acc);color:white}
-.fv-sec-header h3{font-size:1.1rem;font-weight:700;margin-bottom:4px}
-.fv-sec-header p{font-size:.88rem;color:#999}
-.fv-divider{border:none;border-top:2px solid rgba(0,0,0,.08);margin:4px 0}
-.fv-error{font-size:.78rem;color:#E63946;margin-top:6px;display:none}
-.fv-nav{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px}
-.btn-next,.btn-submit{padding:13px 32px;background:var(--acc);color:white;border:none;border-radius:12px;font-family:inherit;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 6px 20px color-mix(in srgb,var(--acc) 35%,transparent)}
-.btn-next:hover,.btn-submit:hover{transform:translateY(-2px)}
+.opt:has(input[type=checkbox]:checked) .opt-box::after{content:'✓'}
+/* rating */
+.stars{display:flex;gap:7px;flex-wrap:wrap;margin-top:4px}
+.star{background:none;border:none;font-size:2.2rem;cursor:pointer;color:#E0E0E0;transition:color .15s,transform .15s;padding:2px;line-height:1}
+.star:hover,.star.on{color:#FFB347;transform:scale(1.18)}
+/* scale */
+.scale-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.sc-btn{min-width:40px;height:40px;border:1.5px solid rgba(0,0,0,.12);border-radius:9px;background:none;cursor:pointer;font-family:var(--font);font-size:.88rem;font-weight:600;transition:all .18s;color:var(--txt)}
+.sc-btn:hover{border-color:var(--acc);color:var(--acc);background:color-mix(in srgb,var(--acc) 5%,transparent)}
+.sc-btn.on{background:var(--acc);border-color:var(--acc);color:#fff;box-shadow:0 4px 12px color-mix(in srgb,var(--acc) 35%,transparent)}
+.scale-lbls{display:flex;justify-content:space-between;font-size:.71rem;color:#aaa;margin-top:5px}
+/* grid */
+.grid-wrap{overflow-x:auto;border-radius:9px;border:1.5px solid rgba(0,0,0,.1)}
+.fv-grid{width:100%;border-collapse:collapse;font-size:.87rem}
+.fv-grid th,.fv-grid td{border:1px solid rgba(0,0,0,.08);padding:10px 11px;text-align:center;vertical-align:middle}
+.fv-grid thead th{background:var(--acc);color:#fff;font-weight:600}
+.fv-grid thead th:first-child{background:color-mix(in srgb,var(--acc) 18%,var(--card));color:var(--txt);text-align:left}
+.fv-grid tbody tr:nth-child(even){background:rgba(0,0,0,.02)}
+.fv-grid tbody td:first-child{font-weight:500;text-align:left}
+.grid-radio,.grid-cb{width:17px;height:17px;cursor:pointer;accent-color:var(--acc)}
+/* quiz */
+.quiz-fb{display:none;margin-top:9px;padding:10px 14px;border-radius:9px;font-size:.83rem;font-weight:600;animation:fbIn .3s ease}
+@keyframes fbIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.quiz-fb.correct{background:color-mix(in srgb,#2D6A4F 10%,transparent);color:#2D6A4F;border:1px solid color-mix(in srgb,#2D6A4F 28%,transparent)}
+.quiz-fb.correct::before{content:'✓ '}
+.quiz-fb.wrong{background:color-mix(in srgb,#E63946 8%,transparent);color:#E63946;border:1px solid color-mix(in srgb,#E63946 22%,transparent)}
+.quiz-fb.wrong::before{content:'✗ '}
+/* image drop */
+.img-dz{border:2px dashed rgba(0,0,0,.14);border-radius:11px;padding:32px 18px;text-align:center;cursor:pointer;transition:all .2s;color:#bbb}
+.img-dz:hover,.img-dz.over{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 5%,transparent);color:var(--acc)}
+.img-dz-icon{font-size:2.6rem;margin-bottom:9px;display:block}
+.img-preview-el{max-width:100%;border-radius:9px;margin-top:13px;display:none;border:1.5px solid rgba(0,0,0,.07)}
+.img-preview-el.show{display:block}
+/* youtube */
+.yt-wrap{position:relative;padding-bottom:56.25%;border-radius:11px;overflow:hidden;background:#000}
+.yt-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+/* nav */
+.fv-nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;flex-wrap:wrap;gap:10px}
+.btn-next,.btn-submit{padding:13px 34px;background:var(--acc);color:#fff;border:none;border-radius:40px;font-family:var(--font);font-size:.94rem;font-weight:700;cursor:pointer;transition:all .22s;box-shadow:0 6px 20px color-mix(in srgb,var(--acc) 34%,transparent);display:flex;align-items:center;gap:8px;letter-spacing:.02em}
+.btn-next:hover,.btn-submit:hover{transform:translateY(-2px);box-shadow:0 10px 28px color-mix(in srgb,var(--acc) 42%,transparent)}
 .btn-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
-.btn-back-page{padding:12px 24px;background:transparent;border:1.5px solid rgba(0,0,0,.12);border-radius:12px;font-family:inherit;font-size:.9rem;cursor:pointer;transition:all .2s;color:#888}
-.btn-back-page:hover{border-color:var(--acc);color:var(--acc)}
-.fv-success{text-align:center;padding:60px 24px}
-.fv-success-icon{font-size:4rem;margin-bottom:20px}
-.fv-success h2{font-size:1.6rem;font-weight:700;margin-bottom:10px}
-.fv-success p{color:#aaa;font-size:.88rem;margin-top:16px}
-
-/* Grid field */
-.grid-table{width:100%;border-collapse:collapse;font-size:.88rem}
-.grid-table th,.grid-table td{border:1px solid rgba(0,0,0,.1);padding:10px 12px;text-align:center}
-.grid-table th{background:var(--acc);color:white;font-weight:600}
-.grid-table th:first-child{background:transparent;color:var(--txt);text-align:left}
-.grid-table td:first-child{font-weight:500;text-align:left;color:var(--txt)}
-.grid-table tr:nth-child(even){background:rgba(0,0,0,.02)}
-.grid-radio,.grid-checkbox{width:18px;height:18px;cursor:pointer;accent-color:var(--acc)}
-
-/* YouTube embed */
-.yt-embed-wrap{position:relative;padding-bottom:56.25%;border-radius:12px;overflow:hidden;background:#000}
-.yt-embed-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
-
-/* Image drag-drop */
-.img-dropzone{border:2px dashed rgba(0,0,0,.15);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;color:#aaa}
-.img-dropzone:hover,.img-dropzone.drag-over{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 5%,transparent);color:var(--acc)}
-.img-dropzone-icon{font-size:2.5rem;margin-bottom:8px}
-.img-preview{max-width:100%;border-radius:10px;margin-top:10px;display:none}
-.img-preview.show{display:block}
-
-/* Quiz correct/incorrect feedback */
-.quiz-feedback{display:none;padding:10px 14px;border-radius:8px;font-size:.84rem;font-weight:600;margin-top:8px}
-.quiz-feedback.correct{background:#F0FFF4;color:#2D6A4F;border:1px solid #C8E6C9}
-.quiz-feedback.wrong{background:#FFF0F0;color:#E63946;border:1px solid #FFCDD2}
-
+.btn-back{padding:12px 22px;background:transparent;border:1.5px solid rgba(0,0,0,.14);border-radius:40px;font-family:var(--font);font-size:.9rem;cursor:pointer;transition:all .2s;color:#888}
+.btn-back:hover{border-color:var(--acc);color:var(--acc)}
+/* success */
+.fv-success{display:none;text-align:center;padding:70px 24px;animation:pgIn .5s ease}
+.fv-success-ring{width:90px;height:90px;border-radius:50%;background:color-mix(in srgb,var(--acc) 12%,transparent);display:flex;align-items:center;justify-content:center;margin:0 auto 22px;font-size:2.5rem;animation:ringIn .6s cubic-bezier(.34,1.56,.64,1);border:2px solid color-mix(in srgb,var(--acc) 30%,transparent)}
+.fv-success h2{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;margin-bottom:9px}
+.fv-success p{color:#aaa;font-size:.9rem;line-height:1.65}
+/* brand footer */
+.fv-brand{text-align:center;padding:22px;font-size:.73rem;color:#bbb}
+.fv-brand strong{color:color-mix(in srgb,var(--acc) 70%,#888)}
+/* section header / divider */
+.fv-field.is-header{background:transparent;border:none;box-shadow:none;padding-bottom:0}
+.fv-field.is-header:focus-within{border-color:transparent;box-shadow:none}
+.fv-field.is-header h3{font-size:1.1rem;font-weight:700;border-bottom:2px solid color-mix(in srgb,var(--acc) 38%,transparent);padding-bottom:8px}
+.fv-field.is-header p{font-size:.83rem;color:#aaa;margin-top:5px}
+.fv-divider-line{border:none;border-top:2px solid rgba(0,0,0,.07);margin:2px 0}
 .hidden{display:none!important}
+
+/* Shared inputs for both modes */
+.shared-inp{width:100%;padding:11px 14px;border:1.5px solid rgba(0,0,0,.12);border-radius:10px;font-family:var(--font);font-size:.92rem;color:var(--txt);background:color-mix(in srgb,var(--bg) 60%,var(--card));outline:none;transition:all .2s;-webkit-appearance:none;appearance:none}
+.shared-inp:focus{border-color:var(--acc);background:var(--card);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 11%,transparent)}
 </style>
 </head>
 <body>
-<div class="fv-cover">
-  <div class="fv-cover-overlay">
-    <h1 class="fv-title">{{ form.title }}</h1>
-    {% if form.description %}<p class="fv-desc">{{ form.description }}</p>{% endif %}
-  </div>
-</div>
 
-{% if form.settings.show_progress %}
-<div class="fv-progress"><div class="fv-progress-fill" id="progressFill"></div></div>
-{% endif %}
+<!-- MODE TOGGLE FAB -->
+<button class="mode-fab" id="modeFab" onclick="toggleMode()">
+  <span class="mode-dot"></span>
+  <span id="modeLabel">🌐 Website View</span>
+</button>
 
-<div class="fv-wrap" id="fvWrap">
-  <div class="fv-success hidden" id="successScreen">
-    <div class="fv-success-icon">🎉</div>
-    <h2>{{ form.settings.confirmation_message }}</h2>
-    <p>Powered by <strong>FORM.AI</strong></p>
-  </div>
+<!-- ═══════════════════════════════
+     WEBSITE MODE
+     ═══════════════════════════════ -->
+<div class="web-mode-wrap" id="webModeWrap">
 
-  {% for page in form.pages %}
-  <div class="fv-page {{ 'hidden' if not loop.first }}" id="pg{{ loop.index0 }}" data-page="{{ loop.index0 }}">
-
-    {% if form.pages|length > 1 %}
-    <div class="fv-page-header">
-      <div>
-        <div class="fv-page-badge">Page {{ loop.index }} of {{ form.pages|length }}</div>
-        {% if page.title and page.title != 'Page '+loop.index|string %}<div class="fv-page-title">{{ page.title }}</div>{% endif %}
-      </div>
-      <div class="fv-page-steps">
-        {% for p in form.pages %}
-        <div class="fv-step" id="step{{ loop.index0 }}"></div>
-        {% endfor %}
+  <!-- Hero Section -->
+  <div class="web-hero" id="webHero">
+    <div class="web-hero-content">
+      <div class="web-badge">◈ FORM.AI · Interactive Form</div>
+      <h1 class="web-title">{{ form.title }}</h1>
+      {% if form.description %}<p class="web-desc">{{ form.description }}</p>{% endif %}
+      <div class="web-cta-wrap">
+        <button class="web-cta-primary" onclick="scrollToForm()">
+          <span>Get Started</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        </button>
+        <button class="web-cta-secondary" onclick="scrollToForm()">View Questions</button>
       </div>
     </div>
-    {% endif %}
+    <div class="web-scroll-hint">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M6 13l6 6 6-6" stroke="rgba(255,255,255,.6)" stroke-width="2" stroke-linecap="round"/></svg>
+      <span>Scroll to explore</span>
+    </div>
+  </div>
 
-    {% for field in page.fields %}
-    <div class="fv-field" data-fid="{{ field.id }}" data-type="{{ field.type }}">
-      {% if field.type == 'header' %}
-        <div class="fv-sec-header"><h3>{{ field.label }}</h3>{% if field.help %}<p>{{ field.help }}</p>{% endif %}</div>
-      {% elif field.type == 'divider' %}
-        <hr class="fv-divider">
+  <!-- Web Form Sections -->
+  <div class="web-sections" id="webFormSection">
 
-      {% elif field.type == 'youtube' %}
-        <label class="fv-label">{{ field.label }}</label>
-        {% if field.help %}<p class="fv-help">{{ field.help }}</p>{% endif %}
-        {% if field.youtube_id %}
-        <div class="yt-embed-wrap">
-          <iframe src="https://www.youtube.com/embed/{{ field.youtube_id }}" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
-        </div>
+    <div id="web-success-screen" style="display:none;text-align:center;padding:80px 20px;min-height:60vh;display:none;flex-direction:column;align-items:center;justify-content:center;background:var(--hdr)">
+      <div style="width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:3rem;margin:0 auto 28px;animation:ringIn .7s cubic-bezier(.34,1.56,.64,1)">🎉</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:2.3rem;color:#fff;margin-bottom:12px;font-weight:900">{{ form.settings.confirmation_message or 'Thank you!' }}</h2>
+      <p style="color:rgba(255,255,255,.72);font-size:1.05rem;max-width:440px">Your response has been recorded. We appreciate your time.</p>
+    </div>
+
+    {% for page in form.pages %}
+    <div id="web-pg{{ loop.index0 }}" class="{{ 'hidden' if not loop.first }}">
+      <div class="web-section">
+        {% if form.pages|length > 1 %}
+        <div class="web-sec-eyebrow">Step {{ loop.index }} of {{ form.pages|length }}</div>
+        {% endif %}
+        {% if page.title and page.title != 'Page '+loop.index|string %}
+        <h2 class="web-sec-title">{{ page.title }}</h2>
+        <div class="web-sec-divider"></div>
         {% else %}
-        <div style="padding:20px;background:#1A1A2E;border-radius:10px;text-align:center;color:rgba(255,255,255,.5)">
-          <div style="font-size:2rem;margin-bottom:6px">▶</div>
-          <div>No video configured</div>
-        </div>
+        <h2 class="web-sec-title">{{ form.title }}</h2>
+        <div class="web-sec-divider"></div>
         {% endif %}
 
-      {% elif field.type == 'image_upload' %}
-        <label class="fv-label">{{ field.label }}{% if field.required %}<span class="req">*</span>{% endif %}</label>
-        {% if field.help %}<p class="fv-help">{{ field.help }}</p>{% endif %}
-        {% if field.image_url %}
-          <img src="{{ field.image_url }}" style="max-width:100%;border-radius:10px;margin-bottom:12px;display:block">
+        {% set field_num = namespace(n=0) %}
+        {% for field in page.fields %}
+
+        {% if field.type == 'header' %}
+        <div class="web-section-hdr-blk"><h3>{{ field.label }}</h3>{% if field.help %}<p style="color:rgba(255,255,255,.65);font-size:.85rem;margin-top:6px">{{ field.help }}</p>{% endif %}</div>
+
+        {% elif field.type == 'divider' %}
+        <div class="web-sec-divider" style="margin:28px 0"></div>
+
+        {% elif field.type == 'youtube' %}
+        <div class="web-field-card">
+          <div class="web-field-label">{{ field.label }}</div>
+          {% if field.help %}<div class="web-field-help">{{ field.help }}</div>{% endif %}
+          {% if field.youtube_id %}
+          <div class="web-yt-wrap"><iframe src="https://www.youtube.com/embed/{{ field.youtube_id }}" allowfullscreen></iframe></div>
+          {% endif %}
+        </div>
+
+        {% elif field.type == 'image_upload' %}
+        {% set field_num.n = field_num.n + 1 %}
+        <div class="web-field-card" data-fid="{{ field.id }}" data-type="{{ field.type }}">
+          <div class="web-field-num">{{ field_num.n }}</div>
+          <div class="web-field-label">{{ field.label }}{% if field.required %}<span class="web-req">*</span>{% endif %}</div>
+          {% if field.help %}<div class="web-field-help">{{ field.help }}</div>{% endif %}
+          {% if field.image_url %}<img src="{{ field.image_url }}" style="max-width:100%;border-radius:9px;margin-bottom:12px;display:block">{% endif %}
+          <div class="img-dz" id="wdz_{{ field.id }}" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="imgDrop(event,'{{ field.id }}')" onclick="document.getElementById('wfi_{{ field.id }}').click()">
+            <span class="img-dz-icon">🖼</span>
+            <div style="font-weight:600;font-size:.93rem">Click or drag image here</div>
+            <div style="font-size:.78rem;margin-top:4px">JPG, PNG, GIF, WebP</div>
+            <img class="img-preview-el" id="wiprev_{{ field.id }}" alt="">
+          </div>
+          <input type="file" id="wfi_{{ field.id }}" accept="image/*" style="display:none" onchange="imgSelect(event,'{{ field.id }}')">
+          <input type="hidden" id="widata_{{ field.id }}" name="{{ field.id }}">
+          <div class="fv-err" id="werr_{{ field.id }}">This field is required.</div>
+        </div>
+
+        {% elif field.type in ['radio_grid','checkbox_grid'] %}
+        {% set field_num.n = field_num.n + 1 %}
+        <div class="web-field-card" data-fid="{{ field.id }}" data-type="{{ field.type }}">
+          <div class="web-field-num">{{ field_num.n }}</div>
+          <div class="web-field-label">{{ field.label }}{% if field.required %}<span class="web-req">*</span>{% endif %}</div>
+          {% if field.help %}<div class="web-field-help">{{ field.help }}</div>{% endif %}
+          <div class="grid-wrap">
+            <table class="fv-grid">
+              <thead><tr><th></th>{% for col in field.cols or [] %}<th>{{ col }}</th>{% endfor %}</tr></thead>
+              <tbody>{% for row in field.rows or [] %}<tr><td>{{ row }}</td>{% for col in field.cols or [] %}<td>{% if field.type=='radio_grid' %}<input type="radio" class="grid-radio" name="{{ field.id }}_{{ loop.index0 }}" value="{{ col }}" data-row="{{ row }}" data-fid="{{ field.id }}" onchange="updateGrid('{{ field.id }}')">{% else %}<input type="checkbox" class="grid-cb" name="{{ field.id }}_{{ row }}" value="{{ col }}" data-row="{{ row }}" data-fid="{{ field.id }}" onchange="updateGrid('{{ field.id }}')">{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody>
+            </table>
+          </div>
+          <input type="hidden" name="{{ field.id }}" id="wgrid_{{ field.id }}">
+          <div class="fv-err" id="werr_{{ field.id }}">Please complete this grid.</div>
+        </div>
+
+        {% elif field.type in ['quiz_mc','quiz_tf'] %}
+        {% set field_num.n = field_num.n + 1 %}
+        <div class="web-field-card" data-fid="{{ field.id }}" data-type="{{ field.type }}">
+          <div class="web-field-num">{{ field_num.n }}</div>
+          <div class="web-field-label"><span style="background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--acc);border-radius:20px;padding:2px 8px;font-size:.69rem;font-weight:700;letter-spacing:.05em">QUIZ</span>{{ field.label }}{% if field.required %}<span class="web-req">*</span>{% endif %}</div>
+          {% if field.help %}<div class="web-field-help">{{ field.help }}</div>{% endif %}
+          <div class="opts">{% for opt in field.options or [] %}<label class="opt"><input type="radio" name="{{ field.id }}" value="{{ opt }}" {% if field.required %}required{% endif %} onchange="checkQuiz(this,'{{ field.correct_answer }}','{{ field.id }}')"><span class="opt-dot"></span><span>{{ opt }}</span></label>{% endfor %}</div>
+          <div class="quiz-fb" id="wqfb_{{ field.id }}"></div>
+          <div class="fv-err" id="werr_{{ field.id }}">Please select an answer.</div>
+        </div>
+
+        {% else %}
+        {% if field.type not in ['header','divider'] %}
+        {% set field_num.n = field_num.n + 1 %}
+        <div class="web-field-card" data-fid="{{ field.id }}" data-type="{{ field.type }}">
+          <div class="web-field-num">{{ field_num.n }}</div>
+          {% if field.type not in ['rating','scale'] %}
+          <div class="web-field-label">{{ field.label }}{% if field.required %}<span class="web-req">*</span>{% endif %}</div>
+          {% endif %}
+          {% if field.help %}<div class="web-field-help">{{ field.help }}</div>{% endif %}
+          {% if field.type == 'short_text' %}<input type="text" class="shared-inp" name="{{ field.id }}" placeholder="{{ field.placeholder or 'Your answer…' }}" {% if field.required %}required{% endif %}>
+          {% elif field.type == 'long_text' %}<textarea class="shared-inp fv-textarea" name="{{ field.id }}" placeholder="{{ field.placeholder or 'Type your response here…' }}" {% if field.required %}required{% endif %}></textarea>
+          {% elif field.type == 'number' %}<input type="number" class="shared-inp" name="{{ field.id }}" placeholder="{{ field.placeholder or '0' }}" {% if field.required %}required{% endif %}>
+          {% elif field.type == 'email' %}<input type="email" class="shared-inp" name="{{ field.id }}" placeholder="{{ field.placeholder or 'email@example.com' }}" {% if field.required %}required{% endif %}>
+          {% elif field.type == 'phone' %}<input type="tel" class="shared-inp" name="{{ field.id }}" placeholder="{{ field.placeholder or '+91 XXXXX XXXXX' }}" {% if field.required %}required{% endif %}>
+          {% elif field.type == 'date' %}<input type="date" class="shared-inp" name="{{ field.id }}" {% if field.required %}required{% endif %}>
+          {% elif field.type == 'time' %}<input type="time" class="shared-inp" name="{{ field.id }}" {% if field.required %}required{% endif %}>
+          {% elif field.type == 'file' %}<input type="file" class="shared-inp" name="{{ field.id }}" {% if field.required %}required{% endif %}>
+          {% elif field.type == 'dropdown' %}<select class="shared-inp fv-select" name="{{ field.id }}" {% if field.required %}required{% endif %}><option value="">Choose an option…</option>{% for opt in field.options or [] %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}</select>
+          {% elif field.type == 'radio' %}<div class="opts">{% for opt in field.options or [] %}<label class="opt"><input type="radio" name="{{ field.id }}" value="{{ opt }}" {% if field.required %}required{% endif %}><span class="opt-dot"></span><span>{{ opt }}</span></label>{% endfor %}</div>
+          {% elif field.type == 'checkbox' %}<div class="opts">{% for opt in field.options or [] %}<label class="opt"><input type="checkbox" name="{{ field.id }}" value="{{ opt }}"><span class="opt-box"></span><span>{{ opt }}</span></label>{% endfor %}</div>
+          {% elif field.type == 'rating' %}<div class="web-field-label">{{ field.label }}{% if field.required %}<span class="web-req">*</span>{% endif %}</div><div class="stars">{% for i in range(1,(field.max_rating or 5)+1) %}<button type="button" class="star" data-v="{{ i }}" onclick="setStar(this,'{{ field.id }}')">★</button>{% endfor %}</div><input type="hidden" name="{{ field.id }}" id="wr_{{ field.id }}">
+          {% elif field.type == 'scale' %}<div class="web-field-label">{{ field.label }}{% if field.required %}<span class="web-req">*</span>{% endif %}</div><div class="scale-row">{% for i in range(1,(field.scale_max or 10)+1) %}<button type="button" class="sc-btn" data-v="{{ i }}" onclick="setScale(this,'{{ field.id }}')">{{ i }}</button>{% endfor %}</div><div class="scale-lbls"><span>Not at all</span><span>Extremely</span></div><input type="hidden" name="{{ field.id }}" id="ws_{{ field.id }}">
+          {% endif %}
+          <div class="fv-err" id="werr_{{ field.id }}">This field is required.</div>
+        </div>
         {% endif %}
-        <div class="img-dropzone" id="dropzone_{{ field.id }}"
-             ondragover="event.preventDefault();this.classList.add('drag-over')"
-             ondragleave="this.classList.remove('drag-over')"
-             ondrop="handleImageDrop(event,'{{ field.id }}')"
-             onclick="document.getElementById('fileInput_{{ field.id }}').click()">
-          <div class="img-dropzone-icon">🖼</div>
-          <div style="font-weight:600;margin-bottom:4px">Click or drag image here</div>
-          <div style="font-size:.78rem">Supports JPG, PNG, GIF, WebP</div>
-          <img class="img-preview" id="imgPrev_{{ field.id }}" alt="Preview">
-        </div>
-        <input type="file" id="fileInput_{{ field.id }}" accept="image/*" style="display:none" onchange="handleImageSelect(event,'{{ field.id }}')">
-        <input type="hidden" name="{{ field.id }}" id="imgData_{{ field.id }}">
-        <div class="fv-error" id="err_{{ field.id }}">This field is required.</div>
-
-      {% elif field.type in ['radio_grid', 'checkbox_grid'] %}
-        <label class="fv-label">{{ field.label }}{% if field.required %}<span class="req">*</span>{% endif %}</label>
-        {% if field.help %}<p class="fv-help">{{ field.help }}</p>{% endif %}
-        <div style="overflow-x:auto">
-          <table class="grid-table">
-            <tr>
-              <th></th>
-              {% for col in field.cols or [] %}<th>{{ col }}</th>{% endfor %}
-            </tr>
-            {% for row in field.rows or [] %}
-            <tr>
-              <td>{{ row }}</td>
-              {% for col in field.cols or [] %}
-              <td>
-                {% if field.type == 'radio_grid' %}
-                <input type="radio" class="grid-radio" name="{{ field.id }}_{{ loop.index0 }}" value="{{ col }}" data-row="{{ row }}" data-field="{{ field.id }}" onchange="updateGridValue('{{ field.id }}')">
-                {% else %}
-                <input type="checkbox" class="grid-checkbox" name="{{ field.id }}_{{ row }}" value="{{ col }}" data-row="{{ row }}" data-field="{{ field.id }}" onchange="updateGridValue('{{ field.id }}')">
-                {% endif %}
-              </td>
-              {% endfor %}
-            </tr>
-            {% endfor %}
-          </table>
-        </div>
-        <input type="hidden" name="{{ field.id }}" id="grid_{{ field.id }}" value="">
-        <div class="fv-error" id="err_{{ field.id }}">Please complete this grid.</div>
-
-      {% elif field.type in ['quiz_mc', 'quiz_tf'] %}
-        <label class="fv-label">{{ field.label }}{% if field.required %}<span class="req">*</span>{% endif %}</label>
-        {% if field.help %}<p class="fv-help">{{ field.help }}</p>{% endif %}
-        <div class="opts">
-          {% for opt in field.options or [] %}
-          <label class="opt">
-            <input type="radio" name="{{ field.id }}" value="{{ opt }}" {% if field.required %}required{% endif %} onchange="checkQuizAnswer(this,'{{ field.correct_answer }}','{{ field.id }}')">
-            <span class="opt-dot"></span>
-            <span>{{ opt }}</span>
-          </label>
-          {% endfor %}
-        </div>
-        <div class="quiz-feedback" id="quiz_fb_{{ field.id }}"></div>
-        <div class="fv-error" id="err_{{ field.id }}">This field is required.</div>
-
-      {% else %}
-        <label class="fv-label">{{ field.label }}{% if field.required %}<span class="req">*</span>{% endif %}</label>
-        {% if field.help %}<p class="fv-help">{{ field.help }}</p>{% endif %}
-
-        {% if field.type == 'short_text' %}<input type="text" class="fv-input" name="{{ field.id }}" placeholder="{{ field.placeholder or '' }}" {{ 'required' if field.required }}>
-        {% elif field.type == 'long_text' %}<textarea class="fv-input fv-textarea" name="{{ field.id }}" placeholder="{{ field.placeholder or '' }}" {{ 'required' if field.required }}></textarea>
-        {% elif field.type == 'number' %}<input type="number" class="fv-input" name="{{ field.id }}" placeholder="{{ field.placeholder or '0' }}" {{ 'required' if field.required }}>
-        {% elif field.type == 'email' %}<input type="email" class="fv-input" name="{{ field.id }}" placeholder="{{ field.placeholder or 'email@example.com' }}" {{ 'required' if field.required }}>
-        {% elif field.type == 'phone' %}<input type="tel" class="fv-input" name="{{ field.id }}" placeholder="{{ field.placeholder or '+91 XXXXX XXXXX' }}" {{ 'required' if field.required }}>
-        {% elif field.type == 'date' %}<input type="date" class="fv-input" name="{{ field.id }}" {{ 'required' if field.required }}>
-        {% elif field.type == 'time' %}<input type="time" class="fv-input" name="{{ field.id }}" {{ 'required' if field.required }}>
-        {% elif field.type == 'dropdown' %}
-          <select class="fv-input fv-select" name="{{ field.id }}" {{ 'required' if field.required }}>
-            <option value="">Select...</option>
-            {% for opt in field.options or [] %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}
-          </select>
-        {% elif field.type == 'radio' %}
-          <div class="opts">{% for opt in field.options or [] %}<label class="opt"><input type="radio" name="{{ field.id }}" value="{{ opt }}" {{ 'required' if field.required }}><span class="opt-dot"></span><span>{{ opt }}</span></label>{% endfor %}</div>
-        {% elif field.type == 'checkbox' %}
-          <div class="opts">{% for opt in field.options or [] %}<label class="opt"><input type="checkbox" name="{{ field.id }}" value="{{ opt }}"><span class="opt-box"></span><span>{{ opt }}</span></label>{% endfor %}</div>
-        {% elif field.type == 'rating' %}
-          <div class="stars">{% for i in range(1,(field.max_rating or 5)+1) %}<button type="button" class="star" data-v="{{ i }}" onclick="setStar(this,'{{ field.id }}')">★</button>{% endfor %}</div>
-          <input type="hidden" name="{{ field.id }}" id="r_{{ field.id }}">
-        {% elif field.type == 'scale' %}
-          <div class="scale-btns">{% for i in range(1,(field.scale_max or 10)+1) %}<button type="button" class="sc-btn" data-v="{{ i }}" onclick="setScale(this,'{{ field.id }}')">{{ i }}</button>{% endfor %}</div>
-          <input type="hidden" name="{{ field.id }}" id="s_{{ field.id }}">
-        {% elif field.type == 'file' %}<input type="file" class="fv-input" name="{{ field.id }}" {{ 'required' if field.required }}>
         {% endif %}
-        <div class="fv-error" id="err_{{ field.id }}">This field is required.</div>
-      {% endif %}
+        {% endfor %}
+
+        <!-- Web Nav -->
+        <div class="web-bottom-nav">
+          {% if loop.first %}<div></div>
+          {% else %}<button type="button" class="web-btn-back" onclick="webGoPage({{ loop.index0-1 }})">← Back</button>{% endif %}
+          {% if loop.last %}
+          <button type="button" class="web-btn-submit" id="webSubmitBtn" onclick="submitForm('web')">
+            <span>{{ form.theme.button_text or 'Submit' }}</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </button>
+          {% else %}
+          <button type="button" class="web-btn-next" onclick="webGoPage({{ loop.index0+1 }}, {{ loop.index0 }})">
+            <span>Continue</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </button>
+          {% endif %}
+        </div>
+      </div>
     </div>
     {% endfor %}
+  </div>
 
-    <div class="fv-nav">
-      {% if loop.first %}<div></div>{% else %}<button type="button" class="btn-back-page" onclick="goPage({{ loop.index0-1 }})">← Back</button>{% endif %}
-      {% if loop.last %}<button type="button" class="btn-submit" id="submitBtn" onclick="submitForm()">{{ form.theme.button_text or 'Submit' }}</button>
-      {% else %}<button type="button" class="btn-next" onclick="goPage({{ loop.index0+1 }},{{ loop.index0 }})">Next →</button>{% endif %}
+  <div class="fv-brand" style="background:var(--hdr);color:rgba(255,255,255,.35)">Powered by <strong style="color:rgba(255,255,255,.6)">◈ FORM.AI</strong></div>
+</div>
+
+<!-- ═══════════════════════════════
+     FORM (CLASSIC) MODE
+     ═══════════════════════════════ -->
+<div class="form-mode-wrap">
+  <div class="fv-cover">
+    <div class="fv-cover-inner">
+      <div class="fv-badge">◈ FORM.AI</div>
+      <h1 class="fv-title">{{ form.title }}</h1>
+      {% if form.description %}<p class="fv-desc">{{ form.description }}</p>{% endif %}
     </div>
   </div>
-  {% endfor %}
+
+  {% if form.settings.show_progress %}
+  <div class="fv-prog"><div class="fv-prog-fill" id="fProgressFill"></div></div>
+  {% endif %}
+
+  <div class="fv-wrap">
+    <div class="fv-success" id="fSuccessScreen">
+      <div class="fv-success-ring">🎉</div>
+      <h2>{{ form.settings.confirmation_message or 'Thank you!' }}</h2>
+      <p>Your response has been recorded.</p>
+    </div>
+
+    {% for page in form.pages %}
+    <div class="fv-page {{ 'hidden' if not loop.first }}" id="fpg{{ loop.index0 }}" data-page="{{ loop.index0 }}">
+      {% if form.pages|length > 1 %}
+      <div class="fv-page-hdr">
+        <div>
+          <div class="fv-pg-badge">Page {{ loop.index }} of {{ form.pages|length }}</div>
+          {% if page.title and page.title != 'Page '+loop.index|string %}<div style="font-size:.85rem;margin-top:4px;font-weight:500">{{ page.title }}</div>{% endif %}
+        </div>
+        <div class="fv-steps">{% for p in form.pages %}<div class="fv-step" id="fstep{{ loop.index0 }}"></div>{% endfor %}</div>
+      </div>
+      {% endif %}
+
+      {% for field in page.fields %}
+      {% if field.type == 'header' %}
+      <div class="fv-field is-header"><h3>{{ field.label }}</h3>{% if field.help %}<p>{{ field.help }}</p>{% endif %}</div>
+      {% elif field.type == 'divider' %}
+      <div class="fv-field" style="padding:6px 0;background:transparent;border:none;box-shadow:none"><hr class="fv-divider-line"></div>
+
+      {% elif field.type == 'youtube' %}
+      <div class="fv-field">
+        <div class="fv-label">{{ field.label }}</div>
+        {% if field.help %}<div class="fv-help">{{ field.help }}</div>{% endif %}
+        {% if field.youtube_id %}
+        <div class="yt-wrap"><iframe src="https://www.youtube.com/embed/{{ field.youtube_id }}" allowfullscreen></iframe></div>
+        {% else %}<div style="padding:20px;background:#1A1A2E;border-radius:9px;text-align:center;color:rgba(255,255,255,.5)"><div style="font-size:2rem;margin-bottom:6px">▶</div><div>No video</div></div>{% endif %}
+      </div>
+
+      {% elif field.type == 'image_upload' %}
+      <div class="fv-field" data-fid="{{ field.id }}" data-type="{{ field.type }}">
+        <div class="fv-label">{{ field.label }}{% if field.required %}<span class="fv-req">*</span>{% endif %}</div>
+        {% if field.help %}<div class="fv-help">{{ field.help }}</div>{% endif %}
+        {% if field.image_url %}<img src="{{ field.image_url }}" style="max-width:100%;border-radius:9px;margin-bottom:11px;display:block">{% endif %}
+        <div class="img-dz" id="fdz_{{ field.id }}" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="imgDrop(event,'{{ field.id }}')" onclick="document.getElementById('ffi_{{ field.id }}').click()">
+          <span class="img-dz-icon">🖼</span>
+          <div style="font-weight:600;font-size:.92rem">Click or drag image here</div>
+          <div style="font-size:.76rem;margin-top:3px">JPG, PNG, GIF, WebP</div>
+          <img class="img-preview-el" id="fiprev_{{ field.id }}" alt="">
+        </div>
+        <input type="file" id="ffi_{{ field.id }}" accept="image/*" style="display:none" onchange="imgSelect(event,'{{ field.id }}')">
+        <input type="hidden" id="fidata_{{ field.id }}" name="{{ field.id }}">
+        <div class="fv-err" id="ferr_{{ field.id }}">This field is required.</div>
+      </div>
+
+      {% elif field.type in ['radio_grid','checkbox_grid'] %}
+      <div class="fv-field" data-fid="{{ field.id }}" data-type="{{ field.type }}">
+        <div class="fv-label">{{ field.label }}{% if field.required %}<span class="fv-req">*</span>{% endif %}</div>
+        {% if field.help %}<div class="fv-help">{{ field.help }}</div>{% endif %}
+        <div class="grid-wrap">
+          <table class="fv-grid">
+            <thead><tr><th></th>{% for col in field.cols or [] %}<th>{{ col }}</th>{% endfor %}</tr></thead>
+            <tbody>{% for row in field.rows or [] %}<tr><td>{{ row }}</td>{% for col in field.cols or [] %}<td>{% if field.type=='radio_grid' %}<input type="radio" class="grid-radio" name="{{ field.id }}_{{ loop.index0 }}" value="{{ col }}" data-row="{{ row }}" data-fid="{{ field.id }}" onchange="updateGrid('{{ field.id }}')">{% else %}<input type="checkbox" class="grid-cb" name="{{ field.id }}_{{ row }}" value="{{ col }}" data-row="{{ row }}" data-fid="{{ field.id }}" onchange="updateGrid('{{ field.id }}')">{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody>
+          </table>
+        </div>
+        <input type="hidden" name="{{ field.id }}" id="fgrid_{{ field.id }}">
+        <div class="fv-err" id="ferr_{{ field.id }}">Please complete this grid.</div>
+      </div>
+
+      {% elif field.type in ['quiz_mc','quiz_tf'] %}
+      <div class="fv-field" data-fid="{{ field.id }}" data-type="{{ field.type }}">
+        <div class="fv-label"><span style="background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--acc);border-radius:20px;padding:2px 8px;font-size:.69rem;font-weight:700;letter-spacing:.05em">QUIZ</span>{{ field.label }}{% if field.required %}<span class="fv-req">*</span>{% endif %}</div>
+        {% if field.help %}<div class="fv-help">{{ field.help }}</div>{% endif %}
+        <div class="opts">{% for opt in field.options or [] %}<label class="opt"><input type="radio" name="{{ field.id }}" value="{{ opt }}" {% if field.required %}required{% endif %} onchange="checkQuiz(this,'{{ field.correct_answer }}','{{ field.id }}')"><span class="opt-dot"></span><span>{{ opt }}</span></label>{% endfor %}</div>
+        <div class="quiz-fb" id="fqfb_{{ field.id }}"></div>
+        <div class="fv-err" id="ferr_{{ field.id }}">Please select an answer.</div>
+      </div>
+
+      {% else %}
+      <div class="fv-field" data-fid="{{ field.id }}" data-type="{{ field.type }}">
+        {% if field.type not in ['rating','scale'] %}
+        <div class="fv-label">{{ field.label }}{% if field.required %}<span class="fv-req">*</span>{% endif %}</div>
+        {% endif %}
+        {% if field.help %}<div class="fv-help">{{ field.help }}</div>{% endif %}
+        {% if field.type == 'short_text' %}<input type="text" class="fv-inp" name="{{ field.id }}" placeholder="{{ field.placeholder or '' }}" {% if field.required %}required{% endif %}>
+        {% elif field.type == 'long_text' %}<textarea class="fv-inp fv-textarea" name="{{ field.id }}" placeholder="{{ field.placeholder or '' }}" {% if field.required %}required{% endif %}></textarea>
+        {% elif field.type == 'number' %}<input type="number" class="fv-inp" name="{{ field.id }}" placeholder="{{ field.placeholder or '0' }}" {% if field.required %}required{% endif %}>
+        {% elif field.type == 'email' %}<input type="email" class="fv-inp" name="{{ field.id }}" placeholder="{{ field.placeholder or 'email@example.com' }}" {% if field.required %}required{% endif %}>
+        {% elif field.type == 'phone' %}<input type="tel" class="fv-inp" name="{{ field.id }}" placeholder="{{ field.placeholder or '+91 XXXXX XXXXX' }}" {% if field.required %}required{% endif %}>
+        {% elif field.type == 'date' %}<input type="date" class="fv-inp" name="{{ field.id }}" {% if field.required %}required{% endif %}>
+        {% elif field.type == 'time' %}<input type="time" class="fv-inp" name="{{ field.id }}" {% if field.required %}required{% endif %}>
+        {% elif field.type == 'file' %}<input type="file" class="fv-inp" name="{{ field.id }}" {% if field.required %}required{% endif %}>
+        {% elif field.type == 'dropdown' %}<select class="fv-inp fv-select" name="{{ field.id }}" {% if field.required %}required{% endif %}><option value="">Choose…</option>{% for opt in field.options or [] %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}</select>
+        {% elif field.type == 'radio' %}<div class="opts">{% for opt in field.options or [] %}<label class="opt"><input type="radio" name="{{ field.id }}" value="{{ opt }}" {% if field.required %}required{% endif %}><span class="opt-dot"></span><span>{{ opt }}</span></label>{% endfor %}</div>
+        {% elif field.type == 'checkbox' %}<div class="opts">{% for opt in field.options or [] %}<label class="opt"><input type="checkbox" name="{{ field.id }}" value="{{ opt }}"><span class="opt-box"></span><span>{{ opt }}</span></label>{% endfor %}</div>
+        {% elif field.type == 'rating' %}<div class="fv-label">{{ field.label }}{% if field.required %}<span class="fv-req">*</span>{% endif %}</div><div class="stars">{% for i in range(1,(field.max_rating or 5)+1) %}<button type="button" class="star" data-v="{{ i }}" onclick="setStar(this,'{{ field.id }}')">★</button>{% endfor %}</div><input type="hidden" name="{{ field.id }}" id="fr_{{ field.id }}">
+        {% elif field.type == 'scale' %}<div class="fv-label">{{ field.label }}{% if field.required %}<span class="fv-req">*</span>{% endif %}</div><div class="scale-row">{% for i in range(1,(field.scale_max or 10)+1) %}<button type="button" class="sc-btn" data-v="{{ i }}" onclick="setScale(this,'{{ field.id }}')">{{ i }}</button>{% endfor %}</div><div class="scale-lbls"><span>Not at all</span><span>Extremely</span></div><input type="hidden" name="{{ field.id }}" id="fs_{{ field.id }}">
+        {% endif %}
+        <div class="fv-err" id="ferr_{{ field.id }}">This field is required.</div>
+      </div>
+      {% endif %}
+      {% endfor %}
+
+      <div class="fv-nav">
+        {% if loop.first %}<div></div>
+        {% else %}<button type="button" class="btn-back" onclick="fGoPage({{ loop.index0-1 }})">← Back</button>{% endif %}
+        {% if loop.last %}
+        <button type="button" class="btn-submit" id="fSubmitBtn" onclick="submitForm('form')">
+          <span>{{ form.theme.button_text or 'Submit' }}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        </button>
+        {% else %}
+        <button type="button" class="btn-next" onclick="fGoPage({{ loop.index0+1 }}, {{ loop.index0 }})">
+          <span>Continue</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        </button>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="fv-brand">Powered by <strong>◈ FORM.AI</strong></div>
 </div>
 
 <script>
-const TOTAL={{ form.pages|length }}, SUBMIT_URL={{ url_for('forms.submit',slug=form.slug)|tojson }}, REDIR={{ (form.settings.redirect_url or '')|tojson }};
-let cur=0;
-const gridValues = {};
+const TOTAL = {{ form.pages|length }};
+const SUBMIT_URL = {{ url_for('forms.submit', slug=form.slug)|tojson }};
+const REDIR = {{ (form.settings.redirect_url or '')|tojson }};
+let fCur = 0, wCur = 0;
+let isWebMode = false;
 
-function goPage(next,cur_validate){
-  if(cur_validate!==undefined && !validate(cur_validate)) return;
-  document.getElementById('pg'+cur).classList.add('hidden');
-  cur=next;
-  document.getElementById('pg'+cur).classList.remove('hidden');
-  updateProgress(); updateSteps(); window.scrollTo(0,0);
+/* ══ MODE TOGGLE ══ */
+function toggleMode() {
+  isWebMode = !isWebMode;
+  document.body.classList.toggle('web-mode', isWebMode);
+  document.getElementById('modeLabel').textContent = isWebMode ? '📋 Form View' : '🌐 Website View';
+}
+function scrollToForm() {
+  document.getElementById('webFormSection').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-function updateProgress(){const f=document.getElementById('progressFill');if(f)f.style.width=((cur+1)/TOTAL*100)+'%';}
+/* ══ FORM PAGE NAV ══ */
+function fGoPage(next, validateIdx) {
+  if(validateIdx !== undefined && !validate(validateIdx, 'f')) return;
+  document.getElementById('fpg'+fCur).classList.add('hidden');
+  fCur = next;
+  const pg = document.getElementById('fpg'+fCur);
+  pg.classList.remove('hidden');
+  pg.style.animation='none'; requestAnimationFrame(()=>pg.style.animation='');
+  updateFProgress(); updateFSteps();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function updateFProgress() { const f=document.getElementById('fProgressFill'); if(f) f.style.width=((fCur+1)/TOTAL*100)+'%'; }
+function updateFSteps() { document.querySelectorAll('.fv-step').forEach((s,i)=>{ s.className='fv-step'+(i<fCur?' done':i===fCur?' cur':''); }); }
 
-function updateSteps(){
-  document.querySelectorAll('.fv-step').forEach((s,i)=>{
-    s.className='fv-step'+(i<cur?' done':i===cur?' active':'');
-  });
+/* ══ WEB PAGE NAV ══ */
+function webGoPage(next, validateIdx) {
+  if(validateIdx !== undefined && !validate(validateIdx, 'w')) return;
+  document.getElementById('web-pg'+wCur).classList.add('hidden');
+  wCur = next;
+  const pg = document.getElementById('web-pg'+wCur);
+  pg.classList.remove('hidden');
+  pg.style.animation='none'; requestAnimationFrame(()=>pg.style.animation='');
+  document.getElementById('webFormSection').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-function validate(pi){
-  let ok=true;
-  const page = document.getElementById('pg'+pi);
-  page.querySelectorAll('[required]').forEach(inp=>{
-    const w=inp.closest('.fv-field'), err=w?document.getElementById('err_'+w.dataset.fid):null;
-    let has=inp.value.trim()!=='';
-    if(inp.type==='radio'||inp.type==='checkbox'){
-      has=!!page.querySelector(`[name="${inp.name}"]:checked`);
-    }
-    if(!has){ok=false;if(err)err.style.display='block';}
-    else{if(err)err.style.display='none';}
+/* ══ VALIDATE ══ */
+function validate(pi, mode) {
+  const prefix = mode==='w' ? 'web-pg' : 'fpg';
+  const errPrefix = mode==='w' ? 'werr_' : 'ferr_';
+  const page = document.getElementById(prefix+pi);
+  if(!page) return true;
+  let ok = true;
+  page.querySelectorAll('.fv-field,.web-field-card').forEach(fw => {
+    const fid = fw.dataset.fid; if(!fid) return;
+    const radios = fw.querySelectorAll('input[type=radio][required]');
+    if(radios.length) { const checked=!!fw.querySelector('input[type=radio][required]:checked'); setErr(errPrefix+fid,!checked); if(!checked)ok=false; }
+    const inp = fw.querySelector('input[required]:not([type=radio]):not([type=checkbox]),select[required],textarea[required]');
+    if(inp && !inp.value.trim()) { setErr(errPrefix+fid,true); ok=false; } else if(inp) setErr(errPrefix+fid,false);
   });
   return ok;
 }
+function setErr(id, show) { const el=document.getElementById(id); if(el) el.classList.toggle('show',show); }
 
-function setStar(btn,fid){
+/* ══ INTERACTIONS ══ */
+function setStar(btn, fid) {
   const v=+btn.dataset.v;
-  btn.closest('.stars').querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<v));
-  document.getElementById('r_'+fid).value=v;
+  const container=btn.closest('.stars');
+  container.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<v));
+  // set both web and form mode hidden inputs
+  ['wr_','fr_'].forEach(p=>{const el=document.getElementById(p+fid);if(el)el.value=v;});
 }
-
-function setScale(btn,fid){
-  btn.closest('.scale-btns').querySelectorAll('.sc-btn').forEach(b=>b.classList.remove('on'));
+function setScale(btn, fid) {
+  const container=btn.closest('.scale-row');
+  container.querySelectorAll('.sc-btn').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
-  document.getElementById('s_'+fid).value=btn.dataset.v;
+  ['ws_','fs_'].forEach(p=>{const el=document.getElementById(p+fid);if(el)el.value=btn.dataset.v;});
 }
-
-// ===== QUIZ =====
-function checkQuizAnswer(inp, correct, fieldId) {
-  const fb = document.getElementById('quiz_fb_' + fieldId);
-  if(!fb) return;
-  if(inp.value === correct) {
-    fb.textContent = '✓ Correct!';
-    fb.className = 'quiz-feedback correct';
-  } else {
-    fb.textContent = '✗ Incorrect. Correct answer: ' + correct;
-    fb.className = 'quiz-feedback wrong';
-  }
-  fb.style.display = 'block';
-}
-
-// ===== GRID =====
-function updateGridValue(fieldId) {
-  const page = document.querySelector(`[data-fid="${fieldId}"]`);
-  if(!page) return;
-  const result = {};
-  page.querySelectorAll(`[data-field="${fieldId}"]:checked`).forEach(inp => {
-    const row = inp.dataset.row;
-    if(!result[row]) result[row] = [];
-    result[row].push(inp.value);
+function checkQuiz(inp, correct, fid) {
+  ['wqfb_','fqfb_'].forEach(p=>{
+    const fb=document.getElementById(p+fid); if(!fb) return;
+    fb.style.display='block';
+    if(inp.value===correct){fb.textContent='Correct!';fb.className='quiz-fb correct';}
+    else{fb.textContent='Incorrect. Correct answer: '+correct;fb.className='quiz-fb wrong';}
   });
-  const hidden = document.getElementById('grid_' + fieldId);
-  if(hidden) hidden.value = JSON.stringify(result);
+}
+function updateGrid(fid) {
+  const pages=[...document.querySelectorAll(`[data-fid="${fid}"]`)];
+  pages.forEach(page=>{
+    const result={};
+    page.querySelectorAll(`[data-fid="${fid}"]:checked`).forEach(inp=>{const row=inp.dataset.row;if(!result[row])result[row]=[];result[row].push(inp.value);});
+    ['wgrid_','fgrid_'].forEach(p=>{const h=document.getElementById(p+fid);if(h)h.value=JSON.stringify(result);});
+  });
 }
 
-// ===== IMAGE DRAG & DROP =====
-function handleImageDrop(e, fieldId) {
+/* ══ IMAGE UPLOAD ══ */
+function imgDrop(e, fid) {
   e.preventDefault();
-  const zone = document.getElementById('dropzone_' + fieldId);
-  zone.classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if(file && file.type.startsWith('image/')) processImageFile(file, fieldId);
+  ['wdz_','fdz_'].forEach(p=>{const el=document.getElementById(p+fid);if(el)el.classList.remove('over');});
+  const f=e.dataTransfer.files[0]; if(f&&f.type.startsWith('image/')) processImg(f,fid);
 }
-
-function handleImageSelect(e, fieldId) {
-  const file = e.target.files[0];
-  if(file) processImageFile(file, fieldId);
-}
-
-function processImageFile(file, fieldId) {
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const dataUrl = e.target.result;
-    const prev = document.getElementById('imgPrev_' + fieldId);
-    if(prev) { prev.src = dataUrl; prev.classList.add('show'); }
-    const hidden = document.getElementById('imgData_' + fieldId);
-    if(hidden) hidden.value = dataUrl;
-    const zone = document.getElementById('dropzone_' + fieldId);
-    if(zone) { zone.querySelector('.img-dropzone-icon').textContent = '✅'; zone.querySelector('div:nth-child(2)').textContent = file.name; }
+function imgSelect(e, fid) { const f=e.target.files[0]; if(f) processImg(f,fid); }
+function processImg(file, fid) {
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const url=e.target.result;
+    ['wiprev_','fiprev_'].forEach(p=>{const el=document.getElementById(p+fid);if(el){el.src=url;el.classList.add('show');}});
+    ['widata_','fidata_'].forEach(p=>{const el=document.getElementById(p+fid);if(el)el.value=url;});
+    ['wdz_','fdz_'].forEach(p=>{const el=document.getElementById(p+fid);if(el){const ico=el.querySelector('.img-dz-icon');if(ico)ico.textContent='✅';}});
   };
   reader.readAsDataURL(file);
 }
 
-function collectData(){
-  const d={};
-  document.querySelectorAll('.fv-field').forEach(w=>{
-    const fid=w.dataset.fid, type=w.dataset.type;
-    if(!fid) return;
-    if(type==='checkbox') d[fid]=[...w.querySelectorAll(`[name="${fid}"]:checked`)].map(i=>i.value);
-    else if(type==='radio'||type==='quiz_mc'||type==='quiz_tf'){const c=w.querySelector(`[name="${fid}"]:checked`);d[fid]=c?c.value:'';}
-    else if(type==='radio_grid'||type==='checkbox_grid'){const h=document.getElementById('grid_'+fid);d[fid]=h?h.value:'';}
-    else if(type==='image_upload'){const h=document.getElementById('imgData_'+fid);d[fid]=h?'[image uploaded]':'';}
-    else if(type==='youtube'||type==='header'||type==='divider'){} // no value
-    else{const inp=w.querySelector(`[name="${fid}"]`);if(inp)d[fid]=inp.value;}
+/* ══ COLLECT DATA ══ */
+function collect(mode) {
+  const d = {};
+  const prefix = mode==='web' ? '.web-field-card,.web-sections .fv-field' : '.form-mode-wrap .fv-field';
+  document.querySelectorAll(prefix).forEach(fw=>{
+    const fid=fw.dataset.fid, type=fw.dataset.type; if(!fid) return;
+    const imgPfx = mode==='web' ? 'wi' : 'fi';
+    const gridPfx = mode==='web' ? 'wgrid_' : 'fgrid_';
+    const rPfx = mode==='web' ? 'wr_' : 'fr_';
+    const sPfx = mode==='web' ? 'ws_' : 'fs_';
+    if(type==='checkbox') d[fid]=[...fw.querySelectorAll(`[name="${fid}"]:checked`)].map(i=>i.value);
+    else if(['radio','quiz_mc','quiz_tf'].includes(type)){const c=fw.querySelector(`[name="${fid}"]:checked`);d[fid]=c?c.value:'';}
+    else if(['radio_grid','checkbox_grid'].includes(type)){const h=document.getElementById(gridPfx+fid);d[fid]=h?h.value:'';}
+    else if(type==='image_upload'){const h=document.getElementById(imgPfx+'data_'+fid);d[fid]=h&&h.value?'[image uploaded]':'';}
+    else if(type==='rating'){const h=document.getElementById(rPfx+fid);d[fid]=h?h.value:'';}
+    else if(type==='scale'){const h=document.getElementById(sPfx+fid);d[fid]=h?h.value:'';}
+    else if(['youtube','header','divider'].includes(type)){}
+    else{const inp=fw.querySelector(`[name="${fid}"]`);if(inp)d[fid]=inp.value;}
   });
   return d;
 }
 
-async function submitForm(){
-  if(!validate(cur))return;
-  const btn=document.getElementById('submitBtn');
-  btn.textContent='Submitting...';btn.disabled=true;
-  const res=await fetch(SUBMIT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(collectData())});
-  const r=await res.json();
-  if(r.success){
-    document.querySelectorAll('.fv-page').forEach(p=>p.classList.add('hidden'));
-    document.getElementById('successScreen').classList.remove('hidden');
-    if(REDIR)setTimeout(()=>location.href=REDIR,2000);
-  } else {btn.textContent='Submit';btn.disabled=false;}
+/* ══ SUBMIT ══ */
+async function submitForm(mode) {
+  const curPage = mode==='web' ? wCur : fCur;
+  if(!validate(curPage, mode==='web'?'w':'f')) return;
+  const btnId = mode==='web' ? 'webSubmitBtn' : 'fSubmitBtn';
+  const btn = document.getElementById(btnId);
+  btn.disabled=true; btn.querySelector('span').textContent='Submitting…';
+  const res = await fetch(SUBMIT_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(collect(mode))});
+  const r = await res.json();
+  if(r.success) {
+    if(mode==='web') {
+      document.getElementById('webFormSection').querySelectorAll('[id^="web-pg"]').forEach(p=>p.classList.add('hidden'));
+      const ss=document.getElementById('web-success-screen');ss.style.display='flex';ss.style.flexDirection='column';ss.style.alignItems='center';ss.style.justifyContent='center';ss.style.minHeight='60vh';ss.style.background='var(--hdr)';
+    } else {
+      document.querySelectorAll('.fv-page').forEach(p=>p.classList.add('hidden'));
+      document.getElementById('fSuccessScreen').style.display='block';
+    }
+    window.scrollTo({top:0,behavior:'smooth'});
+    if(REDIR) setTimeout(()=>location.href=REDIR, 2000);
+  } else { btn.disabled=false; btn.querySelector('span').textContent='{{ form.theme.button_text or "Submit" }}'; }
 }
 
-updateProgress();updateSteps();
+updateFProgress(); updateFSteps();
 </script>
-</body></html>
+</body>
+</html>

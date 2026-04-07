@@ -29,7 +29,8 @@ def create_app():
 
     from routes.auth       import auth_bp
     from routes.nomination import nomination_bp
-    from routes.ai_builder  import ai_bp
+    from routes.ai_builder    import ai_bp
+    from routes.ai_newsletter import ai_nl_bp
     from routes.dashboard  import dashboard_bp
     from routes.builder    import builder_bp
     from routes.public     import public_bp
@@ -44,6 +45,7 @@ def create_app():
     app.register_blueprint(responses_bp)
     app.register_blueprint(nomination_bp)
     app.register_blueprint(ai_bp)
+    app.register_blueprint(ai_nl_bp)
     app.register_blueprint(newsletter_bp)
     app.register_blueprint(admin_bp)
 
