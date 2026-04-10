@@ -807,9 +807,7 @@ body{font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;height:
       </div>
       <img id="gifUploadPreview" src="" alt="" style="display:none;width:100%;border-radius:9px;margin-top:10px;max-height:200px;object-fit:contain;background:#f5f5f5">
       <div id="gifUploadName" style="font-size:.74rem;color:#aaa;text-align:center;margin-top:5px"></div>
-      <div style="margin-top:10px;padding:9px 12px;background:#FFF8E1;border-radius:8px;font-size:.73rem;color:#7B5B00;line-height:1.55">
-        ⚠️ Uploaded GIFs are embedded as base64. Use a URL for large GIFs (&gt;2MB) so the email stays small.
-      </div>
+      <div id="gifUploadStatus" style="font-size:.76rem;font-weight:600;text-align:center;margin-top:6px;min-height:18px"></div>
     </div>
 
     <div class="modal-btns" style="margin-top:14px">
@@ -1474,6 +1472,11 @@ function openGifModal(bid) {
   document.getElementById('gifSearchQ').value = '';
   document.getElementById('gifGrid').innerHTML = '';
   document.getElementById('gifUrlPreview').style.display = 'none';
+  document.getElementById('gifUploadPreview').style.display = 'none';
+  document.getElementById('gifUploadName').textContent = '';
+  const s = document.getElementById('gifUploadStatus'); if(s) s.textContent = '';
+  document.getElementById('gifFileInp').value = '';
+  _selectedGifUrl = '';
   // Switch to URL tab by default
   switchGifTab('url', document.querySelector('#gifModal .gif-tab'));
 }
@@ -1527,32 +1530,69 @@ function selectGif(url) {
 function onGifUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
-  if (!file.type.includes('gif')) { alert('Please select a .gif file'); return; }
-  if (file.size > 10 * 1024 * 1024) { alert('GIF too large (max 10MB). Use a URL instead.'); return; }
+  if (!file.type.includes('gif')) { showToast('Please select a .gif file', 'info'); return; }
+  if (file.size > 10 * 1024 * 1024) { showToast('GIF too large — max 10MB', 'info'); return; }
+
+  const nameEl    = document.getElementById('gifUploadName');
+  const prevEl    = document.getElementById('gifUploadPreview');
+  const statusEl  = document.getElementById('gifUploadStatus');
+
+  nameEl.textContent = file.name;
+  _selectedGifUrl = '';  // clear while uploading
+
+  if (statusEl) { statusEl.textContent = '⏳ Uploading…'; statusEl.style.color = '#FF8C00'; }
+
   const reader = new FileReader();
-  reader.onload = ev => {
-    _selectedGifUrl = ev.target.result;
-    document.getElementById('gifUploadPreview').src = _selectedGifUrl;
-    document.getElementById('gifUploadPreview').style.display = 'block';
-    document.getElementById('gifUploadName').textContent = file.name;
+  reader.onload = async ev => {
+    const dataUrl = ev.target.result;
+
+    // Show preview immediately
+    prevEl.src = dataUrl;
+    prevEl.style.display = 'block';
+
+    // Upload to server right away — get real /static/ URL before user clicks Add GIF
+    try {
+      const res = await fetch('/newsletter/upload-gif', {
+        method:  'POST',
+        headers: {'Content-Type': 'application/json'},
+        body:    JSON.stringify({data_url: dataUrl})
+      });
+      const d = await res.json();
+      if (d.success && d.url) {
+        _selectedGifUrl = d.url;   // now a real /static/nl_uploads/xxx.gif URL
+        if (statusEl) { statusEl.textContent = '✅ Ready — click Add GIF'; statusEl.style.color = '#2e7d32'; }
+      } else {
+        // Fallback: use base64 in-memory (won't persist after reload but works for current session)
+        _selectedGifUrl = dataUrl;
+        if (statusEl) { statusEl.textContent = '⚠ Server upload failed — GIF will work this session only'; statusEl.style.color = '#c62828'; }
+      }
+    } catch(err) {
+      // Network error — use base64 as fallback
+      _selectedGifUrl = dataUrl;
+      if (statusEl) { statusEl.textContent = '⚠ Offline — GIF will work this session only'; statusEl.style.color = '#c62828'; }
+    }
   };
   reader.readAsDataURL(file);
 }
 
 function applyGif() {
-  let url = _selectedGifUrl || document.getElementById('gifUrlInp').value.trim();
-  if (!url) { showToast('Please enter a GIF URL or select one', 'info'); return; }
+  // URL tab: use typed URL. Upload tab: _selectedGifUrl already set (uploaded on file-select).
+  const typed = document.getElementById('gifUrlInp').value.trim();
+  let url = typed || _selectedGifUrl;
+  if (!url) { showToast('Please select a GIF or enter a URL', 'info'); return; }
+
+  // If still base64 (upload-gif endpoint unreachable), use it anyway — works this session
   const b = nlState.blocks.find(x => x.id === _gifBlkId);
-  if (b) {
-    b.content.url = url;
-    syncDOMToState();
-    renderBlocks();
-    autoSave();
-    selectBlk(_gifBlkId);
-    showToast('🎞 GIF added!', 'success');
-  }
+  if (!b) { showToast('No GIF block selected — add a GIF block first', 'info'); return; }
+
+  b.content.url = url;
+  syncDOMToState();
+  renderBlocks();
+  autoSave();
+  selectBlk(_gifBlkId);
   document.getElementById('gifModal').style.display = 'none';
   _selectedGifUrl = '';
+  showToast('🎞 GIF added!', 'success');
 }
 
 function delBlk(id){pushHistory();nlState.blocks=nlState.blocks.filter(b=>b.id!==id);if(selBlkId===id){selBlkId=null;document.getElementById('blkPropsWrap').style.display='none';}renderBlocks();autoSave();}

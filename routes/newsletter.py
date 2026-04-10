@@ -1,12 +1,20 @@
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, send_from_directory
 from flask_login import login_required, current_user
 from datetime import datetime
-import smtplib, os, re, base64
+import smtplib, os, re, base64, uuid, mimetypes
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 
 newsletter_bp = Blueprint('newsletter', __name__, url_prefix='/newsletter')
+
+# ── GIF / image upload folder ─────────────────────────────────────────────────
+# Files saved here become /newsletter/uploads/<filename> — permanent URLs
+def _upload_dir():
+    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    d    = os.path.join(base, 'static', 'nl_uploads')
+    os.makedirs(d, exist_ok=True)
+    return d
 
 
 def _db():
@@ -14,7 +22,6 @@ def _db():
 
 
 def _smtp_config():
-    """Supports SMTP_* and EMAIL_*/MAIL_* naming conventions."""
     host = os.getenv('SMTP_HOST') or os.getenv('MAIL_SERVER', 'smtp.gmail.com')
     port = int(os.getenv('SMTP_PORT') or os.getenv('MAIL_PORT', 587))
     user = os.getenv('SMTP_USER') or os.getenv('EMAIL_USER', '')
@@ -30,7 +37,6 @@ def _is_base64(value):
 
 
 def _extract_b64(data_url):
-    """Parse data:mime/type;base64,... → (mime_type, bytes)"""
     if not data_url:
         return None, None
     m = re.match(r'data:([^;]+);base64,(.+)', data_url.strip(), re.DOTALL)
@@ -43,35 +49,63 @@ def _extract_b64(data_url):
 
 
 def _strip_base64_html(html):
-    """Remove base64 src= from HTML strings to keep size down."""
     if not html:
         return html
     return re.sub(r'src="data:[^"]*"', 'src=""', html)
 
 
+def _b64_to_file(data_url, prefix='upload'):
+    """
+    Convert a base64 data URL to a file on disk.
+    Returns the public URL path like /static/nl_uploads/abc123.gif
+    Returns None on failure.
+    """
+    mime_type, img_bytes = _extract_b64(data_url)
+    if not img_bytes:
+        return None
+    # Pick extension from mime type
+    ext_map = {
+        'image/gif':  '.gif',
+        'image/png':  '.png',
+        'image/jpeg': '.jpg',
+        'image/jpg':  '.jpg',
+        'image/webp': '.webp',
+    }
+    ext = ext_map.get(mime_type, mimetypes.guess_extension(mime_type) or '.bin')
+    fname = f'{prefix}_{uuid.uuid4().hex}{ext}'
+    fpath = os.path.join(_upload_dir(), fname)
+    try:
+        with open(fpath, 'wb') as f:
+            f.write(img_bytes)
+        return f'/static/nl_uploads/{fname}'
+    except Exception as e:
+        print(f'[nl_upload] write failed: {e}')
+        return None
+
+
 def _sanitize_blocks_for_save(blocks):
     """
-    Strip base64 image data from blocks before saving to MongoDB.
-    Base64 images make the document huge (MB) and cause:
-      - Nginx 413 errors on Hostinger
-      - MongoDB 16MB document limit errors
-      - Slow page loads
-    Users should use external image URLs (Unsplash, etc.) for production.
-    We keep a flag 'had_base64': True so the UI can warn the user.
+    Convert base64 image/gif URLs to disk files.
+    - GIF/image blocks: base64 → saved to disk → permanent /static/nl_uploads/ URL
+    - Text/heading blocks: strip any stray inline base64 srcs
     """
     cleaned = []
     for blk in blocks:
         b = dict(blk)
         c = dict(b.get('content', {}))
 
-        # Image / GIF blocks — strip base64 src
         if b.get('type') in ('image', 'gif'):
-            if _is_base64(c.get('url', '')):
-                c['url'] = ''
-                c['_had_base64'] = True  # flag for UI warning
+            url = c.get('url', '')
+            if _is_base64(url):
+                # Save to disk, replace with real URL
+                public_url = _b64_to_file(url, prefix=b['type'])
+                if public_url:
+                    c['url'] = public_url
+                    print(f"[nl_upload] Saved {b['type']} → {public_url}")
+                else:
+                    c['url'] = ''
+                    c['_upload_failed'] = True
 
-        # Logo in theme — handled separately in theme
-        # Text/heading blocks — strip base64 from inline HTML
         if b.get('type') in ('text', 'heading', '2col', 'quote', 'hdr', 'header'):
             for key in ('html', 'text', 'left', 'right'):
                 if key in c:
@@ -83,21 +117,21 @@ def _sanitize_blocks_for_save(blocks):
 
 
 def _sanitize_theme_for_save(theme):
-    """Strip base64 from theme (header image, logo)."""
     t = dict(theme)
-    if _is_base64(t.get('header_image', '')):
-        t['header_image'] = ''
-        t['_hdr_had_base64'] = True
-    if _is_base64(t.get('logo_url', '')):
-        t['logo_url'] = ''
-        t['_logo_had_base64'] = True
+    for key, label in [('header_image', '_hdr'), ('logo_url', '_logo')]:
+        if _is_base64(t.get(key, '')):
+            public_url = _b64_to_file(t[key], prefix=label.strip('_'))
+            if public_url:
+                t[key] = public_url
+            else:
+                t[key] = ''
+                t[f'{label}_upload_failed'] = True
     return t
 
 
 # ─── Email builder ────────────────────────────────────────────────────────────
 
 class ImageCollector:
-    """Collects images, assigns CIDs, replaces data: URLs with cid: refs."""
     def __init__(self):
         self.attachments = []
         self._cid_map    = {}
@@ -107,6 +141,22 @@ class ImageCollector:
             return ''
         if url.startswith('http://') or url.startswith('https://'):
             return url
+        if url.startswith('/static/'):
+            # Local file — embed as CID
+            fpath = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                url.lstrip('/')
+            )
+            if os.path.exists(fpath):
+                key = url
+                if key in self._cid_map:
+                    return f'cid:{self._cid_map[key]}'
+                cid = f'{prefix}_{len(self.attachments)}@formcraft'
+                self._cid_map[key] = cid
+                mime_type = mimetypes.guess_type(fpath)[0] or 'image/gif'
+                with open(fpath, 'rb') as f:
+                    self.attachments.append((cid, mime_type, f.read()))
+                return f'cid:{cid}'
         mime_type, img_bytes = _extract_b64(url)
         if not img_bytes:
             return ''
@@ -123,11 +173,10 @@ class ImageCollector:
             return html
         def replacer(m):
             return f'src="{self.process(m.group(1), prefix)}"'
-        return re.sub(r'src="(data:[^"]+)"', replacer, html)
+        return re.sub(r'src="(data:[^"]+|/static/[^"]+)"', replacer, html)
 
 
 def _build_email(nl):
-    """Build table-based HTML email with CID inline images."""
     theme      = nl.get('theme', {})
     hdr_color  = theme.get('header_color', '#1A1A2E')
     accent     = theme.get('accent_color', '#FF8C00')
@@ -145,7 +194,7 @@ def _build_email(nl):
     )
 
     logo_url   = collector.process(theme.get('logo_url', ''), 'logo')
-    logo_txt   = theme.get('logo_text', '\u25c8 FORM.AI')
+    logo_txt   = theme.get('logo_text', '◈ FORM.AI')
     logo_w     = theme.get('logo_width', 140)
     logo_h     = theme.get('logo_height', 50)
     logo_r     = theme.get('logo_radius', 6)
@@ -210,7 +259,7 @@ def _build_email(nl):
                     f'<tr><td style="padding:14px 28px">'
                     f'<a href="{url}" style="display:block;text-decoration:none">'
                     f'<img src="{thumb}" width="560" style="display:block;border-radius:10px;max-width:100%" alt="Watch on YouTube">'
-                    f'<p style="text-align:center;font-size:13px;color:#999;font-family:Arial,sans-serif;margin:6px 0 0">\u25b6 Watch on YouTube</p>'
+                    f'<p style="text-align:center;font-size:13px;color:#999;font-family:Arial,sans-serif;margin:6px 0 0">▶ Watch on YouTube</p>'
                     f'</a></td></tr>\n'
                 )
 
@@ -218,7 +267,7 @@ def _build_email(nl):
             btn_color = c.get('color', accent)
             btn_url   = c.get('url', '#')
             btn_txt   = re.sub(r'<[^>]+>', '', c.get('text', 'Click Here')).strip()
-            plain_parts.append(f'\n\u2192 {btn_txt}: {btn_url}\n')
+            plain_parts.append(f'\n→ {btn_txt}: {btn_url}\n')
             blocks_rows += (
                 f'<tr><td style="padding:20px 28px;text-align:center">'
                 f'<a href="{btn_url}" style="display:inline-block;padding:13px 36px;border-radius:8px;background:{btn_color};color:white;font-weight:700;text-decoration:none;font-size:15px;font-family:Arial,sans-serif">{btn_txt}</a>'
@@ -231,8 +280,8 @@ def _build_email(nl):
         elif t == 'quote':
             q_text   = collector.process_html(c.get('text', ''), f'q{idx}')
             q_author = c.get('author', '')
-            plain_parts.append(f'"{re.sub(r"<[^>]+>","",q_text).strip()}"' + (f' \u2014 {q_author}' if q_author else '') + '\n')
-            author_html = f'<p style="margin:6px 0 0;font-size:12px;color:#999;font-family:Arial,sans-serif">\u2014 {q_author}</p>' if q_author else ''
+            plain_parts.append(f'"{re.sub(r"<[^>]+>","",q_text).strip()}"' + (f' — {q_author}' if q_author else '') + '\n')
+            author_html = f'<p style="margin:6px 0 0;font-size:12px;color:#999;font-family:Arial,sans-serif">— {q_author}</p>' if q_author else ''
             blocks_rows += (
                 f'<tr><td style="padding:8px 28px">'
                 f'<table width="100%" cellpadding="0" cellspacing="0"><tr>'
@@ -261,7 +310,6 @@ def _build_email(nl):
             bg    = c.get('bg', '#1A1A2E')
             color = c.get('color', '#ffffff')
             txt   = collector.process_html(c.get('text', ''), f'b{idx}')
-            plain_parts.append(f'\n[{re.sub(r"<[^>]+>","",txt).strip()}]\n')
             blocks_rows += (
                 f'<tr><td style="background:{bg};padding:18px 28px;text-align:center">'
                 f'<p style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:{color};margin:0">{txt}</p>'
@@ -283,7 +331,7 @@ def _build_email(nl):
 {blocks_rows}
 <tr><td style="background-color:#F8F9FA;padding:20px 32px;text-align:center;border-top:1px solid #E0E0E0">
 <p style="font-size:11px;color:#999999;margin:0;line-height:1.8;font-family:Arial,sans-serif">{footer_txt}</p>
-<p style="font-size:10px;color:#cccccc;margin:6px 0 0;font-family:Arial,sans-serif">Sent via \u25c8 FORM.AI</p>
+<p style="font-size:10px;color:#cccccc;margin:6px 0 0;font-family:Arial,sans-serif">Sent via ◈ FORM.AI</p>
 </td></tr>
 </table></td></tr></table>
 </body></html>'''
@@ -295,7 +343,6 @@ def _build_email(nl):
 
     size_kb = len(html.encode('utf-8')) / 1024
     print(f'📧 Email HTML: {size_kb:.1f}KB | CID images: {len(collector.attachments)}')
-
     return html, plain, collector.attachments
 
 
@@ -316,7 +363,7 @@ def new():
         'user_id':    current_user.id,
         'title':      data.get('title', 'Untitled Newsletter'),
         'subtitle':   '',
-        'footer':     'Sent by FORM.AI \xb7 Unsubscribe',
+        'footer':     'Sent by FORM.AI · Unsubscribe',
         'blocks':     [],
         'theme':      {'header_color': '#1A1A2E', 'accent_color': '#FF8C00'},
         'created_at': datetime.utcnow(),
@@ -340,31 +387,50 @@ def edit(nl_id):
     return render_template('newsletter/edit.html', newsletter=nl)
 
 
+@newsletter_bp.route('/upload-gif', methods=['POST'])
+@login_required
+def upload_gif():
+    """
+    Receives a base64 GIF (or any image) from the editor,
+    saves it to static/nl_uploads/, returns a permanent public URL.
+    This URL is then stored in nlState and MongoDB — no base64 in the DB.
+    """
+    try:
+        data     = request.get_json(force=True, silent=True) or {}
+        data_url = data.get('data_url', '')
+        if not data_url:
+            return jsonify({'success': False, 'error': 'No data_url provided'})
+
+        if not _is_base64(data_url):
+            # Already a URL — just return it
+            return jsonify({'success': True, 'url': data_url})
+
+        public_url = _b64_to_file(data_url, prefix='gif')
+        if not public_url:
+            return jsonify({'success': False, 'error': 'Failed to save GIF file'})
+
+        return jsonify({'success': True, 'url': public_url})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
 @newsletter_bp.route('/save', methods=['POST'])
 @login_required
 def save():
     from bson import ObjectId
-
-    # Handle JSON parse errors gracefully
     try:
         data = request.get_json(force=True, silent=True) or {}
     except Exception:
-        return jsonify({'success': False, 'error': 'Invalid JSON — payload may be too large. Use external image URLs.'}), 400
+        return jsonify({'success': False, 'error': 'Invalid JSON'}), 400
 
     nl_id  = data.get('nl_id')
     blocks = data.get('blocks', [])
     theme  = data.get('theme', {})
 
-    # ── Strip base64 before saving — THIS FIXES THE 413/SAVE FAILED ──
+    # Convert any remaining base64 to disk files, keep https:// URLs as-is
     clean_blocks = _sanitize_blocks_for_save(blocks)
     clean_theme  = _sanitize_theme_for_save(theme)
-
-    # Warn if base64 was stripped
-    had_b64 = (
-        any(b.get('content', {}).get('_had_base64') for b in clean_blocks) or
-        clean_theme.get('_hdr_had_base64') or
-        clean_theme.get('_logo_had_base64')
-    )
 
     update = {
         'title':      data.get('title', 'Untitled'),
@@ -375,16 +441,13 @@ def save():
         'updated_at': datetime.utcnow()
     }
 
-    warning = ('⚠ Uploaded images were removed to save space. Use external image URLs (e.g. from Unsplash or your server) for images to persist.'
-               if had_b64 else None)
-
     if nl_id and nl_id != 'null':
         try:
             _db().newsletters.update_one(
                 {'_id': ObjectId(nl_id), 'user_id': current_user.id},
                 {'$set': update}
             )
-            return jsonify({'success': True, 'nl_id': nl_id, 'warning': warning})
+            return jsonify({'success': True, 'nl_id': nl_id})
         except Exception as e:
             return jsonify({'success': False, 'error': str(e)})
     else:
@@ -392,7 +455,7 @@ def save():
         update['created_at'] = datetime.utcnow()
         try:
             r = _db().newsletters.insert_one(update)
-            return jsonify({'success': True, 'nl_id': str(r.inserted_id), 'warning': warning})
+            return jsonify({'success': True, 'nl_id': str(r.inserted_id)})
         except Exception as e:
             return jsonify({'success': False, 'error': str(e)})
 
@@ -477,7 +540,7 @@ def send():
                     errors.append(f'{to_addr}: {str(e)}')
 
     except smtplib.SMTPAuthenticationError:
-        return jsonify({'success': False, 'error': 'Gmail auth failed. Use an App Password: Google Account → Security → 2-Step Verification → App passwords.'})
+        return jsonify({'success': False, 'error': 'Gmail auth failed. Use an App Password.'})
     except smtplib.SMTPException as e:
         return jsonify({'success': False, 'error': f'SMTP error: {str(e)}'})
     except Exception as e:
