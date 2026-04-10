@@ -1401,7 +1401,8 @@ function showBlkProps(b){
       </div>
       <button class="btn-ghost" style="width:100%;font-size:.76rem" onclick="openGifModal('${b.id}')">🎞 Change GIF</button>
     </div>`;
-  }html+=`<label style="font-size:.7rem;font-weight:600;color:#888;display:block;margin-bottom:3px">Height (px)</label><input type="number" style="width:100%;padding:7px 10px;border:1.5px solid #E2DDD8;border-radius:7px;font-size:.82rem;outline:none" value="${b.content.height||28}" min="8" max="200" onchange="updateBlkProp('${b.id}','height',+this.value)">`;}
+  }
+  if(b.type==='spacer'){html+=`<label style="font-size:.7rem;font-weight:600;color:#888;display:block;margin-bottom:3px">Height (px)</label><input type="number" style="width:100%;padding:7px 10px;border:1.5px solid #E2DDD8;border-radius:7px;font-size:.82rem;outline:none" value="${b.content.height||28}" min="8" max="200" onchange="updateBlkProp('${b.id}','height',+this.value)">`;}
   // Heading level for heading blocks
   if(b.type==='heading'){html+=`<label style="font-size:.7rem;font-weight:600;color:#888;display:block;margin-bottom:3px">Heading Level</label><select style="width:100%;padding:7px 10px;border:1.5px solid #E2DDD8;border-radius:7px;font-size:.82rem;outline:none" onchange="updateBlkProp('${b.id}','level',this.value);renderBlocks()"><option value="h1" ${b.content.level==='h1'?'selected':''}>H1 — Large</option><option value="h2" ${(b.content.level||'h2')==='h2'?'selected':''}>H2 — Medium</option><option value="h3" ${b.content.level==='h3'?'selected':''}>H3 — Small</option></select>`;}
   cont.innerHTML=html;
@@ -1548,7 +1549,9 @@ function applyGif() {
   }
   document.getElementById('gifModal').style.display = 'none';
   _selectedGifUrl = '';
-}pushHistory();nlState.blocks=nlState.blocks.filter(b=>b.id!==id);if(selBlkId===id){selBlkId=null;document.getElementById('blkPropsWrap').style.display='none';}renderBlocks();autoSave();}
+}
+
+function delBlk(id){pushHistory();nlState.blocks=nlState.blocks.filter(b=>b.id!==id);if(selBlkId===id){selBlkId=null;document.getElementById('blkPropsWrap').style.display='none';}renderBlocks();autoSave();}
 function dupBlk(id){const i=nlState.blocks.findIndex(b=>b.id===id);if(i<0)return;pushHistory();const c=JSON.parse(JSON.stringify(nlState.blocks[i]));c.id=genId();nlState.blocks.splice(i+1,0,c);renderBlocks();autoSave();}
 function mvBlk(id,dir){const f=nlState.blocks,i=f.findIndex(b=>b.id===id),ni=i+dir;if(i<0||ni<0||ni>=f.length)return;pushHistory();[f[i],f[ni]]=[f[ni],f[i]];renderBlocks();autoSave();}
 function swapBlks(s,t){if(!s||s===t)return;const f=nlState.blocks,si=f.findIndex(b=>b.id===s),ti=f.findIndex(b=>b.id===t);if(si<0||ti<0)return;[f[si],f[ti]]=[f[ti],f[si]];renderBlocks();autoSave();}

@@ -190,6 +190,28 @@ def _build_email(nl):
                     + '</td></tr>\n'
                 )
 
+        elif t == 'gif':
+            raw_url = c.get('url', '')
+            gif_src = collector.process(raw_url, f'gif{idx}')
+            if gif_src:
+                raw_w = str(c.get('gif_width', '100%'))
+                try:
+                    num  = float(re.sub(r'[^\d.]', '', raw_w))
+                    px_w = int(560 * num / 100) if '%' in raw_w else min(int(num), 560)
+                except Exception:
+                    px_w = 560
+                align   = c.get('gif_align', 'center')
+                align   = align if align in ('left', 'right') else 'center'
+                caption = c.get('caption', '')
+                plain_parts.append('[GIF]\n')
+                blocks_rows += (
+                    f'<tr><td style="padding:10px 20px" align="{align}">'
+                    f'<img src="{gif_src}" width="{px_w}" '
+                    f'style="display:block;border-radius:8px;max-width:100%" alt="GIF">'
+                    + (f'<p style="font-size:12px;color:#999;text-align:center;margin:6px 0 0;font-family:Arial,sans-serif">{caption}</p>' if caption else '')
+                    + '</td></tr>\n'
+                )
+
         elif t == 'video':
             yt_id = c.get('youtube_id', '')
             if yt_id:
