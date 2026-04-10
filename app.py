@@ -8,9 +8,23 @@ import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(basedir, '.env'))
 
-MONGO_URI = os.getenv('MONGO_URI','mongodb+srv://santoshks_db_user:viefoCaPp3CMCqTq@cluster0.v8wfkok.mongodb.net/formcraft?retryWrites=true&w=majority&appName=Cluster0')
-SECRET_KEY = os.getenv('SECRET_KEY','formcraft-secret-2024-jain')
-MAIL_FROM  = os.getenv('MAIL_FROM','officeofacademicaffairs@jainuniversity.ac.in')
+MONGO_URI = os.getenv('MONGO_URI', 'mongodb+srv://santoshks_db_user:viefoCaPp3CMCqTq@cluster0.v8wfkok.mongodb.net/formcraft?retryWrites=true&w=majority&appName=Cluster0')
+SECRET_KEY = os.getenv('SECRET_KEY', 'formcraft-secret-2024-jain')
+MAIL_FROM  = os.getenv('MAIL_FROM', 'officeofacademicaffairs@jainuniversity.ac.in')
+
+# ── SMTP config — reads your .env variable names ──────────────────────────────
+# Your .env uses: EMAIL_USER, EMAIL_PASS, MAIL_SERVER, MAIL_PORT
+# We expose them as SMTP_* so all routes can use os.getenv('SMTP_*')
+_smtp_user = os.getenv('SMTP_USER') or os.getenv('EMAIL_USER', '')
+_smtp_pass = os.getenv('SMTP_PASS') or os.getenv('EMAIL_PASS', '')
+_smtp_host = os.getenv('SMTP_HOST') or os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+_smtp_port = os.getenv('SMTP_PORT') or os.getenv('MAIL_PORT', '587')
+
+# Write them back as the standard names so all routes find them
+os.environ.setdefault('SMTP_USER', _smtp_user)
+os.environ.setdefault('SMTP_PASS', _smtp_pass)
+os.environ.setdefault('SMTP_HOST', _smtp_host)
+os.environ.setdefault('SMTP_PORT', str(_smtp_port))
 
 client = MongoClient(MONGO_URI)
 db     = client.get_database('formcraft')
@@ -67,5 +81,12 @@ if __name__ == '__main__':
         print('✅ MongoDB connected!')
     except Exception as e:
         print(f'❌ MongoDB error: {e}')
+
+    # Print SMTP config on startup so you can verify it's loading correctly
+    print(f'📧 SMTP Host : {os.getenv("SMTP_HOST")}')
+    print(f'📧 SMTP Port : {os.getenv("SMTP_PORT")}')
+    print(f'📧 SMTP User : {os.getenv("SMTP_USER")}')
+    print(f'📧 SMTP Pass : {"✅ set" if os.getenv("SMTP_PASS") else "❌ NOT SET"}')
+
     app = create_app()
     app.run(debug=True)
