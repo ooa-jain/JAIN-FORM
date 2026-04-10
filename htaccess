@@ -1,0 +1,17 @@
+# FORM.AI Newsletter — Hostinger .htaccess
+# Increase max upload size to handle newsletter payloads with images
+
+php_value upload_max_filesize 50M
+php_value post_max_size 50M
+php_value memory_limit 256M
+php_value max_execution_time 300
+
+# For Apache — increase request body limit
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+</IfModule>
+
+# If using mod_proxy with gunicorn
+<IfModule mod_proxy.c>
+    ProxyTimeout 300
+</IfModule>

@@ -23,14 +23,15 @@ def _smtp_config():
     return host, port, user, pwd, frm
 
 
-# ─── Image helpers ────────────────────────────────────────────────────────────
+# ─── Base64 helpers ───────────────────────────────────────────────────────────
+
+def _is_base64(value):
+    return bool(value and isinstance(value, str) and value.strip().startswith('data:'))
+
 
 def _extract_b64(data_url):
-    """
-    Parse a data: URL into (mime_type, raw_bytes).
-    Returns (None, None) if not a data URL.
-    """
-    if not data_url or not data_url.strip().startswith('data:'):
+    """Parse data:mime/type;base64,... → (mime_type, bytes)"""
+    if not data_url:
         return None, None
     m = re.match(r'data:([^;]+);base64,(.+)', data_url.strip(), re.DOTALL)
     if not m:
@@ -41,36 +42,75 @@ def _extract_b64(data_url):
         return None, None
 
 
-def _is_external_url(url):
-    return url and (url.startswith('http://') or url.startswith('https://'))
+def _strip_base64_html(html):
+    """Remove base64 src= from HTML strings to keep size down."""
+    if not html:
+        return html
+    return re.sub(r'src="data:[^"]*"', 'src=""', html)
 
+
+def _sanitize_blocks_for_save(blocks):
+    """
+    Strip base64 image data from blocks before saving to MongoDB.
+    Base64 images make the document huge (MB) and cause:
+      - Nginx 413 errors on Hostinger
+      - MongoDB 16MB document limit errors
+      - Slow page loads
+    Users should use external image URLs (Unsplash, etc.) for production.
+    We keep a flag 'had_base64': True so the UI can warn the user.
+    """
+    cleaned = []
+    for blk in blocks:
+        b = dict(blk)
+        c = dict(b.get('content', {}))
+
+        # Image / GIF blocks — strip base64 src
+        if b.get('type') in ('image', 'gif'):
+            if _is_base64(c.get('url', '')):
+                c['url'] = ''
+                c['_had_base64'] = True  # flag for UI warning
+
+        # Logo in theme — handled separately in theme
+        # Text/heading blocks — strip base64 from inline HTML
+        if b.get('type') in ('text', 'heading', '2col', 'quote', 'hdr', 'header'):
+            for key in ('html', 'text', 'left', 'right'):
+                if key in c:
+                    c[key] = _strip_base64_html(c[key])
+
+        b['content'] = c
+        cleaned.append(b)
+    return cleaned
+
+
+def _sanitize_theme_for_save(theme):
+    """Strip base64 from theme (header image, logo)."""
+    t = dict(theme)
+    if _is_base64(t.get('header_image', '')):
+        t['header_image'] = ''
+        t['_hdr_had_base64'] = True
+    if _is_base64(t.get('logo_url', '')):
+        t['logo_url'] = ''
+        t['_logo_had_base64'] = True
+    return t
+
+
+# ─── Email builder ────────────────────────────────────────────────────────────
 
 class ImageCollector:
-    """
-    Collects all images from blocks/theme, assigns CIDs,
-    and replaces data: URLs with cid: references in the HTML.
-    External URLs are kept as-is.
-    """
+    """Collects images, assigns CIDs, replaces data: URLs with cid: refs."""
     def __init__(self):
-        self.attachments = []   # list of (cid, mime_type, bytes)
-        self._cid_map    = {}   # data_url_hash -> cid
+        self.attachments = []
+        self._cid_map    = {}
 
     def process(self, url, prefix='img'):
-        """
-        Given a URL (data: or https://), return the src to use in HTML.
-        data: → attach + return cid:xxx
-        https: → return as-is
-        empty → return ''
-        """
         if not url:
             return ''
-        if _is_external_url(url):
+        if url.startswith('http://') or url.startswith('https://'):
             return url
         mime_type, img_bytes = _extract_b64(url)
         if not img_bytes:
             return ''
-        # Deduplicate by checking first 100 chars of data URL
-        key = url[:100]
+        key = url[:80]
         if key in self._cid_map:
             return f'cid:{self._cid_map[key]}'
         cid = f'{prefix}_{len(self.attachments)}@formcraft'
@@ -79,23 +119,15 @@ class ImageCollector:
         return f'cid:{cid}'
 
     def process_html(self, html, prefix='img'):
-        """Replace data: src= values in an HTML string with cid: references."""
         if not html:
             return html
         def replacer(m):
-            data_url = m.group(1)
-            src = self.process(data_url, prefix)
-            return f'src="{src}"'
+            return f'src="{self.process(m.group(1), prefix)}"'
         return re.sub(r'src="(data:[^"]+)"', replacer, html)
 
 
-# ─── Email builder ────────────────────────────────────────────────────────────
-
 def _build_email(nl):
-    """
-    Build a table-based HTML email with all images attached inline (CID).
-    Returns (html_str, plain_str, [(cid, mime_type, bytes), ...])
-    """
+    """Build table-based HTML email with CID inline images."""
     theme      = nl.get('theme', {})
     hdr_color  = theme.get('header_color', '#1A1A2E')
     accent     = theme.get('accent_color', '#FF8C00')
@@ -106,20 +138,13 @@ def _build_email(nl):
 
     collector = ImageCollector()
 
-    # ── Header image ──
     hdr_img_url = collector.process(theme.get('header_image', ''), 'hdr')
-    if hdr_img_url:
-        hdr_bg = (
-            f'background-color:{hdr_color};'
-            f'background-image:url("{hdr_img_url}");'
-            f'background-size:cover;background-position:center'
-        )
-    else:
-        hdr_bg = f'background-color:{hdr_color}'
+    hdr_bg = (
+        f'background-color:{hdr_color};background-image:url("{hdr_img_url}");background-size:cover;background-position:center'
+        if hdr_img_url else f'background-color:{hdr_color}'
+    )
 
-    # ── Logo ──
-    logo_raw   = theme.get('logo_url', '')
-    logo_url   = collector.process(logo_raw, 'logo')
+    logo_url   = collector.process(theme.get('logo_url', ''), 'logo')
     logo_txt   = theme.get('logo_text', '\u25c8 FORM.AI')
     logo_w     = theme.get('logo_width', 140)
     logo_h     = theme.get('logo_height', 50)
@@ -127,19 +152,13 @@ def _build_email(nl):
     logo_align = theme.get('logo_align', 'center')
     ta         = logo_align if logo_align in ('left', 'right') else 'center'
 
-    if logo_url:
-        logo_html = (
-            f'<img src="{logo_url}" width="{logo_w}" height="{logo_h}" '
-            f'style="border-radius:{logo_r}px;display:block;{"margin:0 auto" if ta=="center" else ""}" '
-            f'alt="Logo"><br>'
-        )
-    else:
-        logo_html = (
-            f'<div style="font-size:13px;color:rgba(255,255,255,.55);letter-spacing:.2em;'
-            f'font-family:Arial,sans-serif;text-align:{ta};margin-bottom:12px">{logo_txt}</div>'
-        )
+    logo_html = (
+        f'<img src="{logo_url}" width="{logo_w}" height="{logo_h}" '
+        f'style="border-radius:{logo_r}px;display:block;{"margin:0 auto" if ta=="center" else ""}" alt="Logo"><br>'
+        if logo_url else
+        f'<div style="font-size:13px;color:rgba(255,255,255,.55);letter-spacing:.2em;font-family:Arial,sans-serif;text-align:{ta};margin-bottom:12px">{logo_txt}</div>'
+    )
 
-    # ── Blocks ──
     blocks_rows = ''
     plain_parts = []
 
@@ -150,64 +169,33 @@ def _build_email(nl):
         if t == 'text':
             raw = collector.process_html(c.get('html', ''), f'txt{idx}')
             plain_parts.append(re.sub(r'<[^>]+>', '', raw).strip() + '\n')
-            blocks_rows += (
-                f'<tr><td style="padding:14px 28px;font-size:15px;line-height:1.75;'
-                f'color:#212529;font-family:Arial,sans-serif">{raw}</td></tr>\n'
-            )
+            blocks_rows += f'<tr><td style="padding:14px 28px;font-size:15px;line-height:1.75;color:#212529;font-family:Arial,sans-serif">{raw}</td></tr>\n'
 
         elif t == 'heading':
             tag     = c.get('level', 'h2')
             fs      = '26px' if tag == 'h1' else '20px' if tag == 'h2' else '16px'
             content = collector.process_html(c.get('text', ''), f'hd{idx}')
             plain_parts.append('\n' + re.sub(r'<[^>]+>', '', content).strip() + '\n')
-            blocks_rows += (
-                f'<tr><td style="padding:14px 28px">'
-                f'<{tag} style="font-family:Georgia,serif;font-size:{fs};color:#1A1A2E;'
-                f'margin:0;line-height:1.25;font-weight:700">{content}</{tag}>'
-                f'</td></tr>\n'
-            )
+            blocks_rows += f'<tr><td style="padding:14px 28px"><{tag} style="font-family:Georgia,serif;font-size:{fs};color:#1A1A2E;margin:0;line-height:1.25;font-weight:700">{content}</{tag}></td></tr>\n'
 
-        elif t == 'image':
+        elif t in ('image', 'gif'):
             raw_url = c.get('url', '')
             img_src = collector.process(raw_url, f'blk{idx}')
             if img_src:
-                raw_w = str(c.get('img_width', '100%'))
+                raw_w = str(c.get('img_width') or c.get('gif_width') or '100%')
                 try:
                     num  = float(re.sub(r'[^\d.]', '', raw_w))
                     px_w = int(560 * num / 100) if '%' in raw_w else min(int(num), 560)
                 except Exception:
                     px_w = 560
                 img_r   = c.get('img_radius', 8)
-                img_a   = c.get('img_align', 'center')
+                img_a   = c.get('img_align') or c.get('gif_align') or 'center'
                 align   = img_a if img_a in ('left', 'right') else 'center'
                 caption = c.get('caption', '')
-                plain_parts.append('[Image]\n')
+                plain_parts.append('[Image]\n' if t == 'image' else '[GIF]\n')
                 blocks_rows += (
                     f'<tr><td style="padding:10px 20px" align="{align}">'
-                    f'<img src="{img_src}" width="{px_w}" '
-                    f'style="display:block;border-radius:{img_r}px;max-width:100%" alt="{c.get("alt","")}">'
-                    + (f'<p style="font-size:12px;color:#999;text-align:center;margin:6px 0 0;font-family:Arial,sans-serif">{caption}</p>' if caption else '')
-                    + '</td></tr>\n'
-                )
-
-        elif t == 'gif':
-            raw_url = c.get('url', '')
-            gif_src = collector.process(raw_url, f'gif{idx}')
-            if gif_src:
-                raw_w = str(c.get('gif_width', '100%'))
-                try:
-                    num  = float(re.sub(r'[^\d.]', '', raw_w))
-                    px_w = int(560 * num / 100) if '%' in raw_w else min(int(num), 560)
-                except Exception:
-                    px_w = 560
-                align   = c.get('gif_align', 'center')
-                align   = align if align in ('left', 'right') else 'center'
-                caption = c.get('caption', '')
-                plain_parts.append('[GIF]\n')
-                blocks_rows += (
-                    f'<tr><td style="padding:10px 20px" align="{align}">'
-                    f'<img src="{gif_src}" width="{px_w}" '
-                    f'style="display:block;border-radius:8px;max-width:100%" alt="GIF">'
+                    f'<img src="{img_src}" width="{px_w}" style="display:block;border-radius:{img_r}px;max-width:100%" alt="">'
                     + (f'<p style="font-size:12px;color:#999;text-align:center;margin:6px 0 0;font-family:Arial,sans-serif">{caption}</p>' if caption else '')
                     + '</td></tr>\n'
                 )
@@ -215,17 +203,14 @@ def _build_email(nl):
         elif t == 'video':
             yt_id = c.get('youtube_id', '')
             if yt_id:
-                # Use YouTube thumbnail as clickable image
                 thumb = f'https://img.youtube.com/vi/{yt_id}/hqdefault.jpg'
                 url   = f'https://www.youtube.com/watch?v={yt_id}'
                 plain_parts.append(f'[Video] {url}\n')
                 blocks_rows += (
                     f'<tr><td style="padding:14px 28px">'
                     f'<a href="{url}" style="display:block;text-decoration:none">'
-                    f'<img src="{thumb}" width="560" '
-                    f'style="display:block;border-radius:10px;max-width:100%" alt="Watch on YouTube">'
-                    f'<p style="text-align:center;font-size:13px;color:#999;'
-                    f'font-family:Arial,sans-serif;margin:6px 0 0">\u25b6 Watch on YouTube</p>'
+                    f'<img src="{thumb}" width="560" style="display:block;border-radius:10px;max-width:100%" alt="Watch on YouTube">'
+                    f'<p style="text-align:center;font-size:13px;color:#999;font-family:Arial,sans-serif;margin:6px 0 0">\u25b6 Watch on YouTube</p>'
                     f'</a></td></tr>\n'
                 )
 
@@ -236,49 +221,35 @@ def _build_email(nl):
             plain_parts.append(f'\n\u2192 {btn_txt}: {btn_url}\n')
             blocks_rows += (
                 f'<tr><td style="padding:20px 28px;text-align:center">'
-                f'<a href="{btn_url}" style="display:inline-block;padding:13px 36px;'
-                f'border-radius:8px;background:{btn_color};color:white;font-weight:700;'
-                f'text-decoration:none;font-size:15px;font-family:Arial,sans-serif">{btn_txt}</a>'
+                f'<a href="{btn_url}" style="display:inline-block;padding:13px 36px;border-radius:8px;background:{btn_color};color:white;font-weight:700;text-decoration:none;font-size:15px;font-family:Arial,sans-serif">{btn_txt}</a>'
                 f'</td></tr>\n'
             )
 
         elif t == 'divider':
-            blocks_rows += (
-                '<tr><td style="padding:8px 28px">'
-                '<hr style="border:none;border-top:2px solid #E8E0D5;margin:0">'
-                '</td></tr>\n'
-            )
+            blocks_rows += '<tr><td style="padding:8px 28px"><hr style="border:none;border-top:2px solid #E8E0D5;margin:0"></td></tr>\n'
 
         elif t == 'quote':
             q_text   = collector.process_html(c.get('text', ''), f'q{idx}')
             q_author = c.get('author', '')
-            plain_q  = re.sub(r'<[^>]+>', '', q_text).strip()
-            plain_parts.append(f'"{plain_q}"' + (f' \u2014 {q_author}' if q_author else '') + '\n')
-            author_html = (
-                f'<p style="margin:6px 0 0;font-size:12px;color:#999;font-family:Arial,sans-serif">'
-                f'\u2014 {q_author}</p>' if q_author else ''
-            )
+            plain_parts.append(f'"{re.sub(r"<[^>]+>","",q_text).strip()}"' + (f' \u2014 {q_author}' if q_author else '') + '\n')
+            author_html = f'<p style="margin:6px 0 0;font-size:12px;color:#999;font-family:Arial,sans-serif">\u2014 {q_author}</p>' if q_author else ''
             blocks_rows += (
                 f'<tr><td style="padding:8px 28px">'
                 f'<table width="100%" cellpadding="0" cellspacing="0"><tr>'
-                f'<td style="border-left:4px solid {accent};background:#FFF8F0;'
-                f'padding:14px 18px;border-radius:0 8px 8px 0">'
-                f'<blockquote style="font-family:Georgia,serif;font-size:16px;color:#1A1A2E;'
-                f'margin:0;line-height:1.6;font-style:italic">{q_text}</blockquote>'
+                f'<td style="border-left:4px solid {accent};background:#FFF8F0;padding:14px 18px;border-radius:0 8px 8px 0">'
+                f'<blockquote style="font-family:Georgia,serif;font-size:16px;color:#1A1A2E;margin:0;line-height:1.6;font-style:italic">{q_text}</blockquote>'
                 f'{author_html}</td></tr></table></td></tr>\n'
             )
 
         elif t == '2col':
-            left  = collector.process_html(c.get('left', ''),  f'l{idx}')
+            left  = collector.process_html(c.get('left',  ''), f'l{idx}')
             right = collector.process_html(c.get('right', ''), f'r{idx}')
             blocks_rows += (
                 f'<tr><td style="padding:10px 28px">'
                 f'<table width="100%" cellpadding="0" cellspacing="0"><tr>'
-                f'<td width="49%" valign="top" style="background:#FAFAFA;border-radius:8px;'
-                f'padding:12px;font-size:13px;font-family:Arial,sans-serif;line-height:1.6">{left}</td>'
+                f'<td width="49%" valign="top" style="background:#FAFAFA;border-radius:8px;padding:12px;font-size:13px;font-family:Arial,sans-serif;line-height:1.6">{left}</td>'
                 f'<td width="2%"></td>'
-                f'<td width="49%" valign="top" style="background:#FAFAFA;border-radius:8px;'
-                f'padding:12px;font-size:13px;font-family:Arial,sans-serif;line-height:1.6">{right}</td>'
+                f'<td width="49%" valign="top" style="background:#FAFAFA;border-radius:8px;padding:12px;font-size:13px;font-family:Arial,sans-serif;line-height:1.6">{right}</td>'
                 f'</tr></table></td></tr>\n'
             )
 
@@ -293,58 +264,37 @@ def _build_email(nl):
             plain_parts.append(f'\n[{re.sub(r"<[^>]+>","",txt).strip()}]\n')
             blocks_rows += (
                 f'<tr><td style="background:{bg};padding:18px 28px;text-align:center">'
-                f'<p style="font-family:Georgia,serif;font-size:18px;font-weight:700;'
-                f'color:{color};margin:0">{txt}</p></td></tr>\n'
+                f'<p style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:{color};margin:0">{txt}</p>'
+                f'</td></tr>\n'
             )
 
-    # ── Final HTML ──
     html = f'''<!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>{title}</title>
-</head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>{title}</title></head>
 <body style="margin:0;padding:0;background-color:#F0EEF4">
-<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F0EEF4"
-  style="background-color:#F0EEF4;padding:24px 0">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F0EEF4" style="background-color:#F0EEF4;padding:24px 0">
 <tr><td align="center" style="padding:24px 16px">
-
-<table width="600" cellpadding="0" cellspacing="0" border="0"
-  style="max-width:600px;width:100%;background-color:#ffffff;border-radius:14px;
-         overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.10)">
-
-  <!-- HEADER -->
-  <tr><td style="{hdr_bg};padding:40px 36px 32px;text-align:center">
-    {logo_html}
-    <h1 style="font-family:Georgia,serif;font-size:28px;color:#ffffff;
-      margin:0 0 10px;line-height:1.2;font-weight:700">{title}</h1>
-    {f'<p style="color:rgba(255,255,255,.7);margin:0;font-size:15px;line-height:1.5;font-family:Arial,sans-serif">{subtitle}</p>' if subtitle else ''}
-  </td></tr>
-
-  <!-- CONTENT BLOCKS -->
-  {blocks_rows}
-
-  <!-- FOOTER -->
-  <tr><td style="background-color:#F8F9FA;padding:20px 32px;text-align:center;border-top:1px solid #E0E0E0">
-    <p style="font-size:11px;color:#999999;margin:0;line-height:1.8;font-family:Arial,sans-serif">{footer_txt}</p>
-    <p style="font-size:10px;color:#cccccc;margin:6px 0 0;font-family:Arial,sans-serif">Sent via \u25c8 FORM.AI</p>
-  </td></tr>
-
-</table>
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.10)">
+<tr><td style="{hdr_bg};padding:40px 36px 32px;text-align:center">
+{logo_html}
+<h1 style="font-family:Georgia,serif;font-size:28px;color:#ffffff;margin:0 0 10px;line-height:1.2;font-weight:700">{title}</h1>
+{f'<p style="color:rgba(255,255,255,.7);margin:0;font-size:15px;line-height:1.5;font-family:Arial,sans-serif">{subtitle}</p>' if subtitle else ''}
 </td></tr>
-</table>
-</body>
-</html>'''
+{blocks_rows}
+<tr><td style="background-color:#F8F9FA;padding:20px 32px;text-align:center;border-top:1px solid #E0E0E0">
+<p style="font-size:11px;color:#999999;margin:0;line-height:1.8;font-family:Arial,sans-serif">{footer_txt}</p>
+<p style="font-size:10px;color:#cccccc;margin:6px 0 0;font-family:Arial,sans-serif">Sent via \u25c8 FORM.AI</p>
+</td></tr>
+</table></td></tr></table>
+</body></html>'''
 
-    # ── Plain text ──
-    plain = f'{title}\n{"=" * min(len(title), 60)}\n'
+    plain = f'{title}\n{"=" * min(len(title),60)}\n'
     if subtitle:
         plain += f'{subtitle}\n'
     plain += '\n' + '\n'.join(plain_parts) + f'\n\n---\n{footer_txt}\n'
 
     size_kb = len(html.encode('utf-8')) / 1024
-    print(f'📧 HTML size: {size_kb:.1f} KB | Images attached: {len(collector.attachments)}')
+    print(f'📧 Email HTML: {size_kb:.1f}KB | CID images: {len(collector.attachments)}')
 
     return html, plain, collector.attachments
 
@@ -366,9 +316,9 @@ def new():
         'user_id':    current_user.id,
         'title':      data.get('title', 'Untitled Newsletter'),
         'subtitle':   '',
-        'footer':     'Sent by FORM.AI \xb7 Unsubscribe \xb7 View in browser',
+        'footer':     'Sent by FORM.AI \xb7 Unsubscribe',
         'blocks':     [],
-        'theme':      {'header_color': '#1A1A2E', 'accent_color': '#FF8C00', 'bg_color': '#ffffff'},
+        'theme':      {'header_color': '#1A1A2E', 'accent_color': '#FF8C00'},
         'created_at': datetime.utcnow(),
         'updated_at': datetime.utcnow()
     }
@@ -394,37 +344,68 @@ def edit(nl_id):
 @login_required
 def save():
     from bson import ObjectId
-    data  = request.get_json() or {}
-    nl_id = data.get('nl_id')
+
+    # Handle JSON parse errors gracefully
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+    except Exception:
+        return jsonify({'success': False, 'error': 'Invalid JSON — payload may be too large. Use external image URLs.'}), 400
+
+    nl_id  = data.get('nl_id')
+    blocks = data.get('blocks', [])
+    theme  = data.get('theme', {})
+
+    # ── Strip base64 before saving — THIS FIXES THE 413/SAVE FAILED ──
+    clean_blocks = _sanitize_blocks_for_save(blocks)
+    clean_theme  = _sanitize_theme_for_save(theme)
+
+    # Warn if base64 was stripped
+    had_b64 = (
+        any(b.get('content', {}).get('_had_base64') for b in clean_blocks) or
+        clean_theme.get('_hdr_had_base64') or
+        clean_theme.get('_logo_had_base64')
+    )
+
     update = {
         'title':      data.get('title', 'Untitled'),
         'subtitle':   data.get('subtitle', ''),
         'footer':     data.get('footer', ''),
-        'blocks':     data.get('blocks', []),
-        'theme':      data.get('theme', {}),
+        'blocks':     clean_blocks,
+        'theme':      clean_theme,
         'updated_at': datetime.utcnow()
     }
+
+    warning = ('⚠ Uploaded images were removed to save space. Use external image URLs (e.g. from Unsplash or your server) for images to persist.'
+               if had_b64 else None)
+
     if nl_id and nl_id != 'null':
         try:
             _db().newsletters.update_one(
                 {'_id': ObjectId(nl_id), 'user_id': current_user.id},
                 {'$set': update}
             )
-            return jsonify({'success': True, 'nl_id': nl_id})
+            return jsonify({'success': True, 'nl_id': nl_id, 'warning': warning})
         except Exception as e:
             return jsonify({'success': False, 'error': str(e)})
     else:
         update['user_id']    = current_user.id
         update['created_at'] = datetime.utcnow()
-        r = _db().newsletters.insert_one(update)
-        return jsonify({'success': True, 'nl_id': str(r.inserted_id)})
+        try:
+            r = _db().newsletters.insert_one(update)
+            return jsonify({'success': True, 'nl_id': str(r.inserted_id), 'warning': warning})
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)})
 
 
 @newsletter_bp.route('/send', methods=['POST'])
 @login_required
 def send():
     from bson import ObjectId
-    data         = request.get_json() or {}
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+    except Exception:
+        return jsonify({'success': False, 'error': 'Invalid request'}), 400
+
     nl_id        = data.get('nl_id')
     subject      = data.get('subject', 'Newsletter from FORM.AI')
     recipients   = data.get('recipients', [])
@@ -442,22 +423,15 @@ def send():
 
     smtp_host, smtp_port, smtp_user, smtp_pass, from_addr = _smtp_config()
     if not smtp_user or not smtp_pass:
-        return jsonify({
-            'success': False,
-            'error': 'SMTP not configured. Check .env: SMTP_USER + SMTP_PASS (or EMAIL_USER + EMAIL_PASS).'
-        })
+        return jsonify({'success': False, 'error': 'SMTP not configured. Check .env: SMTP_USER + SMTP_PASS.'})
 
     try:
         html_body, plain_body, image_attachments = _build_email(nl)
     except Exception as e:
-        return jsonify({'success': False, 'error': f'Build error: {str(e)}'})
+        return jsonify({'success': False, 'error': f'Email build error: {str(e)}'})
 
-    # Preview text hidden preheader
     if preview_text:
-        preheader = (
-            f'<div style="display:none;max-height:0;overflow:hidden;opacity:0;'
-            f'font-size:1px;color:transparent">{preview_text}{"&nbsp;" * 80}</div>'
-        )
+        preheader = f'<div style="display:none;max-height:0;overflow:hidden;font-size:1px;color:transparent">{preview_text}{"&nbsp;"*80}</div>'
         html_body = html_body.replace('<body', f'<body>\n{preheader}', 1)
 
     sent_count = 0
@@ -465,9 +439,7 @@ def send():
 
     try:
         with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as s:
-            s.ehlo()
-            s.starttls()
-            s.ehlo()
+            s.ehlo(); s.starttls(); s.ehlo()
             s.login(smtp_user, smtp_pass)
 
             for to_addr in recipients:
@@ -475,31 +447,23 @@ def send():
                     continue
                 try:
                     if image_attachments:
-                        # ── multipart/related wraps HTML + inline images ──
                         outer = MIMEMultipart('mixed')
                         outer['Subject'] = subject
                         outer['From']    = f'FORM.AI <{from_addr}>'
                         outer['To']      = to_addr
-
-                        # alternative part: plain + html
-                        alt = MIMEMultipart('alternative')
-                        alt.attach(MIMEText(plain_body, 'plain', 'utf-8'))
-
-                        # related: html + cid images
+                        alt     = MIMEMultipart('alternative')
                         related = MIMEMultipart('related')
+                        alt.attach(MIMEText(plain_body, 'plain', 'utf-8'))
                         related.attach(MIMEText(html_body, 'html', 'utf-8'))
-
                         for cid, mime_type, img_bytes in image_attachments:
                             img_part = MIMEImage(img_bytes, _subtype=mime_type.split('/')[-1])
                             img_part.add_header('Content-ID', f'<{cid}>')
                             img_part.add_header('Content-Disposition', 'inline')
                             related.attach(img_part)
-
                         alt.attach(related)
                         outer.attach(alt)
                         msg = outer
                     else:
-                        # ── no inline images — simple alternative ──
                         msg = MIMEMultipart('alternative')
                         msg['Subject'] = subject
                         msg['From']    = f'FORM.AI <{from_addr}>'
@@ -509,18 +473,11 @@ def send():
 
                     s.sendmail(from_addr, to_addr, msg.as_string())
                     sent_count += 1
-
                 except Exception as e:
                     errors.append(f'{to_addr}: {str(e)}')
 
     except smtplib.SMTPAuthenticationError:
-        return jsonify({
-            'success': False,
-            'error': (
-                'Gmail auth failed. Use an App Password: '
-                'Google Account \u2192 Security \u2192 2-Step Verification \u2192 App passwords.'
-            )
-        })
+        return jsonify({'success': False, 'error': 'Gmail auth failed. Use an App Password: Google Account → Security → 2-Step Verification → App passwords.'})
     except smtplib.SMTPException as e:
         return jsonify({'success': False, 'error': f'SMTP error: {str(e)}'})
     except Exception as e:

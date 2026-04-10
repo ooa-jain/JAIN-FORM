@@ -1599,20 +1599,70 @@ function buildFullEmailHTML(){
   let blocksHTML='';
   (nlState.blocks||[]).forEach(b=>{
     const c=b.content||{};
-    // Use DOM content if available (captures rich text edits)
+    // Use live DOM content if available (captures rich text edits)
     const getContent = (key) => domBlocks[b.id+'_'+key] || c[key] || '';
 
     switch(b.type){
-      case 'text': blocksHTML+=`<tr><td style="padding:14px 28px;font-size:15px;line-height:1.75;color:#212529;font-family:Arial,sans-serif">${getContent('html')}</td></tr>`; break;
-      case 'heading':{const tag=c.level||'h2',fs=tag==='h1'?'28px':tag==='h2'?'22px':'18px';blocksHTML+=`<tr><td style="padding:14px 28px"><${tag} style="font-family:Georgia,serif;font-size:${fs};color:#1A1A2E;margin:0;line-height:1.2;font-weight:700">${getContent('text')}</${tag}></td></tr>`;break;}
-      case 'image': if(c.url)blocksHTML+=`<tr><td style="padding:0"><img src="${c.url}" alt="${c.alt||''}" style="width:100%;max-width:600px;display:block">${c.caption?`<p style="font-size:12px;color:#999;text-align:center;padding:6px 28px;margin:0">${c.caption}</p>`:''}</td></tr>`;break;
-      case 'video': if(c.youtube_id)blocksHTML+=`<tr><td style="padding:14px 28px"><a href="https://www.youtube.com/watch?v=${c.youtube_id}" style="display:block;background:#000;padding:32px 20px;border-radius:10px;text-align:center;text-decoration:none"><div style="font-size:36px;color:white">▶</div><p style="color:rgba(255,255,255,.7);font-size:13px;margin:8px 0 0;font-family:Arial,sans-serif">Watch on YouTube</p></a></td></tr>`;break;
-      case 'cta':{const btnColor=c.color||accent;blocksHTML+=`<tr><td style="padding:20px 28px;text-align:center"><a href="${c.url||'#'}" style="display:inline-block;padding:13px 36px;border-radius:8px;background:${btnColor};color:white;font-weight:700;text-decoration:none;font-size:15px;font-family:Arial,sans-serif">${getContent('text')}</a></td></tr>`;break;}
-      case 'divider': blocksHTML+=`<tr><td style="padding:8px 28px"><hr style="border:none;border-top:2px solid #E8E0D5;margin:0"></td></tr>`;break;
-      case 'quote':{const ap=c.author?`<p style="margin:6px 0 0;font-size:12px;color:#999;font-family:Arial,sans-serif">— ${getContent('author')}</p>`:'';blocksHTML+=`<tr><td style="padding:8px 28px"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="border-left:4px solid ${accent};background:#FFF8F0;padding:14px 18px;border-radius:0 8px 8px 0"><blockquote style="font-family:Georgia,serif;font-size:16px;color:#1A1A2E;margin:0;line-height:1.6;font-style:italic">${getContent('text')}</blockquote>${ap}</td></tr></table></td></tr>`;break;}
-      case '2col': blocksHTML+=`<tr><td style="padding:10px 28px"><table width="100%" cellpadding="0" cellspacing="0"><tr><td width="49%" valign="top" style="background:#FAFAFA;border-radius:8px;padding:12px;font-size:13px;font-family:Arial,sans-serif;line-height:1.6">${getContent('left')}</td><td width="2%"></td><td width="49%" valign="top" style="background:#FAFAFA;border-radius:8px;padding:12px;font-size:13px;font-family:Arial,sans-serif;line-height:1.6">${getContent('right')}</td></tr></table></td></tr>`;break;
-      case 'spacer': blocksHTML+=`<tr><td height="${c.height||28}" style="font-size:1px;line-height:1px">&nbsp;</td></tr>`;break;
-      case 'hdr': blocksHTML+=`<tr><td style="background:${c.bg||'#1A1A2E'};padding:18px 28px;text-align:center"><p style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:${c.color||'#fff'};margin:0">${getContent('text')}</p></td></tr>`;break;
+      case 'text':
+        blocksHTML+=`<tr><td style="padding:14px 28px;font-size:15px;line-height:1.75;color:#212529;font-family:Arial,sans-serif">${getContent('html')}</td></tr>`;
+        break;
+      case 'heading':{
+        const tag=c.level||'h2', fs=tag==='h1'?'28px':tag==='h2'?'22px':'18px';
+        blocksHTML+=`<tr><td style="padding:14px 28px"><${tag} style="font-family:Georgia,serif;font-size:${fs};color:#1A1A2E;margin:0;line-height:1.2;font-weight:700">${getContent('text')}</${tag}></td></tr>`;
+        break;
+      }
+      case 'image':
+        if(c.url){
+          const rawW = c.img_width||'100%';
+          let pxW = 560;
+          try { const n=parseFloat(rawW); pxW=rawW.includes('%')?Math.round(560*n/100):Math.min(n,560); } catch(e){}
+          const imgR = c.img_radius!==undefined ? c.img_radius : 8;
+          const imgA = c.img_align||'center';
+          const cap  = c.caption||'';
+          blocksHTML+=`<tr><td style="padding:10px 20px" align="${imgA}"><img src="${c.url}" width="${pxW}" style="display:block;border-radius:${imgR}px;max-width:100%" alt="${c.alt||''}">${cap?`<p style="font-size:12px;color:#999;text-align:center;margin:6px 0 0;font-family:Arial,sans-serif">${cap}</p>`:''}</td></tr>`;
+        }
+        break;
+      case 'gif':
+        if(c.url){
+          const rawW = c.gif_width||'100%';
+          let pxW = 560;
+          try { const n=parseFloat(rawW); pxW=rawW.includes('%')?Math.round(560*n/100):Math.min(n,560); } catch(e){}
+          const gifA = c.gif_align||'center';
+          const cap  = c.caption||'';
+          // GIFs are kept as-is — base64 data: URLs work in downloaded HTML files
+          // External https:// GIF URLs also work perfectly
+          blocksHTML+=`<tr><td style="padding:10px 20px" align="${gifA}"><img src="${c.url}" width="${pxW}" style="display:block;border-radius:8px;max-width:100%" alt="GIF">${cap?`<p style="font-size:12px;color:#999;text-align:center;margin:6px 0 0;font-family:Arial,sans-serif">${cap}</p>`:''}</td></tr>`;
+        }
+        break;
+      case 'video':
+        if(c.youtube_id){
+          const thumb=`https://img.youtube.com/vi/${c.youtube_id}/hqdefault.jpg`;
+          blocksHTML+=`<tr><td style="padding:14px 28px"><a href="https://www.youtube.com/watch?v=${c.youtube_id}" style="display:block;text-decoration:none"><img src="${thumb}" width="560" style="display:block;border-radius:10px;max-width:100%" alt="Watch on YouTube"><p style="text-align:center;font-size:13px;color:#999;font-family:Arial,sans-serif;margin:6px 0 0">▶ Watch on YouTube</p></a></td></tr>`;
+        }
+        break;
+      case 'cta':{
+        const btnColor=c.color||accent;
+        const btnTxt=(getContent('text')||'Click Here').replace(/<[^>]+>/g,'').trim();
+        blocksHTML+=`<tr><td style="padding:20px 28px;text-align:center"><a href="${c.url||'#'}" style="display:inline-block;padding:13px 36px;border-radius:8px;background:${btnColor};color:white;font-weight:700;text-decoration:none;font-size:15px;font-family:Arial,sans-serif">${btnTxt}</a></td></tr>`;
+        break;
+      }
+      case 'divider':
+        blocksHTML+=`<tr><td style="padding:8px 28px"><hr style="border:none;border-top:2px solid #E8E0D5;margin:0"></td></tr>`;
+        break;
+      case 'quote':{
+        const ap=c.author?`<p style="margin:6px 0 0;font-size:12px;color:#999;font-family:Arial,sans-serif">— ${getContent('author')}</p>`:'';
+        blocksHTML+=`<tr><td style="padding:8px 28px"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="border-left:4px solid ${accent};background:#FFF8F0;padding:14px 18px;border-radius:0 8px 8px 0"><blockquote style="font-family:Georgia,serif;font-size:16px;color:#1A1A2E;margin:0;line-height:1.6;font-style:italic">${getContent('text')}</blockquote>${ap}</td></tr></table></td></tr>`;
+        break;
+      }
+      case '2col':
+        blocksHTML+=`<tr><td style="padding:10px 28px"><table width="100%" cellpadding="0" cellspacing="0"><tr><td width="49%" valign="top" style="background:#FAFAFA;border-radius:8px;padding:12px;font-size:13px;font-family:Arial,sans-serif;line-height:1.6">${getContent('left')}</td><td width="2%"></td><td width="49%" valign="top" style="background:#FAFAFA;border-radius:8px;padding:12px;font-size:13px;font-family:Arial,sans-serif;line-height:1.6">${getContent('right')}</td></tr></table></td></tr>`;
+        break;
+      case 'spacer':
+        blocksHTML+=`<tr><td height="${c.height||28}" style="font-size:1px;line-height:1px">&nbsp;</td></tr>`;
+        break;
+      case 'hdr':
+        blocksHTML+=`<tr><td style="background:${c.bg||'#1A1A2E'};padding:18px 28px;text-align:center"><p style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:${c.color||'#fff'};margin:0">${getContent('text')}</p></td></tr>`;
+        break;
     }
   });
   return `<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1.0">\n<title>${title}</title>\n</head>\n<body style="margin:0;padding:20px;background:#F0EEF4;font-family:Arial,sans-serif">\n<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">\n<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.10)">\n<tr><td style="${hdrStyle};padding:40px 32px 32px;text-align:center">\n${logoHTML}\n<h1 style="font-family:Georgia,serif;font-size:30px;color:#ffffff;margin:0 0 10px;line-height:1.2;font-weight:700">${title}</h1>\n${subtitle?`<p style="color:rgba(255,255,255,.65);margin:0;font-size:14px;line-height:1.5;font-family:Arial,sans-serif">${subtitle}</p>`:''}\n</td></tr>\n${blocksHTML}\n<tr><td style="background:#F8F9FA;padding:20px 32px;text-align:center;border-top:1px solid #E0E0E0"><p style="font-size:11px;color:#999;margin:0;line-height:1.8;font-family:Arial,sans-serif">${footer}</p></td></tr>\n</table>\n</td></tr></table>\n</body>\n</html>`;
@@ -1804,19 +1854,42 @@ async function doSave() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nl_id: NL_ID, ...nlState })
     });
+
+    // Handle 413 Payload Too Large (Nginx limit on Hostinger)
+    if (res.status === 413) {
+      statusEl.textContent = '⚠ Too large';
+      statusEl.style.color = '#FF8C00';
+      showToast('⚠ Save failed: Images too large. Use external image URLs (Unsplash, etc.) instead of uploaded files.', 'info');
+      _hasUnsaved = true;
+      return;
+    }
+
     const d = await res.json();
     if (d.success) {
       _hasUnsaved = false;
       statusEl.textContent = 'Saved ✓';
       statusEl.style.color = 'rgba(255,255,255,.35)';
-      if (d.nl_id && NL_ID === 'null') window.history.replaceState({}, '', '/newsletter/' + d.nl_id + '/edit');
+      if (d.nl_id && NL_ID === 'null') {
+        window.history.replaceState({}, '', '/newsletter/' + d.nl_id + '/edit');
+        // Update NL_ID so subsequent saves use the correct ID
+        window.__NL_ID_NEW = d.nl_id;
+      }
+      // Show warning if base64 images were stripped
+      if (d.warning) {
+        showToast(d.warning, 'info');
+      }
     } else {
       statusEl.textContent = '⚠ Save failed';
       statusEl.style.color = '#FF8C00';
+      const errMsg = d.error || 'Unknown error';
+      showToast('⚠ ' + errMsg, 'info');
+      _hasUnsaved = true;
     }
   } catch(e) {
     statusEl.textContent = '⚠ Save failed';
     statusEl.style.color = '#FF8C00';
+    showToast('⚠ Network error — check your connection and try again', 'info');
+    _hasUnsaved = true;
   }
 }
 function openSendModal(){document.getElementById('emailSubject').value=nlState.title;document.getElementById('sendErr').style.display='none';document.getElementById('sendModal').style.display='flex';}
@@ -1909,6 +1982,7 @@ function buildWebpageHTML() {
         case 'text':    blocksHTML += `<section class="ws-sec"><div class="ws-prose">${get('html')}</div></section>`; break;
         case 'heading': { const tag=c.level||'h2'; blocksHTML += `<section class="ws-sec ws-sec-hd"><${tag} class="ws-heading">${get('text')}</${tag}><div class="ws-accent-line"></div></section>`; break; }
         case 'image':   if(c.url) blocksHTML += `<section class="ws-sec ws-sec-img"><img src="${c.url}" style="width:${imgW};max-width:100%;border-radius:${imgR}px;display:block;${imgAS}" alt="${c.alt||''}"><${c.caption?`p class="ws-caption">${c.caption}</p>`:'div style="display:none"></div'}></section>`; break;
+        case 'gif':     if(c.url) { const gW=c.gif_width||'100%',gA=c.gif_align||'center',gAS=gA==='left'?'margin-right:auto':gA==='right'?'margin-left:auto':'margin:0 auto'; blocksHTML += `<section class="ws-sec ws-sec-img"><img src="${c.url}" style="width:${gW};max-width:100%;border-radius:8px;display:block;${gAS}" alt="GIF">${c.caption?`<p class="ws-caption">${c.caption}</p>`:''}</section>`; } break;
         case 'video':   if(c.youtube_id) blocksHTML += `<section class="ws-sec"><div class="ws-video-wrap"><iframe src="https://www.youtube.com/embed/${c.youtube_id}" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none;border-radius:12px"></iframe></div></section>`; break;
         case 'cta':     blocksHTML += `<section class="ws-sec" style="text-align:center"><a href="${c.url||'#'}" class="ws-cta" style="background:${c.color||accent}">${get('text')}</a></section>`; break;
         case 'divider': blocksHTML += `<section class="ws-sec" style="padding:8px 0"><hr style="border:none;border-top:2px solid ${darkBody?'rgba(255,255,255,.1)':'#E8E0D5'}"></section>`; break;
@@ -1923,6 +1997,7 @@ function buildWebpageHTML() {
         case 'text':    blocksHTML += `<div class="ec-block"><div style="font-size:15px;line-height:1.8;color:${txtColor}">${get('html')}</div></div>`; break;
         case 'heading': { const tag=c.level||'h2',fs=tag==='h1'?'2rem':tag==='h2'?'1.5rem':'1.2rem'; blocksHTML += `<div class="ec-block"><${tag} style="font-family:Georgia,serif;font-size:${fs};color:${txtColor};margin:0;font-weight:700;line-height:1.2">${get('text')}</${tag}></div>`; break; }
         case 'image':   if(c.url) blocksHTML += `<div class="ec-block ec-block-img"><img src="${c.url}" style="width:${imgW};max-width:100%;border-radius:${imgR}px;display:block;${imgAS}" alt="${c.alt||''}">${c.caption?`<p style="font-size:.75rem;color:#999;text-align:center;margin:6px 0 0">${c.caption}</p>`:''}</div>`; break;
+        case 'gif':     if(c.url) { const gW=c.gif_width||'100%',gA=c.gif_align||'center',gAS=gA==='left'?'margin-right:auto':gA==='right'?'margin-left:auto':'margin:0 auto'; blocksHTML += `<div class="ec-block ec-block-img"><img src="${c.url}" style="width:${gW};max-width:100%;border-radius:8px;display:block;${gAS}" alt="GIF">${c.caption?`<p style="font-size:.75rem;color:#999;text-align:center;margin:6px 0 0">${c.caption}</p>`:''}</div>`; } break;
         case 'video':   if(c.youtube_id) blocksHTML += `<div class="ec-block"><div style="position:relative;padding-bottom:56.25%;border-radius:12px;overflow:hidden;background:#000"><iframe src="https://www.youtube.com/embed/${c.youtube_id}" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none"></iframe></div></div>`; break;
         case 'cta':     blocksHTML += `<div class="ec-block" style="text-align:center"><a href="${c.url||'#'}" style="display:inline-block;padding:13px 36px;border-radius:10px;background:${c.color||accent};color:#fff;font-weight:700;text-decoration:none;font-size:15px;font-family:inherit">${get('text')}</a></div>`; break;
         case 'divider': blocksHTML += `<div class="ec-block"><hr style="border:none;border-top:2px solid ${darkBody?'rgba(255,255,255,.1)':'#E8E0D5'}"></div>`; break;
