@@ -1320,8 +1320,11 @@ function renderBlkHTML(b){
     case 'gif': {
       const gw = c.gif_width || '100%';
       const ga = c.gif_align || 'center';
+      // Always render a hidden span to store the URL so syncDOMToState preserves it across re-renders
+      const urlStore = `<span data-key="url" contenteditable="false" style="display:none;position:absolute;width:0;height:0;overflow:hidden;pointer-events:none">${c.url||''}</span>`;
       if (c.url) {
-        return `<div style="padding:8px;text-align:${ga}">
+        return `<div style="padding:8px;text-align:${ga};position:relative">
+          ${urlStore}
           <div style="position:relative;display:inline-block;max-width:100%">
             <img src="${c.url}" style="width:${gw};max-width:100%;display:inline-block;border-radius:8px" alt="GIF">
             <span style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,.65);color:#fff;font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.05em">GIF</span>
@@ -1330,7 +1333,8 @@ function renderBlkHTML(b){
           ${c.caption?`<div style="font-size:.74rem;color:#999;text-align:center;margin-top:4px">${c.caption}</div>`:''}
         </div>`;
       }
-      return `<div class="blk-img-ph" onclick="openGifModal('${b.id}')" style="border-color:rgba(255,140,0,.4);background:#FFF9F0;cursor:pointer">
+      return `<div class="blk-img-ph" onclick="openGifModal('${b.id}')" style="border-color:rgba(255,140,0,.4);background:#FFF9F0;cursor:pointer;position:relative">
+        ${urlStore}
         <div style="font-size:2rem;margin-bottom:6px">🎞</div>
         <div style="font-weight:600;font-size:.82rem;color:var(--mango-d)">Click to add GIF</div>
         <div style="font-size:.7rem;color:#bbb;margin-top:3px">Paste URL · Search Giphy · Upload</div>
@@ -1622,18 +1626,19 @@ function buildFullEmailHTML(){
           blocksHTML+=`<tr><td style="padding:10px 20px" align="${imgA}"><img src="${c.url}" width="${pxW}" style="display:block;border-radius:${imgR}px;max-width:100%" alt="${c.alt||''}">${cap?`<p style="font-size:12px;color:#999;text-align:center;margin:6px 0 0;font-family:Arial,sans-serif">${cap}</p>`:''}</td></tr>`;
         }
         break;
-      case 'gif':
-        if(c.url){
+      case 'gif':{
+        // Read URL from hidden DOM span first (survives syncDOMToState), then fallback to state
+        const gifUrl = (domBlocks[b.id+'_url']||'').trim() || (c.url||'').trim();
+        if(gifUrl){
           const rawW = c.gif_width||'100%';
           let pxW = 560;
           try { const n=parseFloat(rawW); pxW=rawW.includes('%')?Math.round(560*n/100):Math.min(n,560); } catch(e){}
           const gifA = c.gif_align||'center';
           const cap  = c.caption||'';
-          // GIFs are kept as-is — base64 data: URLs work in downloaded HTML files
-          // External https:// GIF URLs also work perfectly
-          blocksHTML+=`<tr><td style="padding:10px 20px" align="${gifA}"><img src="${c.url}" width="${pxW}" style="display:block;border-radius:8px;max-width:100%" alt="GIF">${cap?`<p style="font-size:12px;color:#999;text-align:center;margin:6px 0 0;font-family:Arial,sans-serif">${cap}</p>`:''}</td></tr>`;
+          blocksHTML+=`<tr><td style="padding:10px 20px" align="${gifA}"><img src="${gifUrl}" width="${pxW}" style="display:block;border-radius:8px;max-width:100%" alt="GIF">${cap?`<p style="font-size:12px;color:#999;text-align:center;margin:6px 0 0;font-family:Arial,sans-serif">${cap}</p>`:''}</td></tr>`;
         }
         break;
+      }
       case 'video':
         if(c.youtube_id){
           const thumb=`https://img.youtube.com/vi/${c.youtube_id}/hqdefault.jpg`;
@@ -1982,7 +1987,7 @@ function buildWebpageHTML() {
         case 'text':    blocksHTML += `<section class="ws-sec"><div class="ws-prose">${get('html')}</div></section>`; break;
         case 'heading': { const tag=c.level||'h2'; blocksHTML += `<section class="ws-sec ws-sec-hd"><${tag} class="ws-heading">${get('text')}</${tag}><div class="ws-accent-line"></div></section>`; break; }
         case 'image':   if(c.url) blocksHTML += `<section class="ws-sec ws-sec-img"><img src="${c.url}" style="width:${imgW};max-width:100%;border-radius:${imgR}px;display:block;${imgAS}" alt="${c.alt||''}"><${c.caption?`p class="ws-caption">${c.caption}</p>`:'div style="display:none"></div'}></section>`; break;
-        case 'gif':     if(c.url) { const gW=c.gif_width||'100%',gA=c.gif_align||'center',gAS=gA==='left'?'margin-right:auto':gA==='right'?'margin-left:auto':'margin:0 auto'; blocksHTML += `<section class="ws-sec ws-sec-img"><img src="${c.url}" style="width:${gW};max-width:100%;border-radius:8px;display:block;${gAS}" alt="GIF">${c.caption?`<p class="ws-caption">${c.caption}</p>`:''}</section>`; } break;
+        case 'gif':     if(c.url || domBlocks[b.id+'_url']) { const gifUrl=(domBlocks[b.id+'_url']||'').trim()||(c.url||''); const gW=c.gif_width||'100%',gA=c.gif_align||'center',gAS=gA==='left'?'margin-right:auto':gA==='right'?'margin-left:auto':'margin:0 auto'; blocksHTML += `<section class="ws-sec ws-sec-img"><img src="${gifUrl}" style="width:${gW};max-width:100%;border-radius:8px;display:block;${gAS}" alt="GIF">${c.caption?`<p class="ws-caption">${c.caption}</p>`:''}</section>`; } break;
         case 'video':   if(c.youtube_id) blocksHTML += `<section class="ws-sec"><div class="ws-video-wrap"><iframe src="https://www.youtube.com/embed/${c.youtube_id}" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none;border-radius:12px"></iframe></div></section>`; break;
         case 'cta':     blocksHTML += `<section class="ws-sec" style="text-align:center"><a href="${c.url||'#'}" class="ws-cta" style="background:${c.color||accent}">${get('text')}</a></section>`; break;
         case 'divider': blocksHTML += `<section class="ws-sec" style="padding:8px 0"><hr style="border:none;border-top:2px solid ${darkBody?'rgba(255,255,255,.1)':'#E8E0D5'}"></section>`; break;
@@ -1997,7 +2002,7 @@ function buildWebpageHTML() {
         case 'text':    blocksHTML += `<div class="ec-block"><div style="font-size:15px;line-height:1.8;color:${txtColor}">${get('html')}</div></div>`; break;
         case 'heading': { const tag=c.level||'h2',fs=tag==='h1'?'2rem':tag==='h2'?'1.5rem':'1.2rem'; blocksHTML += `<div class="ec-block"><${tag} style="font-family:Georgia,serif;font-size:${fs};color:${txtColor};margin:0;font-weight:700;line-height:1.2">${get('text')}</${tag}></div>`; break; }
         case 'image':   if(c.url) blocksHTML += `<div class="ec-block ec-block-img"><img src="${c.url}" style="width:${imgW};max-width:100%;border-radius:${imgR}px;display:block;${imgAS}" alt="${c.alt||''}">${c.caption?`<p style="font-size:.75rem;color:#999;text-align:center;margin:6px 0 0">${c.caption}</p>`:''}</div>`; break;
-        case 'gif':     if(c.url) { const gW=c.gif_width||'100%',gA=c.gif_align||'center',gAS=gA==='left'?'margin-right:auto':gA==='right'?'margin-left:auto':'margin:0 auto'; blocksHTML += `<div class="ec-block ec-block-img"><img src="${c.url}" style="width:${gW};max-width:100%;border-radius:8px;display:block;${gAS}" alt="GIF">${c.caption?`<p style="font-size:.75rem;color:#999;text-align:center;margin:6px 0 0">${c.caption}</p>`:''}</div>`; } break;
+        case 'gif':     if(c.url || domBlocks[b.id+'_url']) { const gifUrl=(domBlocks[b.id+'_url']||'').trim()||(c.url||''); const gW=c.gif_width||'100%',gA=c.gif_align||'center',gAS=gA==='left'?'margin-right:auto':gA==='right'?'margin-left:auto':'margin:0 auto'; blocksHTML += `<div class="ec-block ec-block-img"><img src="${gifUrl}" style="width:${gW};max-width:100%;border-radius:8px;display:block;${gAS}" alt="GIF">${c.caption?`<p style="font-size:.75rem;color:#999;text-align:center;margin:6px 0 0">${c.caption}</p>`:''}</div>`; } break;
         case 'video':   if(c.youtube_id) blocksHTML += `<div class="ec-block"><div style="position:relative;padding-bottom:56.25%;border-radius:12px;overflow:hidden;background:#000"><iframe src="https://www.youtube.com/embed/${c.youtube_id}" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none"></iframe></div></div>`; break;
         case 'cta':     blocksHTML += `<div class="ec-block" style="text-align:center"><a href="${c.url||'#'}" style="display:inline-block;padding:13px 36px;border-radius:10px;background:${c.color||accent};color:#fff;font-weight:700;text-decoration:none;font-size:15px;font-family:inherit">${get('text')}</a></div>`; break;
         case 'divider': blocksHTML += `<div class="ec-block"><hr style="border:none;border-top:2px solid ${darkBody?'rgba(255,255,255,.1)':'#E8E0D5'}"></div>`; break;
