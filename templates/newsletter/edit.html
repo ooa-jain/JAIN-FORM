@@ -17,7 +17,9 @@ body{font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;height:
 .nl-bar-r{display:flex;align-items:center;gap:7px;justify-content:flex-end}
 .nl-inp{background:transparent!important;border:none!important;border-bottom:1.5px solid rgba(255,255,255,.18)!important;border-radius:0!important;color:#fff!important;font-size:.9rem!important;font-weight:600!important;width:190px!important;padding:3px 5px!important;box-shadow:none!important}
 .nl-inp:focus{border-bottom-color:var(--mango)!important;outline:none!important}
-.save-lbl{font-size:.73rem;color:rgba(255,255,255,.35);white-space:nowrap}
+.save-lbl{font-size:.73rem;color:rgba(255,255,255,.35);white-space:nowrap;transition:color .3s}
+.save-lbl.saving{color:#FFB347 !important;animation:savePulse .8s ease infinite}
+@keyframes savePulse{0%,100%{opacity:.6}50%{opacity:1}}
 .back-btn{color:rgba(255,255,255,.5);text-decoration:none;font-size:.82rem;padding:5px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.12);transition:all .18s}
 .back-btn:hover{border-color:rgba(255,255,255,.35);color:#fff}
 .btn-ghost-sm{color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.14);background:transparent;font-family:'DM Sans',sans-serif;font-size:.78rem;padding:5px 12px;border-radius:7px;cursor:pointer;text-decoration:none;transition:all .18s}
@@ -428,6 +430,7 @@ body{font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;height:
         <button class="bpitem" onclick="addBlock('2col')"><span class="bi">⊞</span>2-Col</button>
         <button class="bpitem" onclick="addBlock('spacer')"><span class="bi">↕</span>Spacer</button>
         <button class="bpitem" onclick="addBlock('hdr')"><span class="bi">⬛</span>Banner</button>
+        <button class="bpitem" onclick="addBlock('gif')" style="border-color:rgba(255,140,0,.4);background:#FFF9F0"><span class="bi">🎞</span>GIF</button>
       </div>
     </div>
     <div class="nls">
@@ -599,6 +602,21 @@ body{font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;height:
       <input type="color" id="hdrColorPick" style="width:100%;height:34px;border-radius:7px;border:1.5px solid #E0E0E0;cursor:pointer;padding:2px" oninput="setHdrColor(this.value)">
     </div>
     <div class="rp-sec">
+      <div class="rp-lbl">Header Height</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px">
+        <button onclick="setHdrHeight(160)" class="tpl-btn" style="flex:1;padding:5px;font-size:.72rem;margin-bottom:0">S</button>
+        <button onclick="setHdrHeight(220)" class="tpl-btn" style="flex:1;padding:5px;font-size:.72rem;margin-bottom:0">M</button>
+        <button onclick="setHdrHeight(300)" class="tpl-btn" style="flex:1;padding:5px;font-size:.72rem;margin-bottom:0">L</button>
+        <button onclick="setHdrHeight(420)" class="tpl-btn" style="flex:1;padding:5px;font-size:.72rem;margin-bottom:0">XL</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="range" id="hdrHeightSlider" min="100" max="500" value="200"
+          style="flex:1"
+          oninput="setHdrHeight(+this.value)">
+        <span id="hdrHeightVal" style="font-size:.74rem;color:#999;min-width:36px">200px</span>
+      </div>
+    </div>
+    <div class="rp-sec">
       <div class="rp-lbl">Accent Color</div>
       <input type="color" id="accColorPick" style="width:100%;height:34px;border-radius:7px;border:1.5px solid #E0E0E0;cursor:pointer;padding:2px" oninput="nlState.theme.accent_color=this.value;autoSave()">
     </div>
@@ -721,7 +739,85 @@ body{font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;height:
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<style>
+/* GIF modal styles */
+.gif-tab{flex:1;padding:6px;background:transparent;border:none;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;border-radius:6px;color:#999;font-weight:500;transition:all .18s}
+.gif-tab.on{background:#fff;color:var(--mango-d);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.gif-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px;max-height:260px;overflow-y:auto}
+.gif-item{aspect-ratio:4/3;border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:all .18s;position:relative;background:#f0f0f0}
+.gif-item img{width:100%;height:100%;object-fit:cover;display:block}
+.gif-overlay{position:absolute;inset:0;background:rgba(255,140,0,.0);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.82rem;opacity:0;transition:all .18s}
+.gif-item:hover .gif-overlay,.gif-item.gif-selected .gif-overlay{opacity:1;background:rgba(255,140,0,.45)}
+.gif-item:hover,.gif-item.gif-selected{border-color:var(--mango)}
+.gif-upload-zone{border:2px dashed #E2DDD8;border-radius:9px;padding:28px 16px;text-align:center;color:#ccc;cursor:pointer;transition:all .18s}
+.gif-upload-zone:hover{border-color:var(--mango);background:#FFF9F0;color:var(--mango)}
+</style>
+
+<!-- ══ GIF MODAL ══ -->
+<div class="modal-overlay" id="gifModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <h3>🎞 Add GIF</h3>
+      <button onclick="document.getElementById('gifModal').style.display='none'">✕</button>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:3px;background:#F5F3F0;padding:3px;border-radius:8px;margin-bottom:14px">
+      <button class="gif-tab on" onclick="switchGifTab('url',this)">🔗 URL</button>
+      <button class="gif-tab" onclick="switchGifTab('search',this)">🔍 Search Giphy</button>
+      <button class="gif-tab" onclick="switchGifTab('upload',this)">📁 Upload GIF</button>
+    </div>
+
+    <!-- URL tab -->
+    <div id="gif-tab-url">
+      <div class="fg">
+        <label>GIF URL</label>
+        <div style="display:flex;gap:7px">
+          <input type="url" id="gifUrlInp" placeholder="https://media.giphy.com/media/xxx/giphy.gif" style="flex:1">
+          <button class="btn-ghost" onclick="previewGifUrl()" style="flex-shrink:0">Preview</button>
+        </div>
+      </div>
+      <img id="gifUrlPreview" src="" alt="Preview" style="display:none;width:100%;border-radius:9px;margin-top:8px;max-height:200px;object-fit:contain;background:#f5f5f5">
+      <div style="margin-top:10px;padding:10px 12px;background:#F0F8FF;border-radius:8px;font-size:.75rem;color:#1565C0;line-height:1.6">
+        💡 <strong>Get GIF URLs from:</strong><br>
+        • <a href="https://giphy.com" target="_blank" style="color:#1565C0">giphy.com</a> → right-click GIF → Copy image address<br>
+        • <a href="https://tenor.com" target="_blank" style="color:#1565C0">tenor.com</a> → share → Copy link<br>
+        • Any direct .gif URL works
+      </div>
+    </div>
+
+    <!-- Search tab -->
+    <div id="gif-tab-search" style="display:none">
+      <div style="display:flex;gap:7px;margin-bottom:4px">
+        <input type="text" id="gifSearchQ" placeholder="Search GIFs… e.g. celebration, thank you" style="flex:1"
+          onkeydown="if(event.key==='Enter')searchGiphy()">
+        <button class="btn-primary" onclick="searchGiphy()">Search</button>
+      </div>
+      <div style="font-size:.7rem;color:#bbb;margin-bottom:6px">Powered by Giphy · Click a GIF to select it</div>
+      <div class="gif-grid" id="gifGrid"></div>
+    </div>
+
+    <!-- Upload tab -->
+    <div id="gif-tab-upload" style="display:none">
+      <input type="file" id="gifFileInp" accept=".gif,image/gif" style="display:none" onchange="onGifUpload(event)">
+      <div class="gif-upload-zone" onclick="document.getElementById('gifFileInp').click()">
+        <div style="font-size:2rem;margin-bottom:8px">🎞</div>
+        <div style="font-weight:600;font-size:.88rem">Click to upload a GIF file</div>
+        <div style="font-size:.74rem;margin-top:4px">Max 10MB · .gif only</div>
+      </div>
+      <img id="gifUploadPreview" src="" alt="" style="display:none;width:100%;border-radius:9px;margin-top:10px;max-height:200px;object-fit:contain;background:#f5f5f5">
+      <div id="gifUploadName" style="font-size:.74rem;color:#aaa;text-align:center;margin-top:5px"></div>
+      <div style="margin-top:10px;padding:9px 12px;background:#FFF8E1;border-radius:8px;font-size:.73rem;color:#7B5B00;line-height:1.55">
+        ⚠️ Uploaded GIFs are embedded as base64. Use a URL for large GIFs (&gt;2MB) so the email stays small.
+      </div>
+    </div>
+
+    <div class="modal-btns" style="margin-top:14px">
+      <button class="btn-ghost" onclick="document.getElementById('gifModal').style.display='none'">Cancel</button>
+      <button class="btn-primary" onclick="applyGif()">🎞 Add GIF</button>
+    </div>
+  </div>
+</div>
 
 <!-- ══ PUBLISH AS WEBPAGE MODAL ══ -->
 <div class="modal-overlay" id="publishModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
@@ -959,6 +1055,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('accColorPick').value=nlState.theme.accent_color||'#FF8C00';
   if(nlState.blocks.length>0)showAskAIEdit();
 
+  // Start 30-second auto-save interval
+  startAutoSaveInterval();
+
+  // Save immediately on load to register the newsletter if new
+  setTimeout(doSave, 2000);
+
   // Keyboard shortcuts for formatting
   document.addEventListener('keydown', e => {
     // Global undo/redo — works anywhere
@@ -993,6 +1095,8 @@ function restoreHeader(){
   if(nlState.theme.header_image)setHdrImg(nlState.theme.header_image,false);
   if(nlState.theme.logo_url)setLogoImg(nlState.theme.logo_url,false);
   else{const lt=document.getElementById('nlLogoTxt');lt.textContent=nlState.theme.logo_text||'\u25c8 FORM.AI';lt.style.display='block';}
+  // Restore header height
+  if(nlState.theme.header_height) setHdrHeight(nlState.theme.header_height, false);
 }
 function restoreLogoSettings(){
   document.getElementById('logoWidthInp').value=nlState.theme.logo_width||140;
@@ -1057,6 +1161,16 @@ function applyNLData(nl){
 
 /* HEADER */
 function setHdrColor(color,save=true){nlState.theme.header_color=color;const bg=document.getElementById('nlHdrBg');if(!nlState.theme.header_image){bg.style.backgroundImage='';bg.style.background=color;}document.getElementById('hdrColorPick').value=color;if(save)autoSave();}
+
+function setHdrHeight(h, save=true) {
+  nlState.theme.header_height = h;
+  document.getElementById('nlHdr').style.minHeight = h + 'px';
+  const slider = document.getElementById('hdrHeightSlider');
+  const label  = document.getElementById('hdrHeightVal');
+  if (slider) slider.value = h;
+  if (label)  label.textContent = h + 'px';
+  if (save) autoSave();
+}
 function setHdrImg(url,save=true){nlState.theme.header_image=url;const bg=document.getElementById('nlHdrBg'),hdr=document.getElementById('nlHdr');if(url){bg.style.backgroundImage=`url('${url}')`;bg.style.backgroundSize='cover';bg.style.backgroundPosition='center';hdr.classList.add('has-bg');}else{bg.style.backgroundImage='';bg.style.background=nlState.theme.header_color||'#1A1A2E';hdr.classList.remove('has-bg');}if(save)autoSave();}
 function clearHdrImg(){setHdrImg('');showToast('Header image removed','info');}
 function resetHeader(){nlState.theme.header_image='';nlState.theme.header_color='#1A1A2E';setHdrImg('');setHdrColor('#1A1A2E');document.getElementById('hdrColorPick').value='#1A1A2E';showToast('Header reset','info');}
@@ -1106,7 +1220,7 @@ function pickUs(url,ctx){document.querySelectorAll(`#${ctx==='hdr'?'hdrUsGrid':'
 /* ═══════════════════════════════════════════════════
    BLOCKS
 ═══════════════════════════════════════════════════ */
-const DEFS={text:{html:'<p>Click to edit this text block. <strong>Select any text</strong> to see the formatting toolbar — you can change colors, fonts, size, add links, and more.</p>'},heading:{text:'Section Heading',level:'h2'},image:{url:'',alt:'',caption:''},video:{url:'',youtube_id:''},cta:{text:'Click Here →',url:'#',color:'#FF8C00'},divider:{},quote:{text:'An inspiring quote here.',author:''},'2col':{left:'<p><strong>Left column</strong></p><p>Content here.</p>',right:'<p><strong>Right column</strong></p><p>Content here.</p>'},spacer:{height:28},hdr:{text:'Section Title',bg:'#1A1A2E',color:'#fff'}};
+const DEFS={text:{html:'<p>Click to edit this text block. <strong>Select any text</strong> to see the formatting toolbar — you can change colors, fonts, size, add links, and more.</p>'},heading:{text:'Section Heading',level:'h2'},image:{url:'',alt:'',caption:''},gif:{url:'',caption:'',gif_width:'100%',gif_align:'center'},video:{url:'',youtube_id:''},cta:{text:'Click Here →',url:'#',color:'#FF8C00'},divider:{},quote:{text:'An inspiring quote here.',author:''},'2col':{left:'<p><strong>Left column</strong></p><p>Content here.</p>',right:'<p><strong>Right column</strong></p><p>Content here.</p>'},spacer:{height:28},hdr:{text:'Section Title',bg:'#1A1A2E',color:'#fff'}};
 function genId(){return 'b'+Date.now()+(blkCtr++);}
 
 function addBlock(type) {
@@ -1203,6 +1317,25 @@ function renderBlkHTML(b){
     case '2col':    return`<div class="blk-2col"><div class="blk-col" contenteditable="true" data-key="left">${c.left||''}</div><div class="blk-col" contenteditable="true" data-key="right">${c.right||''}</div></div>`;
     case 'spacer':  return`<div class="blk-spacer" style="height:${c.height||28}px"><span>${c.height||28}px</span></div>`;
     case 'hdr':     return`<div class="blk-hdr" style="background:${c.bg||'#1A1A2E'}"><div contenteditable="true" data-key="text" style="color:${c.color||'#fff'}">${c.text||''}</div></div>`;
+    case 'gif': {
+      const gw = c.gif_width || '100%';
+      const ga = c.gif_align || 'center';
+      if (c.url) {
+        return `<div style="padding:8px;text-align:${ga}">
+          <div style="position:relative;display:inline-block;max-width:100%">
+            <img src="${c.url}" style="width:${gw};max-width:100%;display:inline-block;border-radius:8px" alt="GIF">
+            <span style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,.65);color:#fff;font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.05em">GIF</span>
+            <span style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.5);color:#fff;font-size:.62rem;padding:2px 6px;border-radius:4px">${gw}</span>
+          </div>
+          ${c.caption?`<div style="font-size:.74rem;color:#999;text-align:center;margin-top:4px">${c.caption}</div>`:''}
+        </div>`;
+      }
+      return `<div class="blk-img-ph" onclick="openGifModal('${b.id}')" style="border-color:rgba(255,140,0,.4);background:#FFF9F0;cursor:pointer">
+        <div style="font-size:2rem;margin-bottom:6px">🎞</div>
+        <div style="font-weight:600;font-size:.82rem;color:var(--mango-d)">Click to add GIF</div>
+        <div style="font-size:.7rem;color:#bbb;margin-top:3px">Paste URL · Search Giphy · Upload</div>
+      </div>`;
+    }
     default:        return'<div style="padding:12px;color:#aaa;font-size:.78rem">Unknown block</div>';
   }
 }
@@ -1253,7 +1386,22 @@ function showBlkProps(b){
     </div>`;
   }
   if(b.type==='hdr'){html+=`<label style="font-size:.7rem;font-weight:600;color:#888;display:block;margin-bottom:3px">Background</label><input type="color" value="${b.content.bg||'#1A1A2E'}" style="width:100%;height:30px;border-radius:6px;border:1.5px solid #E0E0E0;cursor:pointer;padding:2px" onchange="updateBlkProp('${b.id}','bg',this.value)">`;}
-  if(b.type==='spacer'){html+=`<label style="font-size:.7rem;font-weight:600;color:#888;display:block;margin-bottom:3px">Height (px)</label><input type="number" style="width:100%;padding:7px 10px;border:1.5px solid #E2DDD8;border-radius:7px;font-size:.82rem;outline:none" value="${b.content.height||28}" min="8" max="200" onchange="updateBlkProp('${b.id}','height',+this.value)">`;}
+  if(b.type==='gif'){
+    const gw = b.content.gif_width || '100%';
+    const ga = b.content.gif_align || 'center';
+    html += `
+    <div>
+      <label style="font-size:.7rem;font-weight:600;color:#888;display:block;margin-bottom:5px">🎞 GIF Width</label>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">
+        ${['33%','50%','75%','100%'].map(w=>`<button onclick="updateGifProp('${b.id}','gif_width','${w}')" style="flex:1;padding:4px 2px;font-size:.7rem;border:1.5px solid ${gw===w?'var(--mango)':'#E2DDD8'};background:${gw===w?'#FFF5E8':'#FAFAF8'};color:${gw===w?'var(--mango-d)':'#666'};border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif">${w}</button>`).join('')}
+      </div>
+      <label style="font-size:.7rem;font-weight:600;color:#888;display:block;margin-bottom:4px">📍 Alignment</label>
+      <div style="display:flex;gap:5px;margin-bottom:8px">
+        ${['left','center','right'].map(a=>`<button onclick="updateGifProp('${b.id}','gif_align','${a}')" style="flex:1;padding:5px 4px;font-size:.69rem;border:1.5px solid ${ga===a?'var(--mango)':'#E2DDD8'};background:${ga===a?'#FFF5E8':'#FAFAF8'};color:${ga===a?'var(--mango-d)':'#666'};border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif">${a==='left'?'◀ Left':a==='center'?'⬛ Center':'Right ▶'}</button>`).join('')}
+      </div>
+      <button class="btn-ghost" style="width:100%;font-size:.76rem" onclick="openGifModal('${b.id}')">🎞 Change GIF</button>
+    </div>`;
+  }html+=`<label style="font-size:.7rem;font-weight:600;color:#888;display:block;margin-bottom:3px">Height (px)</label><input type="number" style="width:100%;padding:7px 10px;border:1.5px solid #E2DDD8;border-radius:7px;font-size:.82rem;outline:none" value="${b.content.height||28}" min="8" max="200" onchange="updateBlkProp('${b.id}','height',+this.value)">`;}
   // Heading level for heading blocks
   if(b.type==='heading'){html+=`<label style="font-size:.7rem;font-weight:600;color:#888;display:block;margin-bottom:3px">Heading Level</label><select style="width:100%;padding:7px 10px;border:1.5px solid #E2DDD8;border-radius:7px;font-size:.82rem;outline:none" onchange="updateBlkProp('${b.id}','level',this.value);renderBlocks()"><option value="h1" ${b.content.level==='h1'?'selected':''}>H1 — Large</option><option value="h2" ${(b.content.level||'h2')==='h2'?'selected':''}>H2 — Medium</option><option value="h3" ${b.content.level==='h3'?'selected':''}>H3 — Small</option></select>`;}
   cont.innerHTML=html;
@@ -1293,7 +1441,114 @@ function updateImgProp(id, key, val) {
   showBlkProps(b);
   autoSave();
 }
-function delBlk(id){pushHistory();nlState.blocks=nlState.blocks.filter(b=>b.id!==id);if(selBlkId===id){selBlkId=null;document.getElementById('blkPropsWrap').style.display='none';}renderBlocks();autoSave();}
+
+// GIF-specific prop update — patches DOM directly
+function updateGifProp(id, key, val) {
+  const b = nlState.blocks.find(x => x.id === id);
+  if (!b) return;
+  b.content[key] = val;
+  const wrap = document.querySelector(`.nl-blk[data-id="${id}"]`);
+  if (wrap) {
+    const img = wrap.querySelector('img');
+    if (img) {
+      if (key === 'gif_width') { img.style.width = val; const badge = wrap.querySelector('[style*="position:absolute"][style*="bottom"]'); if(badge) badge.textContent = val; }
+      if (key === 'gif_align') { const cont = img.closest('div[style*="text-align"]'); if(cont) cont.style.textAlign = val; }
+    }
+  }
+  showBlkProps(b);
+  autoSave();
+}
+
+/* ── GIF Modal ── */
+let _gifBlkId = null;
+
+function openGifModal(bid) {
+  _gifBlkId = bid;
+  document.getElementById('gifModal').style.display = 'flex';
+  document.getElementById('gifUrlInp').value = '';
+  document.getElementById('gifSearchQ').value = '';
+  document.getElementById('gifGrid').innerHTML = '';
+  document.getElementById('gifUrlPreview').style.display = 'none';
+  // Switch to URL tab by default
+  switchGifTab('url', document.querySelector('#gifModal .gif-tab'));
+}
+
+function switchGifTab(tab, btn) {
+  document.querySelectorAll('#gifModal .gif-tab').forEach(b => b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  ['url','search','upload'].forEach(t => {
+    const el = document.getElementById('gif-tab-' + t);
+    if(el) el.style.display = t === tab ? '' : 'none';
+  });
+}
+
+function previewGifUrl() {
+  const url = document.getElementById('gifUrlInp').value.trim();
+  const prev = document.getElementById('gifUrlPreview');
+  if (url) { prev.src = url; prev.style.display = 'block'; }
+}
+
+async function searchGiphy() {
+  const q = document.getElementById('gifSearchQ').value.trim();
+  if (!q) return;
+  const grid = document.getElementById('gifGrid');
+  grid.innerHTML = '<div style="color:#aaa;font-size:.78rem;text-align:center;padding:14px;grid-column:1/-1">Searching…</div>';
+  // Use Giphy public beta key (works for development)
+  const apiKey = 'dc6zaTOxFJmzC'; // Giphy public beta key
+  try {
+    const res  = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(q)}&limit=12&rating=g`);
+    const data = await res.json();
+    if (!data.data || !data.data.length) { grid.innerHTML = '<div style="color:#aaa;font-size:.78rem;text-align:center;padding:14px;grid-column:1/-1">No GIFs found. Try another search.</div>'; return; }
+    grid.innerHTML = data.data.map(g => {
+      const url = g.images.fixed_height.url;
+      const thumb = g.images.fixed_height_small.url;
+      return `<div class="gif-item" onclick="selectGif('${url}')" title="${g.title}">
+        <img src="${thumb}" alt="${g.title}" loading="lazy" onerror="this.parentElement.style.display='none'">
+        <div class="gif-overlay">✓ Use</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    grid.innerHTML = '<div style="color:#aaa;font-size:.78rem;text-align:center;padding:14px;grid-column:1/-1">Search failed. Paste a GIF URL directly instead.</div>';
+  }
+}
+
+let _selectedGifUrl = '';
+function selectGif(url) {
+  _selectedGifUrl = url;
+  document.querySelectorAll('.gif-item').forEach(el => el.classList.remove('gif-selected'));
+  event.currentTarget.classList.add('gif-selected');
+}
+
+function onGifUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!file.type.includes('gif')) { alert('Please select a .gif file'); return; }
+  if (file.size > 10 * 1024 * 1024) { alert('GIF too large (max 10MB). Use a URL instead.'); return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    _selectedGifUrl = ev.target.result;
+    document.getElementById('gifUploadPreview').src = _selectedGifUrl;
+    document.getElementById('gifUploadPreview').style.display = 'block';
+    document.getElementById('gifUploadName').textContent = file.name;
+  };
+  reader.readAsDataURL(file);
+}
+
+function applyGif() {
+  let url = _selectedGifUrl || document.getElementById('gifUrlInp').value.trim();
+  if (!url) { showToast('Please enter a GIF URL or select one', 'info'); return; }
+  const b = nlState.blocks.find(x => x.id === _gifBlkId);
+  if (b) {
+    b.content.url = url;
+    syncDOMToState();
+    renderBlocks();
+    autoSave();
+    selectBlk(_gifBlkId);
+    showToast('🎞 GIF added!', 'success');
+  }
+  document.getElementById('gifModal').style.display = 'none';
+  _selectedGifUrl = '';
+}pushHistory();nlState.blocks=nlState.blocks.filter(b=>b.id!==id);if(selBlkId===id){selBlkId=null;document.getElementById('blkPropsWrap').style.display='none';}renderBlocks();autoSave();}
 function dupBlk(id){const i=nlState.blocks.findIndex(b=>b.id===id);if(i<0)return;pushHistory();const c=JSON.parse(JSON.stringify(nlState.blocks[i]));c.id=genId();nlState.blocks.splice(i+1,0,c);renderBlocks();autoSave();}
 function mvBlk(id,dir){const f=nlState.blocks,i=f.findIndex(b=>b.id===id),ni=i+dir;if(i<0||ni<0||ni>=f.length)return;pushHistory();[f[i],f[ni]]=[f[ni],f[i]];renderBlocks();autoSave();}
 function swapBlks(s,t){if(!s||s===t)return;const f=nlState.blocks,si=f.findIndex(b=>b.id===s),ti=f.findIndex(b=>b.id===t);if(si<0||ti<0)return;[f[si],f[ti]]=[f[ti],f[si]];renderBlocks();autoSave();}
@@ -1508,18 +1763,38 @@ function syncDOMToState() {
 }
 
 /* SAVE / SEND */
+let _autoSaveInterval = null;
+let _hasUnsaved = false;
+
 function autoSave() {
+  _hasUnsaved = true;
   clearTimeout(saveTimer);
   document.getElementById('saveStatus').textContent = 'Saving…';
   saveTimer = setTimeout(doSave, 1400);
 }
 
+// Periodic auto-save every 30 seconds regardless of activity
+function startAutoSaveInterval() {
+  _autoSaveInterval = setInterval(() => {
+    if (_hasUnsaved) doSave();
+  }, 30000);
+}
+
+// Warn before leaving with unsaved changes
+window.addEventListener('beforeunload', e => {
+  if (_hasUnsaved) {
+    e.preventDefault();
+    e.returnValue = 'You have unsaved changes. Leave anyway?';
+    return e.returnValue;
+  }
+});
+
 async function doSave() {
-  // Sync DOM → state (THIS is the revert fix — always read from DOM before saving)
   syncDOMToState();
   nlState.theme.logo_width  = +document.getElementById('logoWidthInp').value  || 140;
   nlState.theme.logo_height = +document.getElementById('logoHeightInp').value || 50;
   nlState.theme.logo_radius = +document.getElementById('logoRadiusInp').value || 6;
+  const statusEl = document.getElementById('saveStatus');
   try {
     const res = await fetch('/newsletter/save', {
       method: 'POST',
@@ -1527,10 +1802,18 @@ async function doSave() {
       body: JSON.stringify({ nl_id: NL_ID, ...nlState })
     });
     const d = await res.json();
-    document.getElementById('saveStatus').textContent = d.success ? 'Saved ✓' : 'Save failed';
-    if (d.nl_id && NL_ID === 'null') window.history.replaceState({}, '', '/newsletter/' + d.nl_id + '/edit');
+    if (d.success) {
+      _hasUnsaved = false;
+      statusEl.textContent = 'Saved ✓';
+      statusEl.style.color = 'rgba(255,255,255,.35)';
+      if (d.nl_id && NL_ID === 'null') window.history.replaceState({}, '', '/newsletter/' + d.nl_id + '/edit');
+    } else {
+      statusEl.textContent = '⚠ Save failed';
+      statusEl.style.color = '#FF8C00';
+    }
   } catch(e) {
-    document.getElementById('saveStatus').textContent = 'Save failed';
+    statusEl.textContent = '⚠ Save failed';
+    statusEl.style.color = '#FF8C00';
   }
 }
 function openSendModal(){document.getElementById('emailSubject').value=nlState.title;document.getElementById('sendErr').style.display='none';document.getElementById('sendModal').style.display='flex';}
