@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from flask import Flask, jsonify, request
+=======
+from flask import Flask, jsonify
+>>>>>>> 9ea1a66fec365df468b76099a79796cc7c3ae0ce
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
 from pymongo import MongoClient
@@ -34,6 +38,11 @@ def create_app():
     app.config['SECRET_KEY']         = SECRET_KEY
 
     # ── CRITICAL for Hostinger: allow large JSON payloads (base64 images) ──
+<<<<<<< HEAD
+=======
+    # Nginx on Hostinger defaults to 1MB — we set Flask limit higher.
+    # You ALSO need client_max_body_size 50m; in Nginx config (see README).
+>>>>>>> 9ea1a66fec365df468b76099a79796cc7c3ae0ce
     app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB
 
     # ── Session cookie settings for hosted HTTPS ──
@@ -57,6 +66,7 @@ def create_app():
     # ── Handle generic server errors ──
     @app.errorhandler(500)
     def server_error(e):
+<<<<<<< HEAD
         import traceback
         traceback.print_exc()
         try:
@@ -88,6 +98,9 @@ def create_app():
             &nbsp;&nbsp;<a href="/newsletter/" style="color:#FF8C00">Newsletters</a>
             &nbsp;&nbsp;<a href="/deploy" style="color:#FF8C00">Deploy</a></p>
         </body></html>''', 500
+=======
+        return jsonify({'success': False, 'error': 'Server error. Check server logs.'}), 500
+>>>>>>> 9ea1a66fec365df468b76099a79796cc7c3ae0ce
 
     from routes.auth          import auth_bp
     from routes.nomination    import nomination_bp
@@ -99,6 +112,7 @@ def create_app():
     from routes.responses     import responses_bp
     from routes.newsletter    import newsletter_bp
     from routes.admin         import admin_bp
+<<<<<<< HEAD
     from routes.deploy        import deploy_bp
 
     # ── Ensure static/sites folder exists ────────────────────────────────────
@@ -107,6 +121,9 @@ def create_app():
 
     # ── Register deploy_bp FIRST so /sites/<slug>/ routes take priority ──────
     app.register_blueprint(deploy_bp)
+=======
+
+>>>>>>> 9ea1a66fec365df468b76099a79796cc7c3ae0ce
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(builder_bp)
@@ -142,4 +159,8 @@ if __name__ == '__main__':
     print(f'📧 Pass: {"✅ set" if os.getenv("SMTP_PASS") else "❌ NOT SET"}')
 
     app = create_app()
+<<<<<<< HEAD
     app.run(debug=False, host='0.0.0.0', port=5000) 
+=======
+    app.run(debug=False, host='0.0.0.0', port=5000)
+>>>>>>> 9ea1a66fec365df468b76099a79796cc7c3ae0ce

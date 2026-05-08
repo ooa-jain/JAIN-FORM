@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 {% block title %}Newsletters — FORM.AI{% endblock %}
+<<<<<<< HEAD
+=======
+{% block body_class %}app-page{% endblock %}
+>>>>>>> 9ea1a66fec365df468b76099a79796cc7c3ae0ce
 {% block body %}
 <nav class="app-nav">
   <div class="nav-brand">◈ FORM<span style="color:var(--mango)">.AI</span></div>
@@ -11,6 +15,7 @@
     </div>
   </div>
 </nav>
+<<<<<<< HEAD
 
 <style>
 .nl-wrap{max-width:1100px;margin:0 auto;padding:28px 22px}
@@ -130,10 +135,46 @@
             <button type="submit" class="na danger">🗑</button>
           </form>
         </div>
+=======
+<div class="app-body">
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">📰 Newsletters</h1>
+      <p class="page-sub">{{ newsletters|length }} newsletter{{ 's' if newsletters|length != 1 }}</p>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-primary" onclick="createNewsletter()">+ New Newsletter</button>
+    </div>
+  </div>
+
+  {% if not newsletters %}
+  <div class="empty-state">
+    <div class="empty-emoji">📰</div>
+    <h3>No newsletters yet</h3>
+    <p>Create beautiful email newsletters with images, videos, and styled text — like Canva for email</p>
+    <button class="btn-primary" onclick="createNewsletter()">Create Your First Newsletter</button>
+  </div>
+  {% else %}
+  <div class="forms-grid">
+    {% for nl in newsletters %}
+    <div class="fcard-outer">
+      <div class="fcard-cover" style="background:{{ nl.theme.header_color if nl.theme else '#1A1A2E' }};display:flex;align-items:center;justify-content:center">
+        <span style="font-size:2rem">📰</span>
+      </div>
+      <div class="fcard-body">
+        <div class="fcard-title">{{ nl.title }}</div>
+        <div class="fcard-meta">{{ nl.blocks|length if nl.blocks else 0 }} block{{ 's' if (nl.blocks|length if nl.blocks else 0) != 1 }}</div>
+        <div class="fcard-date">{{ nl.updated_at.strftime('%d %b %Y') if nl.updated_at else '' }}</div>
+      </div>
+      <div class="fcard-actions">
+        <a href="{{ url_for('newsletter.edit', nl_id=nl._id) }}" class="btn-xs">✏️ Edit</a>
+        <form action="{{ url_for('newsletter.delete', nl_id=nl._id) }}" method="POST" onsubmit="return confirm('Delete?')"><button class="btn-xs" style="color:var(--error);border-color:var(--error)">🗑 Delete</button></form>
+>>>>>>> 9ea1a66fec365df468b76099a79796cc7c3ae0ce
       </div>
     </div>
     {% endfor %}
   </div>
+<<<<<<< HEAD
   {% else %}
   <div class="empty">
     <div style="font-size:2.5rem;margin-bottom:14px">📰</div>
@@ -208,3 +249,16 @@ document.addEventListener('keydown',e=>{
 });
 </script>
 {% endblock %}
+=======
+  {% endif %}
+</div>
+<div class="toast" id="toast"></div>
+<script>
+async function createNewsletter() {
+  const res = await fetch('/newsletter/new', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: 'Untitled Newsletter' }) });
+  const d = await res.json();
+  if(d.success) window.location.href = '/newsletter/' + d.nl_id + '/edit';
+}
+</script>
+{% endblock %}
+>>>>>>> 9ea1a66fec365df468b76099a79796cc7c3ae0ce
