@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard — Member Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:#faf8f4;min-height:100vh;}
+    .header{background:#1a1814;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;}
+    .header h1{font-family:'DM Serif Display',serif;font-size:22px;font-weight:400;color:#b8922a;}
+    .header .meta{font-size:13px;color:rgba(250,248,244,0.45);}
+    .logout{color:rgba(250,248,244,0.6);border:1px solid rgba(250,248,244,0.2);border-radius:6px;padding:6px 16px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;text-decoration:none;}
+    .logout:hover{color:#b8922a;border-color:rgba(184,146,42,0.5);}
+    .stats{background:#fff;border-bottom:1px solid #e8e4dc;padding:16px 32px;display:flex;gap:20px;}
+    .stat{background:#faf8f4;border:1px solid #e8e4dc;border-radius:8px;padding:12px 24px;text-align:center;}
+    .stat .n{font-family:'DM Serif Display',serif;font-size:28px;color:#1a1814;}
+    .stat .l{font-size:11px;color:#8a847c;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;}
+    .toolbar{padding:16px 32px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+    .search{padding:9px 14px;border:1.5px solid #ccc8c2;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:14px;min-width:280px;background:#fff;outline:none;}
+    .search:focus{border-color:#b8922a;}
+    .btn{padding:9px 20px;border:1.5px solid #ccc8c2;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;background:#fff;color:#1a1814;transition:all 0.18s;}
+    .btn-gold{background:#b8922a;border-color:#b8922a;color:#1a1814;}
+    .btn-gold:hover{background:#8a6a18;color:#fff;}
+    .table-wrap{padding:0 32px 32px;overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e8e4dc;border-radius:8px;overflow:hidden;}
+    thead tr{background:#1a1814;}
+    thead th{padding:11px 14px;color:#b8922a;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;text-align:left;white-space:nowrap;font-weight:500;}
+    tbody tr{border-bottom:1px solid #f4f0e8;transition:background 0.15s;}
+    tbody tr:hover{background:#faf8f4;}
+    tbody td{padding:11px 14px;font-size:13px;color:#1a1814;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .name-cell{font-weight:500;color:#8a6a18;text-decoration:underline dotted;cursor:pointer;}
+    .ipill{display:inline-block;padding:2px 8px;border-radius:100px;background:#f0e4c0;font-size:11px;color:#8a6a18;font-weight:500;margin:1px;}
+    .view-btn{background:#1a1814;color:#b8922a;border:none;border-radius:4px;padding:4px 12px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;font-weight:500;}
+    .del-btn{background:#c0392b;color:#fff;border:none;border-radius:4px;padding:4px 12px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;margin-left:4px;}
+    .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
+    .modal-bg.open{display:flex;}
+    .modal{background:#fff;border:1px solid #e8e4dc;border-radius:10px;width:100%;max-width:680px;box-shadow:0 8px 40px rgba(0,0,0,0.12);margin:auto;}
+    .modal-head{background:#1a1814;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-radius:9px 9px 0 0;}
+    .modal-head h2{font-family:'DM Serif Display',serif;font-size:18px;font-weight:400;color:#b8922a;}
+    .modal-btns{display:flex;gap:8px;}
+    .mbtn{padding:6px 14px;border-radius:4px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border:1px solid rgba(250,248,244,0.2);}
+    .mbtn-close{background:#c0392b;color:#fff;border-color:#c0392b;}
+    .mbtn-csv{background:#b8922a;color:#1a1814;border-color:#b8922a;}
+    .mbtn-txt{background:rgba(250,248,244,0.12);color:#faf8f4;}
+    .modal-body{padding:20px;display:flex;flex-direction:column;gap:12px;}
+    .msec{border:1px solid #e8e4dc;border-radius:8px;overflow:hidden;}
+    .msec-head{background:#f4f0e8;padding:8px 14px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#8a847c;font-weight:500;border-bottom:1px solid #e8e4dc;}
+    .mrow{display:flex;gap:12px;padding:9px 14px;border-bottom:1px solid #f4f0e8;font-size:13px;}
+    .mrow:last-child{border-bottom:none;}
+    .mkey{font-weight:500;color:#8a847c;min-width:130px;flex-shrink:0;font-size:12px;padding-top:1px;}
+    .mval{color:#1a1814;white-space:pre-wrap;word-break:break-word;line-height:1.6;}
+    .mval.e{color:#ccc8c2;font-style:italic;}
+    .empty-state{text-align:center;padding:60px;color:#8a847c;}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Member Profile — Admin</h1>
+    <div class="meta">Academic Member Network</div>
+  </div>
+  <a href="/admin/logout" class="logout">Sign out</a>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="n" id="totalCount">{{ count }}</div>
+    <div class="l">Total Members</div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <input class="search" type="text" id="searchBox" placeholder="Search by name, email, subject, institution…" oninput="filterTable()"/>
+  <button class="btn btn-gold" onclick="exportAllCSV()">⬇ Export All CSV</button>
+</div>
+
+<div class="table-wrap">
+  {% if members %}
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>Submitted</th><th>Name</th><th>Email</th>
+        <th>Subject</th><th>Experience</th><th>Institution</th>
+        <th>Qualification</th><th>Interests</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      {% for m in members %}
+      <tr id="row-{{ m._id }}">
+        <td>{{ loop.index }}</td>
+        <td>{{ (m.submitted_at or '')[:10] }}</td>
+        <td class="name-cell" onclick="viewById('{{ m._id }}')">{{ m.name or '—' }}</td>
+        <td>{{ m.email or '—' }}</td>
+        <td>{{ m.subject or '—' }}</td>
+        <td>{{ m.experience or '—' }}</td>
+        <td>{{ m.institution or '—' }}</td>
+        <td>{{ m.qualification or '—' }}</td>
+        <td>{% if m.interests %}{% for i in m.interests.split(',') %}<span class="ipill">{{ i.strip() }}</span>{% endfor %}{% else %}—{% endif %}</td>
+        <td>
+          <button class="view-btn" onclick="viewById('{{ m._id }}')">VIEW</button>
+          <button class="del-btn" onclick="deleteRecord('{{ m._id }}')">DEL</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">No members yet. Share the form link to start collecting profiles.</div>
+  {% endif %}
+</div>
+
+<div class="modal-bg" id="modal" onclick="bgClose(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">Member Profile</h2>
+      <div class="modal-btns">
+        <button class="mbtn mbtn-csv" onclick="exportSingleCSV()">⬇ CSV</button>
+        <button class="mbtn mbtn-txt" onclick="exportSingleTXT()">⬇ TXT</button>
+        <button class="mbtn mbtn-close" onclick="closeModal()">✕ Close</button>
+      </div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script id="allData" type="application/json">{{ members | tojson }}</script>
+<script>
+const ALL=JSON.parse(document.getElementById('allData').textContent);
+const MAP={};ALL.forEach(m=>MAP[m._id]=m);
+let current=null;
+
+function filterTable(){
+  const q=document.getElementById('searchBox').value.toLowerCase();
+  let v=0;
+  document.querySelectorAll('#tableBody tr').forEach(r=>{
+    const s=r.textContent.toLowerCase().includes(q);
+    r.style.display=s?'':'none'; if(s)v++;
+  });
+  document.getElementById('totalCount').textContent=v;
+}
+
+function viewById(id){
+  current=MAP[id]; if(!current)return;
+  document.getElementById('modalTitle').textContent=current.name||'Member';
+  document.getElementById('modalBody').innerHTML=`
+    <div class="msec"><div class="msec-head">Personal Details</div><div class="msec-body">
+      ${mrow('Submitted',current.submitted_at)}
+      ${mrow('Name',current.name)}${mrow('Email',current.email)}${mrow('Phone',current.phone)}
+    </div></div>
+    <div class="msec"><div class="msec-head">Academic Background</div><div class="msec-body">
+      ${mrow('Subject',current.subject)}${mrow('Experience',current.experience)}
+      ${mrow('Institution',current.institution)}${mrow('Qualification',current.qualification)}
+    </div></div>
+    <div class="msec"><div class="msec-head">Areas of Interest</div><div class="msec-body">
+      ${mrow('Interests',current.interests)}
+    </div></div>
+    <div class="msec"><div class="msec-head">Brief Profile</div><div class="msec-body">
+      ${mrow('About',current.profile)}${mrow('LinkedIn',current.linkedin)}
+    </div></div>`;
+  document.getElementById('modal').classList.add('open');
+}
+
+function mrow(label,val){
+  return `<div class="mrow"><span class="mkey">${label}</span><span class="mval${val?'':' e'}">${val||'—'}</span></div>`;
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('open');current=null;}
+function bgClose(e){if(e.target===document.getElementById('modal'))closeModal();}
+
+function deleteRecord(id){
+  if(!confirm('Delete this member profile?'))return;
+  fetch('/admin/delete/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{
+    if(d.success){
+      const r=document.getElementById('row-'+id);if(r)r.remove();
+      delete MAP[id];
+      const c=document.getElementById('totalCount');
+      c.textContent=parseInt(c.textContent)-1;
+    }
+  });
+}
+
+const FIELDS=[
+  ['submitted_at','Submitted At'],['name','Full Name'],['email','Email'],['phone','Phone'],
+  ['subject','Subject'],['experience','Experience'],['institution','Institution'],
+  ['qualification','Qualification'],['interests','Interests'],['profile','Profile'],['linkedin','LinkedIn']
+];
+
+function exportAllCSV(){
+  const h=FIELDS.map(f=>f[1]);
+  const rows=[];
+  document.querySelectorAll('#tableBody tr').forEach(r=>{
+    if(r.style.display==='none')return;
+    const d=MAP[r.id.replace('row-','')];if(!d)return;
+    rows.push(FIELDS.map(([k])=>'"'+(d[k]||'').toString().replace(/"/g,'""')+'"').join(','));
+  });
+  dl(new Blob([[h.join(','),...rows].join('\n')],{type:'text/csv'}),'member-profiles-'+today()+'.csv');
+}
+
+function exportSingleCSV(){
+  if(!current)return;
+  const h=FIELDS.map(f=>f[1]);
+  const row=FIELDS.map(([k])=>'"'+(current[k]||'').toString().replace(/"/g,'""')+'"').join(',');
+  const n=(current.name||'member').toLowerCase().replace(/\s+/g,'-');
+  dl(new Blob([[h.join(','),row].join('\n')],{type:'text/csv'}),`member-${n}-${today()}.csv`);
+}
+
+function exportSingleTXT(){
+  if(!current)return;
+  const g=k=>current[k]||'—';
+  const lines=['MEMBER PROFILE REPORT','='.repeat(55),
+    `Generated: ${new Date().toLocaleString()}`,'',
+    'PERSONAL','-'.repeat(40),
+    `Name: ${g('name')}`,`Email: ${g('email')}`,`Phone: ${g('phone')}`,`Submitted: ${g('submitted_at')}`,'',
+    'ACADEMIC','-'.repeat(40),
+    `Subject: ${g('subject')}`,`Experience: ${g('experience')}`,
+    `Institution: ${g('institution')}`,`Qualification: ${g('qualification')}`,'',
+    'INTERESTS','-'.repeat(40),g('interests'),'',
+    'PROFILE','-'.repeat(40),g('profile'),'',
+    `LinkedIn: ${g('linkedin')}`,'',' ='.repeat(27),'Academic Member Network — Confidential'];
+  const n=(current.name||'member').toLowerCase().replace(/\s+/g,'-');
+  dl(new Blob([lines.join('\n')],{type:'text/plain'}),`member-${n}-${today()}.txt`);
+}
+
+function dl(blob,fn){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;a.click();}
+function today(){return new Date().toISOString().slice(0,10);}
+</script>
+</body>
+</html>

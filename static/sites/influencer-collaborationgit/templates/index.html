@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Influencer Collaboration Form</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --mango: #FF8C00;
+    --mango-light: #FFB347;
+    --mango-dark: #E07000;
+    --cream: #FFF8F0;
+    --leaf: #2D6A4F;
+    --leaf-light: #52B788;
+    --dark: #1A1A2E;
+    --mid: #3D3D5C;
+    --soft: #F5E6D3;
+    --white: #FFFFFF;
+    --error: #E63946;
+    --success: #2D6A4F;
+    --border: rgba(255,140,0,0.25);
+    --shadow: 0 8px 40px rgba(255,140,0,0.12);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--dark); min-height: 100vh; }
+
+  /* NAV */
+  .top-nav {
+    background: var(--dark); padding: 14px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+  .nav-brand { display: flex; align-items: center; gap: 10px; font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--mango-light); letter-spacing: 0.02em; }
+  .nav-brand span { font-size: 1.5rem; }
+  .btn-nav { padding: 8px 20px; border-radius: 8px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; letter-spacing: 0.03em; text-decoration: none; display: inline-block; }
+  .btn-nav.outline { background: transparent; border: 1.5px solid var(--mango); color: var(--mango-light); }
+  .btn-nav.outline:hover { background: var(--mango); color: var(--dark); }
+  .btn-nav.filled { background: var(--mango); color: var(--dark); }
+  .btn-nav.filled:hover { background: var(--mango-light); transform: translateY(-1px); }
+
+  /* HERO */
+  .form-hero {
+    background: linear-gradient(135deg, var(--dark) 0%, #2D1B00 60%, #1A3D2E 100%);
+    padding: 60px 32px 80px; text-align: center; position: relative; overflow: hidden;
+  }
+  .form-hero::before { content: '🥭'; font-size: 120px; opacity: 0.06; position: absolute; right: -20px; top: -20px; transform: rotate(20deg); }
+  .form-hero::after { content: '🥭'; font-size: 80px; opacity: 0.06; position: absolute; left: 10px; bottom: -10px; transform: rotate(-15deg); }
+  .form-hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 3.2rem); color: var(--mango-light); line-height: 1.15; margin-bottom: 12px; }
+  .form-hero .subtitle { color: rgba(255,255,255,0.65); font-size: 1rem; font-weight: 300; margin-bottom: 6px; }
+  .form-hero .badge-project { display: inline-block; background: rgba(255,140,0,0.15); border: 1px solid rgba(255,140,0,0.4); color: var(--mango-light); padding: 4px 16px; border-radius: 20px; font-size: 0.78rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 20px; }
+  .progress-bar-wrap { background: rgba(255,255,255,0.1); border-radius: 10px; height: 4px; max-width: 400px; margin: 24px auto 0; overflow: hidden; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, var(--mango), var(--mango-light)); border-radius: 10px; transition: width 0.5s ease; width: 33%; }
+  .progress-label { color: rgba(255,255,255,0.5); font-size: 0.75rem; margin-top: 8px; }
+
+  /* FORM */
+  .form-container { max-width: 760px; margin: -30px auto 60px; padding: 0 20px; position: relative; z-index: 2; }
+  .section-card { background: var(--white); border-radius: 20px; padding: 36px; margin-bottom: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); display: none; animation: slideUp 0.4s ease; }
+  .section-card.active { display: block; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  .section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--soft); }
+  .section-icon { width: 48px; height: 48px; background: linear-gradient(135deg, var(--mango), var(--mango-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; box-shadow: 0 4px 15px rgba(255,140,0,0.3); }
+  .section-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--dark); }
+  .section-desc { font-size: 0.82rem; color: #888; margin-top: 2px; }
+
+  .field-group { margin-bottom: 22px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 580px) { .field-row { grid-template-columns: 1fr; } }
+
+  label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--mid); margin-bottom: 7px; letter-spacing: 0.02em; }
+  label .req { color: var(--mango); margin-left: 2px; }
+
+  input[type="text"], input[type="email"], input[type="tel"], input[type="number"], input[type="url"], select, textarea {
+    width: 100%; padding: 12px 16px; border: 1.5px solid #E8E0D5; border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: var(--dark);
+    background: var(--cream); transition: all 0.2s; outline: none; appearance: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--mango); background: #fff; box-shadow: 0 0 0 3px rgba(255,140,0,0.1); }
+  input.error, select.error, textarea.error { border-color: var(--error); box-shadow: 0 0 0 3px rgba(230,57,70,0.08); }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23FF8C00' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+  textarea { resize: vertical; min-height: 90px; }
+
+  .error-msg { font-size: 0.76rem; color: var(--error); margin-top: 5px; display: none; }
+  .error-msg.show { display: block; }
+
+  .options-group { display: flex; flex-direction: column; gap: 10px; }
+  .options-group.horizontal { flex-direction: row; flex-wrap: wrap; gap: 10px; }
+  .option-item { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 16px; border: 1.5px solid #E8E0D5; border-radius: 10px; transition: all 0.2s; background: var(--cream); font-size: 0.88rem; font-weight: 500; }
+  .option-item:hover { border-color: var(--mango-light); background: #FFF5E8; }
+  .option-item input { display: none; }
+  .option-item .radio-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #ccc; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .option-item .check-box { width: 18px; height: 18px; border-radius: 5px; border: 2px solid #ccc; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .option-item.selected { border-color: var(--mango); background: #FFF5E8; }
+  .option-item.selected .radio-dot { border-color: var(--mango); background: var(--mango); box-shadow: inset 0 0 0 3px white; }
+  .option-item.selected .check-box { border-color: var(--mango); background: var(--mango); }
+  .option-item.selected .check-box::after { content: '✓'; font-size: 0.7rem; color: white; font-weight: 700; }
+
+  .form-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 24px; border-top: 1px solid var(--soft); }
+  .btn-prev, .btn-next, .btn-submit { padding: 13px 32px; border-radius: 12px; border: none; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.25s; letter-spacing: 0.02em; }
+  .btn-prev { background: transparent; border: 1.5px solid #ddd; color: #888; }
+  .btn-prev:hover { border-color: var(--mango); color: var(--mango); }
+  .btn-next, .btn-submit { background: linear-gradient(135deg, var(--mango), var(--mango-dark)); color: white; box-shadow: 0 6px 20px rgba(255,140,0,0.35); }
+  .btn-next:hover, .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(255,140,0,0.45); }
+  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .success-card { background: var(--white); border-radius: 20px; padding: 60px 36px; text-align: center; box-shadow: var(--shadow); border: 1px solid var(--border); display: none; animation: slideUp 0.5s ease; }
+  .success-card.active { display: block; }
+  .success-icon { font-size: 4rem; margin-bottom: 20px; }
+  .success-card h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--leaf); margin-bottom: 10px; }
+  .success-card p { color: #888; font-size: 0.92rem; line-height: 1.6; }
+  .btn-another { margin-top: 28px; display: inline-block; padding: 12px 28px; background: var(--mango); color: white; border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-another:hover { background: var(--mango-dark); transform: translateY(-1px); }
+
+  .toast { position: fixed; bottom: 30px; right: 30px; background: var(--dark); color: white; padding: 14px 22px; border-radius: 12px; font-size: 0.88rem; font-weight: 500; box-shadow: 0 8px 30px rgba(0,0,0,0.25); transform: translateY(80px); opacity: 0; transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1); z-index: 999; display: flex; align-items: center; gap: 10px; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-left: 4px solid var(--leaf-light); }
+  .toast.error { border-left: 4px solid var(--error); }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-brand"><span>🥭</span> Influencer Collaboration Form</div>
+  <div>
+    <a href="/admin" class="btn-nav filled">📊 Admin Dashboard</a>
+  </div>
+</nav>
+
+<div class="form-hero">
+  <div class="badge-project">University Experiential Learning Project</div>
+  <h1>Influencer Collaboration Form</h1>
+  <p class="subtitle">Join our mango marketing campaign — let's grow together! 🥭</p>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <p class="progress-label" id="progressLabel">Section 1 of 3</p>
+</div>
+
+<div class="form-container">
+
+  <!-- SECTION 1 -->
+  <div class="section-card active" id="sec1">
+    <div class="section-header">
+      <div class="section-icon">👤</div>
+      <div>
+        <div class="section-title">Personal Information</div>
+        <div class="section-desc">Basic details about you and your academic background</div>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label>Full Name <span class="req">*</span></label>
+        <input type="text" id="f_name" placeholder="Your full name">
+        <div class="error-msg" id="err_name">Please enter your full name</div>
+      </div>
+      <div class="field-group">
+        <label>USN <span class="req">*</span></label>
+        <input type="text" id="f_usn" placeholder="e.g. 1MS21CS001">
+        <div class="error-msg" id="err_usn">Please enter your USN</div>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label>Email Address <span class="req">*</span></label>
+        <input type="email" id="f_email" placeholder="you@email.com">
+        <div class="error-msg" id="err_email">Please enter a valid email</div>
+      </div>
+      <div class="field-group">
+        <label>Phone Number <span class="req">*</span></label>
+        <input type="tel" id="f_phone" placeholder="+91 XXXXX XXXXX">
+        <div class="error-msg" id="err_phone">Please enter your phone number</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Location <span class="req">*</span></label>
+      <div class="options-group horizontal">
+        <label class="option-item" onclick="selectRadio(this,'f_location','Bangalore')"><input type="radio" name="location"><span class="radio-dot"></span> Bangalore</label>
+        <label class="option-item" onclick="selectRadio(this,'f_location','Kochi')"><input type="radio" name="location"><span class="radio-dot"></span> Kochi</label>
+      </div>
+      <input type="hidden" id="f_location">
+      <div class="error-msg" id="err_location">Please select your location</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label>Campus (School) <span class="req">*</span></label>
+        <select id="f_campus">
+          <option value="">Select campus...</option>
+          <option>School of Commerce</option>
+          <option>School of Engineering and Technology</option>
+          <option>School of Aerospace Engineering</option>
+          <option>School of Computer Science and Engineering</option>
+          <option>School of Sciences</option>
+          <option>School of Computer Science and IT</option>
+          <option>School of Allied Healthcare and Sciences</option>
+          <option>School of Design, Media and Creative Arts</option>
+          <option>School of Aviation and Aerospace Management</option>
+          <option>School of Sports Education and Research</option>
+          <option>School of Law</option>
+          <option>School of Humanities and Social Sciences</option>
+          <option>CMS Business School - Lalbagh</option>
+          <option>CMS Business School - Seshadri</option>
+        </select>
+        <div class="error-msg" id="err_campus">Please select your campus</div>
+      </div>
+      <div class="field-group">
+        <label>UG / PG <span class="req">*</span></label>
+        <div class="options-group horizontal">
+          <label class="option-item" onclick="selectRadio(this,'f_ugpg','UG')"><input type="radio" name="ugpg"><span class="radio-dot"></span> UG</label>
+          <label class="option-item" onclick="selectRadio(this,'f_ugpg','PG')"><input type="radio" name="ugpg"><span class="radio-dot"></span> PG</label>
+        </div>
+        <input type="hidden" id="f_ugpg">
+        <div class="error-msg" id="err_ugpg">Please select UG or PG</div>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label>Department <span class="req">*</span></label>
+        <select id="f_dept">
+          <option value="">Select department...</option>
+          <option>Department of Humanities & Social Sciences</option>
+          <option>Department of Economics</option>
+          <option>Department of Journalism and Mass Communication</option>
+          <option>Department of Languages</option>
+          <option>Department of Law</option>
+          <option>Department of Performing Arts and Cultural Studies</option>
+          <option>Department of Computer Science and IT</option>
+          <option>Department of Allied Healthcare and Sciences</option>
+          <option>Department of Biotechnology and Genetics</option>
+          <option>Department of Chemistry and Biochemistry</option>
+          <option>Department of Data Analytics and Mathematical Science</option>
+          <option>Department of Forensic Science</option>
+          <option>Department of Microbiology and Botany</option>
+          <option>Department of Physics and Electronics</option>
+          <option>Department of Psychology and Allied Sciences</option>
+          <option>Department of Animation and Virtual Reality</option>
+          <option>Department of Commerce</option>
+          <option>Department of Art and Design</option>
+          <option>Department of Design</option>
+          <option>Department of Aerospace Engineering</option>
+          <option>Department of Computer Science and Engineering</option>
+          <option>Department of Electrical and Electronics Engineering</option>
+          <option>Department of Electronics and Communication Engineering</option>
+          <option>Department of Food Technology</option>
+          <option>Department of Information Science and Engineering</option>
+          <option>Department of Civil Engineering</option>
+          <option>Department of Mechanical Engineering</option>
+          <option>Department of Management Studies - UG</option>
+          <option>Area - School of Sports Education and Research</option>
+          <option>CeRSSE</option>
+          <option>Department of Management Studies - PG</option>
+          <option>Department of Art and Design (Interior Design)</option>
+        </select>
+        <div class="error-msg" id="err_dept">Please select your department</div>
+      </div>
+      <div class="field-group">
+        <label>Course <span class="req">*</span></label>
+        <input type="text" id="f_course" placeholder="e.g. B.Tech CSE, MBA...">
+        <div class="error-msg" id="err_course">Please enter your course</div>
+      </div>
+    </div>
+
+    <div class="form-nav">
+      <div></div>
+      <button class="btn-next" onclick="goToSection(2)">Next: Social Media →</button>
+    </div>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="section-card" id="sec2">
+    <div class="section-header">
+      <div class="section-icon">📱</div>
+      <div>
+        <div class="section-title">Social Media & Content</div>
+        <div class="section-desc">Tell us about your online presence and content style</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Link to Main Social Media Profile (Instagram/YouTube) <span class="req">*</span></label>
+      <input type="url" id="f_social" placeholder="https://instagram.com/yourhandle">
+      <div class="error-msg" id="err_social">Please enter your social media link</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label>What kind of content do you make? <span class="req">*</span></label>
+        <input type="text" id="f_content_type" placeholder="e.g. Food, Lifestyle, Travel, Comedy">
+        <div class="error-msg" id="err_content_type">Please describe your content type</div>
+      </div>
+      <div class="field-group">
+        <label>Total Followers / Subscribers <span class="req">*</span></label>
+        <input type="text" id="f_followers" placeholder="e.g. 25,000">
+        <div class="error-msg" id="err_followers">Please enter your follower count</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Where do most of your followers live? <span class="req">*</span></label>
+      <input type="text" id="f_audience_loc" placeholder="e.g. Bangalore, Mumbai, Delhi">
+      <div class="error-msg" id="err_audience_loc">Please enter your audience location</div>
+    </div>
+
+    <div class="field-group">
+      <label>Which type of post gets the most views and link clicks? <span class="req">*</span></label>
+      <div class="options-group">
+        <div class="option-item" onclick="toggleCheck(this,'f_post_type','Reels/Shorts')"><span class="check-box"></span> Reels / Shorts</div>
+        <div class="option-item" onclick="toggleCheck(this,'f_post_type','Stories with links')"><span class="check-box"></span> Stories with links</div>
+        <div class="option-item" onclick="toggleCheck(this,'f_post_type','Normal Photo Posts')"><span class="check-box"></span> Normal Photo Posts</div>
+        <div class="option-item" id="otherPostItem" onclick="toggleCheckOther(this,'f_post_type')" style="display:flex;align-items:center;gap:8px;">
+          <span class="check-box"></span>
+          <span>Other:</span>
+          <input type="text" id="f_post_other" placeholder="specify..." onclick="event.stopPropagation()" style="border:none;background:transparent;outline:none;flex:1;font-size:0.88rem;cursor:text;">
+        </div>
+      </div>
+      <input type="hidden" id="f_post_type">
+      <div class="error-msg" id="err_post_type">Please select at least one post type</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label>Average Engagement Rate (%) <span class="req">*</span></label>
+        <input type="number" id="f_engagement" placeholder="e.g. 4.5" step="0.1" min="0" max="100">
+        <div class="error-msg" id="err_engagement">Please enter your engagement rate</div>
+      </div>
+      <div class="field-group">
+        <label>Do you use auto-reply tools in your DMs? <span class="req">*</span></label>
+        <div class="options-group horizontal">
+          <label class="option-item" onclick="selectRadio(this,'f_autoreply','Yes')"><input type="radio" name="autoreply"><span class="radio-dot"></span> Yes</label>
+          <label class="option-item" onclick="selectRadio(this,'f_autoreply','No')"><input type="radio" name="autoreply"><span class="radio-dot"></span> No</label>
+          <label class="option-item" onclick="selectRadio(this,'f_autoreply','Maybe')"><input type="radio" name="autoreply"><span class="radio-dot"></span> Maybe</label>
+        </div>
+        <input type="hidden" id="f_autoreply">
+        <div class="error-msg" id="err_autoreply">Please select an option</div>
+      </div>
+    </div>
+
+    <div class="form-nav">
+      <button class="btn-prev" onclick="goToSection(1)">← Back</button>
+      <button class="btn-next" onclick="goToSection(3)">Next: Rates & Details →</button>
+    </div>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="section-card" id="sec3">
+    <div class="section-header">
+      <div class="section-icon">💰</div>
+      <div>
+        <div class="section-title">Rates & Collaboration Details</div>
+        <div class="section-desc">Help us understand your pricing and collaboration preferences</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Are you okay sharing post insights screenshot after campaign? <span class="req">*</span></label>
+      <div class="options-group horizontal">
+        <label class="option-item" onclick="selectRadio(this,'f_insights','Yes')"><input type="radio" name="insights"><span class="radio-dot"></span> Yes</label>
+        <label class="option-item" onclick="selectRadio(this,'f_insights','No')"><input type="radio" name="insights"><span class="radio-dot"></span> No</label>
+        <label class="option-item" onclick="selectRadio(this,'f_insights','Maybe')"><input type="radio" name="insights"><span class="radio-dot"></span> Maybe</label>
+      </div>
+      <input type="hidden" id="f_insights">
+      <div class="error-msg" id="err_insights">Please select an option</div>
+    </div>
+
+    <div class="field-group">
+      <label>Are you okay if we run paid ads using your video?</label>
+      <div class="options-group horizontal">
+        <label class="option-item" onclick="selectRadio(this,'f_paidads','Yes')"><input type="radio" name="paidads"><span class="radio-dot"></span> Yes</label>
+        <label class="option-item" onclick="selectRadio(this,'f_paidads','No')"><input type="radio" name="paidads"><span class="radio-dot"></span> No</label>
+        <label class="option-item" onclick="selectRadio(this,'f_paidads','Let\'s discuss')"><input type="radio" name="paidads"><span class="radio-dot"></span> Let's discuss</label>
+      </div>
+      <input type="hidden" id="f_paidads">
+    </div>
+
+    <div class="field-group">
+      <label>Your charges for 1 Video (Reel/Short) <span class="req">*</span></label>
+      <input type="text" id="f_charges" placeholder="e.g. ₹5,000 per reel">
+      <div class="error-msg" id="err_charges">Please enter your charges</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label>Discount package for 1–2 months collaboration? <span class="req">*</span></label>
+        <div class="options-group">
+          <label class="option-item" onclick="selectRadio(this,'f_discount','Yes')"><input type="radio" name="discount"><span class="radio-dot"></span> Yes</label>
+          <label class="option-item" onclick="selectRadio(this,'f_discount','No')"><input type="radio" name="discount"><span class="radio-dot"></span> No</label>
+          <label class="option-item" onclick="selectRadio(this,'f_discount','Maybe')"><input type="radio" name="discount"><span class="radio-dot"></span> Maybe</label>
+        </div>
+        <input type="hidden" id="f_discount">
+        <div class="error-msg" id="err_discount">Please select an option</div>
+      </div>
+      <div class="field-group">
+        <label>Open to base fee + commission per sale? <span class="req">*</span></label>
+        <div class="options-group">
+          <label class="option-item" onclick="selectRadio(this,'f_commission','Yes')"><input type="radio" name="commission"><span class="radio-dot"></span> Yes</label>
+          <label class="option-item" onclick="selectRadio(this,'f_commission','No')"><input type="radio" name="commission"><span class="radio-dot"></span> No</label>
+          <label class="option-item" onclick="selectRadio(this,'f_commission','Maybe')"><input type="radio" name="commission"><span class="radio-dot"></span> Maybe</label>
+        </div>
+        <input type="hidden" id="f_commission">
+        <div class="error-msg" id="err_commission">Please select an option</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Full Shipping Address (so we can send you sample mangoes! 🥭) <span class="req">*</span></label>
+      <textarea id="f_address" placeholder="House No., Street, Area, City, State, PIN Code"></textarea>
+      <div class="error-msg" id="err_address">Please enter your shipping address</div>
+    </div>
+
+    <div class="form-nav">
+      <button class="btn-prev" onclick="goToSection(2)">← Back</button>
+      <button class="btn-submit" id="submitBtn" onclick="submitForm()">🥭 Submit Application</button>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-card" id="successCard">
+    <div class="success-icon">🎉</div>
+    <h2>You're in the mix!</h2>
+    <p>Your application has been received successfully.<br>
+    We'll review your profile and get back to you soon. Get ready for some mangoes! 🥭</p>
+    <button class="btn-another" onclick="resetForm()">Submit another response</button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let currentSection = 1;
+const totalSections = 3;
+const checkboxState = {};
+
+function goToSection(n) {
+  if (n > currentSection && !validateSection(currentSection)) return;
+  document.getElementById('sec' + currentSection).classList.remove('active');
+  currentSection = n;
+  document.getElementById('sec' + n).classList.add('active');
+  document.getElementById('successCard').classList.remove('active');
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateProgress() {
+  document.getElementById('progressBar').style.width = (currentSection / totalSections * 100) + '%';
+  document.getElementById('progressLabel').textContent = `Section ${currentSection} of ${totalSections}`;
+}
+
+function selectRadio(el, fieldId, value) {
+  const group = el.closest('.options-group');
+  if (group) group.querySelectorAll('.option-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById(fieldId).value = value;
+}
+
+function toggleCheck(el, fieldId, value) {
+  el.classList.toggle('selected');
+  if (!checkboxState[fieldId]) checkboxState[fieldId] = new Set();
+  if (el.classList.contains('selected')) checkboxState[fieldId].add(value);
+  else checkboxState[fieldId].delete(value);
+  document.getElementById(fieldId).value = [...checkboxState[fieldId]].join(', ');
+}
+
+function toggleCheckOther(el, fieldId) {
+  el.classList.toggle('selected');
+  if (!checkboxState[fieldId]) checkboxState[fieldId] = new Set();
+  [...checkboxState[fieldId]].forEach(v => { if (v.startsWith('Other:')) checkboxState[fieldId].delete(v); });
+  if (el.classList.contains('selected')) {
+    const ov = 'Other: ' + (document.getElementById('f_post_other').value.trim() || '(unspecified)');
+    checkboxState[fieldId].add(ov);
+    document.getElementById('f_post_other').oninput = function() {
+      [...checkboxState[fieldId]].forEach(v => { if (v.startsWith('Other:')) checkboxState[fieldId].delete(v); });
+      checkboxState[fieldId].add('Other: ' + (this.value.trim() || '(unspecified)'));
+      document.getElementById(fieldId).value = [...checkboxState[fieldId]].join(', ');
+    };
+  }
+  document.getElementById(fieldId).value = [...checkboxState[fieldId]].join(', ');
+}
+
+function req(id, errId, check) {
+  const val = document.getElementById(id).value.trim();
+  const ok = check ? check(val) : val !== '';
+  document.getElementById(id).classList.toggle('error', !ok);
+  document.getElementById(errId).classList.toggle('show', !ok);
+  return ok;
+}
+
+function validateSection(n) {
+  let ok = true;
+  if (n === 1) {
+    ok = req('f_name','err_name') & req('f_email','err_email', v => /\S+@\S+\.\S+/.test(v))
+       & req('f_phone','err_phone') & req('f_location','err_location')
+       & req('f_campus','err_campus') & req('f_ugpg','err_ugpg')
+       & req('f_dept','err_dept') & req('f_course','err_course') & req('f_usn','err_usn');
+  } else if (n === 2) {
+    ok = req('f_social','err_social') & req('f_content_type','err_content_type')
+       & req('f_followers','err_followers') & req('f_audience_loc','err_audience_loc')
+       & req('f_post_type','err_post_type') & req('f_engagement','err_engagement')
+       & req('f_autoreply','err_autoreply');
+  } else if (n === 3) {
+    ok = req('f_insights','err_insights') & req('f_charges','err_charges')
+       & req('f_discount','err_discount') & req('f_commission','err_commission')
+       & req('f_address','err_address');
+  }
+  return !!ok;
+}
+
+function g(id) { return document.getElementById(id).value.trim(); }
+
+async function submitForm() {
+  if (!validateSection(3)) return;
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  const payload = {
+    name: g('f_name'), usn: g('f_usn'), email: g('f_email'), phone: g('f_phone'),
+    location: g('f_location'), campus: g('f_campus'), ugpg: g('f_ugpg'),
+    dept: g('f_dept'), course: g('f_course'),
+    social: g('f_social'), content_type: g('f_content_type'),
+    followers: g('f_followers'), audience_loc: g('f_audience_loc'),
+    post_type: g('f_post_type'), engagement: g('f_engagement'),
+    autoreply: g('f_autoreply'), insights: g('f_insights'),
+    paidads: g('f_paidads'), charges: g('f_charges'),
+    discount: g('f_discount'), commission: g('f_commission'),
+    address: g('f_address')
+  };
+
+  try {
+    const res = await fetch('/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById('sec3').classList.remove('active');
+      document.getElementById('successCard').classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      showToast('❌ Submission failed. Please try again.', 'error');
+      btn.disabled = false;
+      btn.textContent = '🥭 Submit Application';
+    }
+  } catch (e) {
+    showToast('❌ Network error. Please try again.', 'error');
+    btn.disabled = false;
+    btn.textContent = '🥭 Submit Application';
+  }
+}
+
+function resetForm() {
+  document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="number"], input[type="url"], textarea, select').forEach(el => el.value = '');
+  document.querySelectorAll('input[type="hidden"]').forEach(el => el.value = '');
+  document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
+  document.querySelectorAll('input, select, textarea').forEach(el => el.classList.remove('error'));
+  Object.keys(checkboxState).forEach(k => checkboxState[k] = new Set());
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = false;
+  btn.textContent = '🥭 Submit Application';
+  currentSection = 1;
+  document.getElementById('successCard').classList.remove('active');
+  document.getElementById('sec1').classList.add('active');
+  updateProgress();
+}
+
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+updateProgress();
+</script>
+</body>
+</html>

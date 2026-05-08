@@ -1,0 +1,1010 @@
+{% extends 'base.html' %}
+{% block title %}{{ newsletter.title }} — FORM.AI Newsletter Editor{% endblock %}
+{% block body %}
+<style>
+html,body{overflow:hidden;height:100%;margin:0}
+.app-nav{position:fixed;top:0;left:0;right:0;z-index:200}
+
+/* ── Shell ── */
+.shell{display:grid;grid-template-columns:200px 1fr 280px;position:fixed;top:54px;left:0;right:0;bottom:0;overflow:hidden;background:#EDEAE6}
+
+/* ── Sidebar ── */
+.sb{background:#1A1A2E;overflow-y:auto;display:flex;flex-direction:column;min-height:0;border-right:1px solid rgba(255,255,255,.06)}
+.sb::-webkit-scrollbar{width:3px}.sb::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1)}
+.sb-top{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.sb-back{display:flex;align-items:center;gap:4px;color:rgba(255,255,255,.35);font-size:.72rem;text-decoration:none;margin-bottom:6px}
+.sb-back:hover{color:rgba(255,255,255,.7)}
+.sb-name{color:#fff;font-weight:700;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-sec{padding:8px 12px 4px;font-size:.58rem;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.25);text-transform:uppercase}
+.sb-btn{display:flex;align-items:center;gap:7px;padding:6px 12px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.5);border:none;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;transition:.13s}
+.sb-btn:hover{background:rgba(255,255,255,.06);color:#fff}
+.sb-ic{width:24px;height:24px;border-radius:6px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:.82rem;flex-shrink:0}
+.sb-btn:hover .sb-ic{background:rgba(255,140,0,.2)}
+/* AI button */
+.sb-ai{margin:8px 10px 4px;background:linear-gradient(135deg,rgba(255,140,0,.15),rgba(142,45,226,.15));border:1px solid rgba(255,140,0,.25);border-radius:9px;padding:8px 10px;cursor:pointer;display:block;width:calc(100% - 20px)}
+.sb-ai:hover{background:linear-gradient(135deg,rgba(255,140,0,.25),rgba(142,45,226,.25))}
+.sb-ai-ttl{font-size:.76rem;font-weight:700;color:#FF8C00;margin-bottom:2px}
+.sb-ai-sub{font-size:.66rem;color:rgba(255,255,255,.35);line-height:1.4}
+
+/* ── Main center ── */
+.main{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+
+/* Toolbar */
+.tb{height:42px;background:#fff;border-bottom:1px solid #E8E4DE;display:flex;align-items:center;gap:4px;padding:0 10px;flex-shrink:0;overflow-x:auto}
+.tb::-webkit-scrollbar{height:2px}
+.btn-save{padding:5px 14px;background:linear-gradient(135deg,#FF8C00,#CC7000);color:#fff;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;flex-shrink:0}
+.btn-save:hover{transform:translateY(-1px)}
+.tsep{width:1px;height:18px;background:#E8E4DE;margin:0 2px;flex-shrink:0}
+.tbtn{padding:4px 9px;border:1.5px solid transparent;border-radius:5px;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:600;color:#666;transition:.13s;white-space:nowrap;display:inline-flex;align-items:center;gap:3px;flex-shrink:0}
+.tbtn:hover{border-color:#FF8C00;color:#FF8C00}
+.blkcnt{margin-left:auto;font-size:.7rem;color:#ccc;flex-shrink:0}
+
+/* Rich text toolbar */
+.rtbar{height:32px;background:#F8F7F4;border-bottom:1px solid #E8E4DE;display:none;align-items:center;gap:1px;padding:0 8px;flex-shrink:0;overflow-x:auto}
+.rtbar.show{display:flex}
+.rtbar::-webkit-scrollbar{height:2px}
+.rtbtn{width:26px;height:26px;border:none;background:none;cursor:pointer;border-radius:4px;font-size:.78rem;display:flex;align-items:center;justify-content:center;transition:.13s;color:#555;flex-shrink:0}
+.rtbtn:hover{background:#E8E4DE}
+.rtbtn.on{background:#FFF5E8;color:#FF8C00}
+.rtsep{width:1px;height:16px;background:#E8E4DE;margin:0 2px;flex-shrink:0}
+.rt-fs{width:40px;padding:1px 3px;border:1.5px solid #E2DDD8;border-radius:4px;font-size:.7rem;outline:none;flex-shrink:0}
+
+/* Canvas */
+.canvas-wrap{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 16px 80px;display:flex;justify-content:center;align-items:flex-start;min-height:0}
+.canvas-wrap::-webkit-scrollbar{width:6px}
+.canvas-wrap::-webkit-scrollbar-track{background:#E8E4DE}
+.canvas-wrap::-webkit-scrollbar-thumb{background:#C8C4C0;border-radius:3px}
+.canvas-wrap::-webkit-scrollbar-thumb:hover{background:#FF8C00}
+
+/* Email card */
+.email-card{width:580px;max-width:100%;background:#fff;border-radius:12px;overflow:visible;box-shadow:0 2px 20px rgba(0,0,0,.12);align-self:flex-start}
+
+/* ── Header ── */
+.nl-hdr{position:relative;background:#1A1A2E;border-radius:12px 12px 0 0;overflow:hidden;cursor:pointer}
+.nl-hdr-bg{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat}
+.nl-hdr-overlay{position:absolute;inset:0;background:rgba(0,0,0,.35)}
+.nl-hdr-content{position:relative;z-index:2;padding:18px 24px 16px;text-align:center}
+.nl-hdr:hover .nl-hdr-edit-hint{opacity:1}
+.nl-hdr-edit-hint{position:absolute;top:8px;right:10px;background:rgba(0,0,0,.6);color:#fff;padding:3px 8px;border-radius:5px;font-size:.68rem;font-family:'DM Sans',sans-serif;opacity:0;transition:opacity .18s;z-index:3;pointer-events:none}
+#nlLogoImg{max-width:120px;max-height:44px;border-radius:5px;margin:0 auto 8px}
+#nlLogoTxt{font-size:12px;letter-spacing:.2em;color:rgba(255,255,255,.5);margin-bottom:6px;outline:none;display:block}
+#nlHdrTitle{font-family:Georgia,serif;font-size:24px;font-weight:700;color:#fff;line-height:1.2;outline:none;display:block}
+#nlHdrSub{font-size:14px;color:rgba(255,255,255,.6);margin-top:4px;outline:none;display:block}
+
+/* Blocks */
+#nlCanvas{padding:4px 0;min-height:80px}
+.nl-blk{position:relative;border:2px solid transparent;border-radius:8px;margin:2px 6px;transition:border-color .13s}
+.nl-blk:hover{border-color:rgba(255,140,0,.3)}
+.nl-blk.sel{border-color:#FF8C00;background:rgba(255,140,0,.02)}
+.blk-acts{position:absolute;top:-11px;right:6px;display:none;gap:2px;z-index:10;background:#fff;border:1px solid #E8E4DE;border-radius:6px;padding:2px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.nl-blk:hover .blk-acts,.nl-blk.sel .blk-acts{display:flex}
+.ba{padding:2px 6px;border:none;background:none;cursor:pointer;border-radius:4px;font-size:.72rem;color:#999;transition:.13s;font-family:'DM Sans',sans-serif}
+.ba:hover{background:#F0EEE8;color:#555}
+.ba.del:hover{background:#FFF0F0;color:#E63946}
+
+/* Footer */
+#nlFooter{padding:12px 24px;text-align:center;background:#F8F9FA;border-top:1px solid #E0E0E0;border-radius:0 0 12px 12px}
+#nlFooterTxt{font-size:11px;color:#999;outline:none;font-family:Arial,sans-serif;line-height:1.7}
+
+/* Block renders */
+.blk-text{padding:10px 20px;font-size:15px;line-height:1.7;color:#212529;font-family:Georgia,serif;min-height:40px;outline:none}
+.blk-heading{padding:8px 20px;outline:none}
+.blk-img-wrap{padding:8px 18px;text-align:center}
+.blk-img-wrap img{max-width:100%;border-radius:8px;display:block;margin:0 auto}
+.blk-gif-wrap{padding:8px 18px;text-align:center}
+.blk-cta-wrap{padding:14px 20px;text-align:center}
+.blk-cta-btn{display:inline-block;padding:11px 28px;border-radius:8px;color:#fff;font-weight:700;font-size:14px;font-family:Arial,sans-serif;outline:none;min-width:140px}
+.blk-divider{padding:5px 18px}
+.blk-divider hr{border:none;border-top:2px solid #E8E0D5}
+.blk-quote-wrap{padding:6px 18px}
+.blk-quote-bar{border-left:4px solid #FF8C00;background:#FFF8F0;padding:10px 14px;border-radius:0 7px 7px 0}
+.blk-quote-txt{font-family:Georgia,serif;font-size:15px;color:#1A1A2E;line-height:1.6;font-style:italic;outline:none;min-height:24px}
+.blk-quote-auth{font-size:11px;color:#999;margin-top:4px;outline:none}
+.blk-2col{padding:8px 18px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.blk-2col .col{background:#FAFAFA;border-radius:7px;padding:9px;font-size:13px;line-height:1.6;font-family:Arial,sans-serif;outline:none;min-height:44px}
+.blk-spacer{display:flex;align-items:center;justify-content:center;color:#ddd;font-size:.66rem;font-family:'DM Sans',sans-serif}
+.blk-hdr{padding:14px 20px;text-align:center}
+.blk-hdr-txt{font-family:Georgia,serif;font-size:17px;font-weight:700;outline:none}
+.blk-video-wrap{padding:8px 18px}
+.blk-video-wrap img{width:100%;border-radius:9px;display:block}
+.blk-social{padding:10px 18px;text-align:center}
+
+/* ── Right panel ── */
+.panel{background:#fff;border-left:1px solid #E8E4DE;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.ptabs{display:flex;border-bottom:1px solid #E8E4DE;flex-shrink:0}
+.ptab{flex:1;padding:9px 4px;border:none;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:600;color:#bbb;border-bottom:2px solid transparent;transition:.13s}
+.ptab.on{color:#FF8C00;border-bottom-color:#FF8C00}
+.pbody{flex:1;overflow-y:auto;padding:12px;min-height:0}
+.pbody::-webkit-scrollbar{width:3px}
+.pbody::-webkit-scrollbar-thumb{background:#E8E4DE}
+.ps{display:none}.ps.on{display:block}
+.pf{margin-bottom:10px}
+.pf label{display:block;font-size:.62rem;font-weight:700;color:#ccc;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.pf input,.pf textarea,.pf select{width:100%;padding:6px 9px;border:1.5px solid #E2DDD8;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.82rem;outline:none;transition:.15s;box-sizing:border-box}
+.pf input:focus,.pf textarea:focus,.pf select:focus{border-color:#FF8C00}
+.pf textarea{resize:vertical;min-height:48px}
+.crow{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.sw{width:22px;height:22px;border-radius:5px;cursor:pointer;border:2px solid transparent;transition:.13s;flex-shrink:0}
+.sw:hover{transform:scale(1.15)}
+.blkp{display:none}.blkp.on{display:block}
+.psec{font-size:.6rem;font-weight:700;color:#ddd;text-transform:uppercase;letter-spacing:.08em;padding:8px 0 4px;border-top:1px solid #F0EEE8;margin-top:4px}
+.psec:first-child{border-top:none;padding-top:0}
+/* Header section in design panel */
+.hdr-preview{border-radius:8px;overflow:hidden;margin-bottom:10px;position:relative;min-height:60px}
+.hdr-prev-inner{padding:16px;text-align:center;position:relative}
+.hdr-prev-bg{position:absolute;inset:0;background-size:cover;background-position:center}
+.hdr-prev-overlay{position:absolute;inset:0;background:rgba(0,0,0,.3)}
+.hdr-prev-txt{position:relative;z-index:1;font-size:.76rem;color:#fff;font-weight:700}
+
+/* Recipients */
+.rbox{min-height:40px;border:1.5px solid #E2DDD8;border-radius:7px;padding:5px 7px;display:flex;flex-wrap:wrap;gap:3px;align-items:flex-start;cursor:text}
+.rbox:focus-within{border-color:#FF8C00}
+.rbox input{border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:.8rem;min-width:100px;flex:1;padding:2px 3px}
+.chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:#E8F4FD;color:#1565C0;border:1px solid #B3D9F0;border-radius:20px;font-size:.7rem}
+.chip .x{color:#aaa;cursor:pointer;font-size:.85rem}.chip .x:hover{color:#E63946}
+.btn-send{width:100%;padding:10px;background:linear-gradient(135deg,#2D6A4F,#1A4F37);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.86rem;font-weight:700;cursor:pointer;margin-top:8px;transition:.18s}
+.btn-send:hover{transform:translateY(-1px)}
+.al{padding:8px 10px;border-radius:7px;font-size:.76rem;margin-top:6px}
+.al-ok{background:#F0FFF4;color:#2D6A4F;border:1px solid #C8E6C9}
+.al-err{background:#FFF0F0;color:#E63946;border:1px solid rgba(230,57,70,.2)}
+
+/* AI Modal */
+.ai-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:3000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.ai-modal-bg.open{display:flex}
+.ai-modal{background:#fff;border-radius:16px;padding:22px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.ai-modal h2{font-size:1rem;font-weight:800;margin-bottom:3px;display:flex;align-items:center;gap:7px}
+.ai-modal p{font-size:.78rem;color:#aaa;margin-bottom:14px}
+.ai-tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px}
+.ai-tpl{padding:8px 10px;border:1.5px solid #E2DDD8;border-radius:8px;cursor:pointer;font-size:.76rem;color:#555;font-family:'DM Sans',sans-serif;background:#FAFAF8;transition:.15s;text-align:left}
+.ai-tpl:hover{border-color:#FF8C00;color:#FF8C00;background:#FFF9F0}
+.ai-tpl .ti{font-size:1.1rem;display:block;margin-bottom:2px}
+.ai-inp{width:100%;padding:9px 11px;border:1.5px solid #E2DDD8;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.84rem;outline:none;box-sizing:border-box;margin-bottom:8px}
+.ai-inp:focus{border-color:#FF8C00}
+.ai-tone{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.ai-tone-btn{padding:4px 11px;border-radius:20px;border:1.5px solid #E2DDD8;background:#fff;font-size:.72rem;font-weight:600;color:#888;cursor:pointer;font-family:'DM Sans',sans-serif;transition:.13s}
+.ai-tone-btn.on{background:#FFF5E8;color:#FF8C00;border-color:rgba(255,140,0,.4)}
+.ai-actions{display:flex;gap:8px}
+.btn-ai-gen{flex:2;padding:10px;background:linear-gradient(135deg,#FF8C00,#8e2de2);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.86rem;font-weight:700;cursor:pointer;transition:.18s}
+.btn-ai-gen:hover{transform:translateY(-1px)}
+.btn-ai-gen:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.ai-result{margin-top:10px;background:#F8F7F4;border-radius:8px;padding:10px;font-size:.8rem;color:#555;line-height:1.6;max-height:160px;overflow-y:auto;display:none}
+.ai-result.show{display:block}
+.btn-ai-use{width:100%;padding:8px;background:#2D6A4F;color:#fff;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;margin-top:7px;display:none}
+.btn-ai-use.show{display:block}
+
+/* Preview modal */
+.prev-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.prev-bg.open{display:flex}
+
+/* Autosave / toast */
+.autosave{position:fixed;bottom:14px;right:14px;background:#1A1A2E;color:#fff;padding:6px 13px;border-radius:20px;font-size:.72rem;font-weight:600;box-shadow:0 3px 12px rgba(0,0,0,.2);opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.autosave.show{opacity:1}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(18px);background:#1A1A2E;color:#fff;padding:8px 20px;border-radius:40px;font-size:.8rem;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.2);opacity:0;transition:all .28s;pointer-events:none;z-index:9999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{background:#2D6A4F}.toast.err{background:#E63946}
+
+/* Upload file input styling */
+.file-up{font-size:.74rem;color:#aaa;cursor:pointer;width:100%}
+.file-up::file-selector-button{padding:4px 10px;background:#F0EEE8;border:1.5px solid #E2DDD8;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.72rem;cursor:pointer;margin-right:8px;transition:.13s}
+.file-up::file-selector-button:hover{background:#FFF5E8;border-color:#FF8C00}
+</style>
+
+<div class="shell">
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<div class="sb">
+  <div class="sb-top">
+    <a href="{{ url_for('newsletter.index') }}" class="sb-back">← Newsletters</a>
+    <div class="sb-name">{{ newsletter.title }}</div>
+  </div>
+
+  <!-- AI Writer -->
+  <button class="sb-ai" onclick="openAI()">
+    <div class="sb-ai-ttl">✨ AI Write</div>
+    <div class="sb-ai-sub">Generate content with AI</div>
+  </button>
+
+  <div class="sb-sec">Content</div>
+  <button class="sb-btn" onclick="addBlock('heading')"><span class="sb-ic">H</span>Heading</button>
+  <button class="sb-btn" onclick="addBlock('text')"><span class="sb-ic">¶</span>Text</button>
+  <button class="sb-btn" onclick="addBlock('image')"><span class="sb-ic">🖼</span>Image</button>
+  <button class="sb-btn" onclick="addBlock('gif')"><span class="sb-ic">GIF</span>GIF / Sticker</button>
+  <button class="sb-btn" onclick="addBlock('video')"><span class="sb-ic">▶</span>YouTube Video</button>
+  <button class="sb-btn" onclick="addBlock('cta')"><span class="sb-ic">→</span>Button / CTA</button>
+
+  <div class="sb-sec">Layout</div>
+  <button class="sb-btn" onclick="addBlock('divider')"><span class="sb-ic">—</span>Divider</button>
+  <button class="sb-btn" onclick="addBlock('spacer')"><span class="sb-ic">↕</span>Spacer</button>
+  <button class="sb-btn" onclick="addBlock('2col')"><span class="sb-ic">▌▐</span>Two Columns</button>
+  <button class="sb-btn" onclick="addBlock('hdr')"><span class="sb-ic">█</span>Section Header</button>
+
+  <div class="sb-sec">Special</div>
+  <button class="sb-btn" onclick="addBlock('quote')"><span class="sb-ic">"</span>Blockquote</button>
+  <button class="sb-btn" onclick="addBlock('social')"><span class="sb-ic">🔗</span>Social Links</button>
+</div>
+
+<!-- ══════════ CENTER ══════════ -->
+<div class="main">
+
+  <!-- Top toolbar -->
+  <div class="tb">
+    <button class="btn-save" onclick="doSave()">💾 Save</button>
+    <div class="tsep"></div>
+    <button class="tbtn" onclick="openPreview()">👁 Preview</button>
+    <button class="tbtn" onclick="undo()">↩ Undo</button>
+    <button class="tbtn" onclick="redo()">↪ Redo</button>
+    <div class="tsep"></div>
+    <button class="tbtn" onclick="openAI()">✨ AI Write</button>
+    <button class="tbtn" onclick="switchPanel('send')">✉ Send</button>
+    <span class="blkcnt" id="blkCnt">0 blocks</span>
+  </div>
+
+  <!-- Rich text toolbar -->
+  <div class="rtbar" id="rtbar">
+    <button class="rtbtn" title="Bold" onclick="fmt('bold')"><b>B</b></button>
+    <button class="rtbtn" title="Italic" onclick="fmt('italic')"><i>I</i></button>
+    <button class="rtbtn" title="Underline" onclick="fmt('underline')"><u>U</u></button>
+    <button class="rtbtn" title="Strike" onclick="fmt('strikeThrough')"><s>S</s></button>
+    <div class="rtsep"></div>
+    <button class="rtbtn" onclick="fmt('justifyLeft')" title="Left">⇤</button>
+    <button class="rtbtn" onclick="fmt('justifyCenter')" title="Center">☰</button>
+    <button class="rtbtn" onclick="fmt('justifyRight')" title="Right">⇥</button>
+    <div class="rtsep"></div>
+    <button class="rtbtn" onclick="fmt('insertUnorderedList')" title="Bullet">•≡</button>
+    <button class="rtbtn" onclick="fmt('insertOrderedList')" title="Numbers">1≡</button>
+    <div class="rtsep"></div>
+    <select class="rt-fs" onchange="fmt('fontSize',this.value)">
+      <option value="1">10</option><option value="2">13</option>
+      <option value="3" selected>15</option><option value="4">18</option>
+      <option value="5">24</option><option value="6">32</option>
+    </select>
+    <div class="rtsep"></div>
+    <input type="color" value="#1A1A2E" title="Text color" style="width:22px;height:22px;border-radius:4px;border:1.5px solid #E2DDD8;cursor:pointer;padding:1px" oninput="fmt('foreColor',this.value)">
+    <input type="color" value="#FFFF00" title="Highlight" style="width:22px;height:22px;border-radius:4px;border:1.5px solid #E2DDD8;cursor:pointer;padding:1px" oninput="fmt('hiliteColor',this.value)">
+    <div class="rtsep"></div>
+    <button class="rtbtn" onclick="insertLink()" title="Link">🔗</button>
+    <button class="rtbtn" onclick="fmt('removeFormat')" title="Clear">✕</button>
+  </div>
+
+  <!-- Canvas -->
+  <div class="canvas-wrap">
+    <div class="email-card">
+
+      <!-- HEADER — click to edit -->
+      <div class="nl-hdr" id="nlHdr" onclick="switchPanel('design')" style="background:{{ newsletter.theme.header_color or '#1A1A2E' }}">
+        <div class="nl-hdr-bg" id="nlHdrBg"></div>
+        <div class="nl-hdr-overlay" id="nlHdrOverlay" style="display:none"></div>
+        <div class="nl-hdr-content">
+          <img id="nlLogoImg" src="" alt="Logo">
+          <div id="nlLogoTxt" contenteditable="true" onclick="event.stopPropagation()">{{ newsletter.theme.logo_text or '◈ FORM.AI' }}</div>
+          <div id="nlHdrTitle" contenteditable="true" onclick="event.stopPropagation()">{{ newsletter.title }}</div>
+          <div id="nlHdrSub" contenteditable="true" onclick="event.stopPropagation()">{{ newsletter.subtitle or '' }}</div>
+        </div>
+        <div class="nl-hdr-edit-hint">🎨 Design panel →</div>
+      </div>
+
+      <div id="nlCanvas"></div>
+
+      <div id="nlFooter">
+        <div id="nlFooterTxt" contenteditable="true">{{ newsletter.footer or 'Sent by FORM.AI · Unsubscribe' }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ RIGHT PANEL ══════════ -->
+<div class="panel">
+  <div class="ptabs">
+    <button class="ptab on"  id="ptab-design" onclick="switchPanel('design',this)">🎨 Design</button>
+    <button class="ptab"     id="ptab-block"  onclick="switchPanel('block',this)">⚙ Block</button>
+    <button class="ptab"     id="ptab-send"   onclick="switchPanel('send',this)">✉ Send</button>
+  </div>
+  <div class="pbody">
+
+    <!-- ════ DESIGN TAB ════ -->
+    <div class="ps on" id="ps-design">
+
+      <!-- Header preview -->
+      <div class="psec">Header Preview</div>
+      <div class="hdr-preview" id="hdrPreview" style="background:#1A1A2E">
+        <div class="hdr-prev-bg" id="hdrPrevBg"></div>
+        <div class="hdr-prev-overlay" id="hdrPrevOverlay" style="display:none"></div>
+        <div class="hdr-prev-inner"><div class="hdr-prev-txt" id="hdrPrevTxt">Newsletter Header</div></div>
+      </div>
+
+      <div class="psec">Header Background</div>
+      <div class="pf">
+        <label>Background Color</label>
+        <div class="crow">
+          <input type="color" id="pHdrColor" value="{{ newsletter.theme.header_color or '#1A1A2E' }}"
+            style="width:32px;height:28px;border-radius:6px;border:1.5px solid #E2DDD8;cursor:pointer;padding:2px"
+            oninput="setHdrColor(this.value)">
+          {% for c in ['#1A1A2E','#FF8C00','#2D6A4F','#1565C0','#6a1fa3','#C94B4B','#212121','#FFFFFF'] %}
+          <div class="sw" style="background:{{c}};border-color:{{c}}" onclick="setHdrColor('{{c}}');document.getElementById('pHdrColor').value='{{c}}'"></div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="pf">
+        <label>Background Image URL</label>
+        <input type="text" id="pHdrBgUrl" placeholder="https://..." value="{{ newsletter.theme.header_image or '' }}"
+          oninput="setHdrBgImg(this.value)">
+      </div>
+      <div class="pf">
+        <label>Upload Header Image</label>
+        <input type="file" accept="image/*" class="file-up" onchange="uploadHdrBg(event)">
+      </div>
+      <div class="pf">
+        <label>Overlay Opacity <span id="overlayVal">40%</span></label>
+        <input type="range" id="pOverlay" min="0" max="90" value="40" style="width:100%;accent-color:#FF8C00"
+          oninput="setOverlayOpacity(this.value)">
+      </div>
+
+      <div class="psec">Logo</div>
+      <div class="pf">
+        <label>Logo Text (shown if no image)</label>
+        <input type="text" id="pLogoTxt" value="{{ newsletter.theme.logo_text or '◈ FORM.AI' }}"
+          oninput="setLogoTxt(this.value)">
+      </div>
+      <div class="pf">
+        <label>Logo Image URL</label>
+        <input type="text" id="pLogoUrl" placeholder="https://..." value="{{ newsletter.theme.logo_url or '' }}"
+          oninput="setLogoUrl(this.value)">
+      </div>
+      <div class="pf">
+        <label>Upload Logo</label>
+        <input type="file" accept="image/*" class="file-up" onchange="uploadLogo(event)">
+      </div>
+
+      <div class="psec">Content</div>
+      <div class="pf">
+        <label>Title</label>
+        <input type="text" id="pTitle" value="{{ newsletter.title }}" oninput="syncTitle(this.value)">
+      </div>
+      <div class="pf">
+        <label>Subtitle</label>
+        <input type="text" id="pSubtitle" value="{{ newsletter.subtitle or '' }}"
+          oninput="document.getElementById('nlHdrSub').textContent=this.value;nlState.subtitle=this.value">
+      </div>
+      <div class="pf">
+        <label>Accent Color</label>
+        <div class="crow">
+          <input type="color" id="pAccColor" value="{{ newsletter.theme.accent_color or '#FF8C00' }}"
+            style="width:32px;height:28px;border-radius:6px;border:1.5px solid #E2DDD8;cursor:pointer;padding:2px"
+            oninput="nlState.theme.accent_color=this.value">
+          {% for c in ['#FF8C00','#1565C0','#2D6A4F','#8e2de2','#C94B4B','#434343'] %}
+          <div class="sw" style="background:{{c}}" onclick="document.getElementById('pAccColor').value='{{c}}';nlState.theme.accent_color='{{c}}'"></div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="pf">
+        <label>Footer Text</label>
+        <textarea id="pFooter" rows="2"
+          oninput="document.getElementById('nlFooterTxt').textContent=this.value;nlState.footer=this.value">{{ newsletter.footer or '' }}</textarea>
+      </div>
+    </div>
+
+    <!-- ════ BLOCK TAB ════ -->
+    <div class="ps" id="ps-block">
+      <div id="noSel" style="color:#ccc;font-size:.79rem;text-align:center;padding:24px 8px;line-height:1.6">
+        👆 Click a block<br>to edit its properties
+      </div>
+
+      <!-- heading -->
+      <div class="blkp" id="bp-heading">
+        <div class="psec">Heading</div>
+        <div class="pf"><label>Level</label>
+          <select onchange="updB('level',this.value)">
+            <option value="h1">H1 — Large</option>
+            <option value="h2" selected>H2 — Medium</option>
+            <option value="h3">H3 — Small</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- image -->
+      <div class="blkp" id="bp-image">
+        <div class="psec">Image</div>
+        <div class="pf"><label>URL</label><input type="text" placeholder="https://..." oninput="updB('url',this.value)" id="imgUrl"></div>
+        <div class="pf"><label>Upload</label><input type="file" accept="image/*" class="file-up" onchange="upBlkImg(event,'url')"></div>
+        <div class="pf"><label>Width %</label><input type="number" min="10" max="100" value="100" oninput="updB('img_width',this.value+'%')" id="imgW"></div>
+        <div class="pf"><label>Radius px</label><input type="number" min="0" max="50" value="8" oninput="updB('img_radius',+this.value)" id="imgR"></div>
+        <div class="pf"><label>Align</label>
+          <select onchange="updB('img_align',this.value)" id="imgAl">
+            <option value="center">Center</option><option value="left">Left</option><option value="right">Right</option>
+          </select>
+        </div>
+        <div class="pf"><label>Caption</label><input type="text" placeholder="Optional…" oninput="updB('caption',this.value)" id="imgCap"></div>
+      </div>
+
+      <!-- gif -->
+      <div class="blkp" id="bp-gif">
+        <div class="psec">GIF / Sticker</div>
+        <div class="pf"><label>GIF URL</label><input type="text" placeholder="https://media.giphy.com/…" oninput="updB('url',this.value)" id="gifUrl"></div>
+        <div class="pf"><label>Upload GIF</label><input type="file" accept="image/*" class="file-up" onchange="upBlkImg(event,'url')"></div>
+        <div class="pf"><label>Width %</label><input type="number" min="10" max="100" value="100" oninput="updB('gif_width',this.value+'%')" id="gifW"></div>
+        <div class="pf"><label>Align</label>
+          <select onchange="updB('gif_align',this.value)" id="gifAl">
+            <option value="center">Center</option><option value="left">Left</option><option value="right">Right</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- video -->
+      <div class="blkp" id="bp-video">
+        <div class="psec">YouTube Video</div>
+        <div class="pf"><label>Video URL or ID</label><input type="text" placeholder="dQw4w9WgXcQ or full URL" oninput="setYtId(this.value)" id="ytInp"></div>
+      </div>
+
+      <!-- cta -->
+      <div class="blkp" id="bp-cta">
+        <div class="psec">Button / CTA</div>
+        <div class="pf"><label>Button Text</label><input type="text" placeholder="Click Here" oninput="updB('text',this.value)" id="ctaTxt"></div>
+        <div class="pf"><label>URL</label><input type="text" placeholder="https://…" oninput="updB('url',this.value)" id="ctaUrl"></div>
+        <div class="pf"><label>Color</label>
+          <div class="crow">
+            <input type="color" id="ctaCol" value="#FF8C00" style="width:28px;height:24px;border-radius:5px;border:1.5px solid #E2DDD8;cursor:pointer;padding:1px" oninput="updB('color',this.value)">
+            {% for c in ['#FF8C00','#1565C0','#2D6A4F','#8e2de2','#C94B4B','#434343'] %}
+            <div class="sw" style="background:{{c}}" onclick="updB('color','{{c}}');document.getElementById('ctaCol').value='{{c}}'"></div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- quote -->
+      <div class="blkp" id="bp-quote">
+        <div class="psec">Blockquote</div>
+        <div class="pf"><label>Author</label><input type="text" placeholder="— Jane Doe" oninput="updB('author',this.value)" id="qAuth"></div>
+      </div>
+
+      <!-- spacer -->
+      <div class="blkp" id="bp-spacer">
+        <div class="psec">Spacer</div>
+        <div class="pf"><label>Height (px)</label><input type="number" min="4" max="120" value="24" oninput="updB('height',+this.value)" id="spacerH"></div>
+      </div>
+
+      <!-- section hdr -->
+      <div class="blkp" id="bp-hdr">
+        <div class="psec">Section Header</div>
+        <div class="pf"><label>Background</label><input type="color" value="#1A1A2E" id="hdrBg" style="width:32px;height:28px;border-radius:6px;border:1.5px solid #E2DDD8;cursor:pointer" oninput="updB('bg',this.value)"></div>
+        <div class="pf"><label>Text Color</label><input type="color" value="#ffffff" id="hdrFg" style="width:32px;height:28px;border-radius:6px;border:1.5px solid #E2DDD8;cursor:pointer" oninput="updB('color',this.value)"></div>
+      </div>
+
+      <!-- social -->
+      <div class="blkp" id="bp-social">
+        <div class="psec">Social Links</div>
+        <div class="pf"><label>Links JSON</label>
+          <textarea rows="4" placeholder='[{"icon":"🐦","name":"Twitter","url":"https://twitter.com"}]' oninput="setSocial(this.value)" id="socialJ"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ SEND TAB ════ -->
+    <div class="ps" id="ps-send">
+      <div class="psec">Email Details</div>
+      <div class="pf"><label>Subject Line</label><input type="text" id="sendSub" value="{{ newsletter.title }}"></div>
+      <div class="pf"><label>Preview Text (inbox teaser)</label><input type="text" id="sendPrev" placeholder="Short teaser…"></div>
+      <div class="psec">Recipients</div>
+      <div class="pf">
+        <div class="rbox" id="rbox" onclick="document.getElementById('rInp').focus()">
+          <input id="rInp" type="text" placeholder="Email, press Enter…" onkeydown="addR(event)">
+        </div>
+        <div style="font-size:.66rem;color:#ccc;margin-top:3px">Enter or comma after each email</div>
+      </div>
+      <div id="sendAl" class="al" style="display:none"></div>
+      <button class="btn-send" onclick="doSend()">✉ Send Newsletter</button>
+      <div style="margin-top:10px;padding:9px;background:#F8F7F4;border-radius:8px;font-size:.7rem;color:#aaa;line-height:1.7">
+        Uses SMTP from your <code>.env</code> (SMTP_USER + SMTP_PASS).<br>Gmail → use an <strong>App Password</strong>.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /shell -->
+
+<!-- AI Modal -->
+<div class="ai-modal-bg" id="aiModalBg" onclick="if(event.target===this)closeAI()">
+<div class="ai-modal">
+  <h2>✨ AI Write</h2>
+  <p>Describe what you want or pick a template — AI will generate a block.</p>
+
+  <div class="ai-tpl-grid">
+    <button class="ai-tpl" onclick="setAIPrompt('Write a short introduction paragraph for a newsletter about ')">
+      <span class="ti">📝</span>Introduction
+    </button>
+    <button class="ai-tpl" onclick="setAIPrompt('Write 3 key highlights or bullet points about ')">
+      <span class="ti">✅</span>Highlights
+    </button>
+    <button class="ai-tpl" onclick="setAIPrompt('Write an engaging call-to-action paragraph that encourages readers to ')">
+      <span class="ti">🎯</span>Call to Action
+    </button>
+    <button class="ai-tpl" onclick="setAIPrompt('Write a brief announcement about ')">
+      <span class="ti">📢</span>Announcement
+    </button>
+    <button class="ai-tpl" onclick="setAIPrompt('Write a short product or service update about ')">
+      <span class="ti">🚀</span>Update
+    </button>
+    <button class="ai-tpl" onclick="setAIPrompt('Write a warm closing paragraph and sign-off for a newsletter about ')">
+      <span class="ti">👋</span>Sign-off
+    </button>
+  </div>
+
+  <textarea class="ai-inp" id="aiPrompt" rows="3" placeholder="e.g. Write a paragraph about our new product launch in schools…"></textarea>
+
+  <div class="ai-tone">
+    <div style="font-size:.66rem;color:#ccc;width:100%;margin-bottom:2px">Tone:</div>
+    <button class="ai-tone-btn on" onclick="setTone(this,'professional')">Professional</button>
+    <button class="ai-tone-btn" onclick="setTone(this,'friendly')">Friendly</button>
+    <button class="ai-tone-btn" onclick="setTone(this,'exciting')">Exciting</button>
+    <button class="ai-tone-btn" onclick="setTone(this,'formal')">Formal</button>
+    <button class="ai-tone-btn" onclick="setTone(this,'casual')">Casual</button>
+  </div>
+
+  <div class="ai-actions">
+    <button onclick="closeAI()" style="flex:1;padding:9px;border:1.5px solid #E2DDD8;border-radius:8px;background:#fff;font-family:'DM Sans',sans-serif;font-size:.84rem;cursor:pointer">Cancel</button>
+    <button class="btn-ai-gen" id="aiGenBtn" onclick="doAIGen()">✨ Generate</button>
+  </div>
+  <div class="ai-result" id="aiResult"></div>
+  <button class="btn-ai-use" id="aiUseBtn" onclick="useAIResult()">➕ Add as Text Block</button>
+</div>
+</div>
+
+<!-- Preview Modal -->
+<div class="prev-bg" id="prevBg" onclick="if(event.target===this)closePreview()">
+  <div style="background:#fff;border-radius:14px;width:100%;max-width:660px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+    <div style="background:#1A1A2E;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <span style="color:#fff;font-weight:700;font-size:.86rem">📧 Email Preview</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:.7rem;color:rgba(255,255,255,.35)" id="prevSz"></span>
+        <button onclick="closePreview()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:1.1rem;cursor:pointer">✕</button>
+      </div>
+    </div>
+    <iframe id="prevFrame" style="flex:1;border:none;min-height:480px"></iframe>
+  </div>
+</div>
+
+<div class="autosave" id="autosave">💾 Saved</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ════════════════════════════════════
+   STATE
+════════════════════════════════════ */
+const NL_ID = '{{ newsletter._id }}';
+const MISTRAL_AVAILABLE = false; // set to true if Mistral API key is configured
+
+const S = {
+  title:    {{ newsletter.title | tojson }},
+  subtitle: {{ newsletter.subtitle | tojson }},
+  footer:   {{ newsletter.footer | tojson }},
+  blocks:   {{ newsletter.blocks | tojson }},
+  theme: {
+    header_color: {{ (newsletter.theme or {}).get('header_color','#1A1A2E') | tojson }},
+    accent_color: {{ (newsletter.theme or {}).get('accent_color','#FF8C00') | tojson }},
+    logo_text:    {{ (newsletter.theme or {}).get('logo_text','◈ FORM.AI') | tojson }},
+    logo_url:     {{ (newsletter.theme or {}).get('logo_url','') | tojson }},
+    logo_align:   {{ (newsletter.theme or {}).get('logo_align','center') | tojson }},
+    logo_width:   {{ (newsletter.theme or {}).get('logo_width',140) | tojson }},
+    logo_height:  {{ (newsletter.theme or {}).get('logo_height',50) | tojson }},
+    logo_radius:  {{ (newsletter.theme or {}).get('logo_radius',6) | tojson }},
+    header_image: {{ (newsletter.theme or {}).get('header_image','') | tojson }},
+    overlay:      {{ (newsletter.theme or {}).get('overlay',40) | tojson }},
+  },
+};
+
+let selId=null, dragId=null, hist=[JSON.parse(JSON.stringify(S))], hi=0, asTmr=null, savedSel=null;
+let aiTone='professional', aiGenerated='';
+
+/* ════════════════════════════════════
+   RENDER
+════════════════════════════════════ */
+function render(){
+  const cv=document.getElementById('nlCanvas'); cv.innerHTML='';
+  S.blocks.forEach(b=>cv.appendChild(mkEl(b)));
+  document.getElementById('blkCnt').textContent=S.blocks.length+' block'+(S.blocks.length!==1?'s':'');
+  updateHdrUI();
+}
+
+function blkHTML(b){
+  const c=b.content||{}, acc=S.theme.accent_color||'#FF8C00';
+  switch(b.type){
+    case 'text': return `<div class="blk-text" contenteditable="true" data-f="html">${c.html||'<p>Start typing…</p>'}</div>`;
+    case 'heading':{const lv=c.level||'h2',fs={h1:'24px',h2:'19px',h3:'15px'}[lv]||'19px';return `<${lv} class="blk-heading" contenteditable="true" data-f="text" style="font-family:Georgia,serif;font-size:${fs};color:#1A1A2E;margin:0;line-height:1.25;font-weight:700;padding:8px 18px">${c.text||'Heading'}</${lv}>`;}
+    case 'image': return `<div class="blk-img-wrap">${c.url?`<img src="${c.url}" style="width:${c.img_width||'100%'};border-radius:${c.img_radius||8}px;display:block;margin:0 auto" onclick="switchPanel('block')">`:'<div style="height:70px;background:#F0EEE8;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:.78rem;cursor:pointer" onclick="switchPanel(\'block\')">🖼 Add image in Block panel</div>'}${c.caption?`<p style="font-size:11px;color:#999;text-align:center;margin:5px 0 0">${c.caption}</p>`:''}</div>`;
+    case 'gif': return `<div class="blk-gif-wrap">${c.url?`<img src="${c.url}" style="max-width:${c.gif_width||'100%'};display:block;margin:0 auto">`:'<div style="height:70px;background:#F0EEE8;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:.78rem;cursor:pointer" onclick="switchPanel(\'block\')">GIF — add URL in Block panel</div>'}</div>`;
+    case 'video': return c.youtube_id?`<div class="blk-video-wrap"><a href="https://www.youtube.com/watch?v=${c.youtube_id}" target="_blank"><img src="https://img.youtube.com/vi/${c.youtube_id}/hqdefault.jpg" style="width:100%;border-radius:9px"><p style="text-align:center;font-size:12px;color:#999;margin:5px 0 0">▶ Watch on YouTube</p></a></div>`:`<div style="height:60px;background:#F0EEE8;border-radius:8px;margin:8px 18px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:.78rem;cursor:pointer" onclick="switchPanel('block')">▶ Add YouTube ID in Block panel</div>`;
+    case 'cta': return `<div class="blk-cta-wrap"><div class="blk-cta-btn" contenteditable="true" data-f="text" style="background:${c.color||acc}">${c.text||'Click Here'}</div></div>`;
+    case 'divider': return `<div class="blk-divider"><hr></div>`;
+    case 'quote': return `<div class="blk-quote-wrap"><div class="blk-quote-bar" style="border-left-color:${acc}"><div class="blk-quote-txt" contenteditable="true" data-f="text">${c.text||'Your quote…'}</div>${c.author?`<div class="blk-quote-auth" contenteditable="true" data-f="author">— ${c.author}</div>`:''}</div></div>`;
+    case '2col': return `<div class="blk-2col"><div class="col" contenteditable="true" data-f="left">${c.left||'Left…'}</div><div class="col" contenteditable="true" data-f="right">${c.right||'Right…'}</div></div>`;
+    case 'spacer': return `<div class="blk-spacer" style="height:${c.height||24}px">${c.height||24}px</div>`;
+    case 'hdr': return `<div class="blk-hdr" style="background:${c.bg||'#1A1A2E'}"><div class="blk-hdr-txt" contenteditable="true" data-f="text" style="color:${c.color||'#fff'}">${c.text||'Section'}</div></div>`;
+    case 'social':{const lk=c.links||[];return `<div class="blk-social">${lk.length?lk.map(l=>`<a href="${l.url||'#'}" style="display:inline-block;margin:0 4px;padding:6px 13px;border-radius:6px;background:#F0EEF4;color:#1A1A2E;text-decoration:none;font-size:12px;font-family:Arial,sans-serif">${l.icon||'🔗'} ${l.name||''}</a>`).join(''):'<span style="color:#ccc;font-size:.76rem">Add links in Block panel</span>'}</div>`;}
+    default: return `<div style="padding:8px;color:#ccc;font-size:.76rem">${b.type}</div>`;
+  }
+}
+
+function mkEl(b){
+  const w=document.createElement('div');
+  w.className='nl-blk'+(b.id===selId?' sel':''); w.dataset.id=b.id;
+  // drag vs click
+  let dsx=0,dsy=0,drag=false;
+  w.setAttribute('draggable','false');
+  w.addEventListener('mousedown',e=>{if(e.target.isContentEditable||['BUTTON','INPUT','SELECT','TEXTAREA','A'].includes(e.target.tagName)||e.target.closest('button'))return;dsx=e.clientX;dsy=e.clientY;drag=false;},true);
+  w.addEventListener('mousemove',e=>{if(!dsx)return;if(Math.abs(e.clientX-dsx)>5||Math.abs(e.clientY-dsy)>5){drag=true;w.setAttribute('draggable','true');}},true);
+  w.addEventListener('mouseup',()=>{if(!drag)selBlk(b.id);w.setAttribute('draggable','false');drag=false;dsx=dsy=0;},true);
+  w.addEventListener('dragstart',e=>{dragId=b.id;w.style.opacity='.4';e.dataTransfer.effectAllowed='move';});
+  w.addEventListener('dragend',()=>{dragId=null;w.style.opacity='1';w.setAttribute('draggable','false');drag=false;});
+  w.addEventListener('dragover',e=>{e.preventDefault();w.style.outline='2px solid #FF8C00';});
+  w.addEventListener('dragleave',()=>w.style.outline='');
+  w.addEventListener('drop',e=>{e.preventDefault();w.style.outline='';if(dragId&&dragId!==b.id)swapB(dragId,b.id);});
+  // actions
+  const ac=document.createElement('div'); ac.className='blk-acts';
+  const mb=(t,cl,fn)=>{const btn=document.createElement('button');btn.className='ba'+(cl?' '+cl:'');btn.textContent=t;btn.onclick=e=>{e.stopPropagation();fn();};return btn;};
+  ac.append(mb('⠿','',()=>{}),mb('↑','',()=>mvB(b.id,-1)),mb('↓','',()=>mvB(b.id,1)),mb('⧉','',()=>dupB(b.id)),mb('🗑','del',()=>delB(b.id)));
+  w.appendChild(ac);
+  const inn=document.createElement('div'); inn.innerHTML=blkHTML(b); w.appendChild(inn);
+  // contenteditable events
+  setTimeout(()=>{
+    w.querySelectorAll('[contenteditable]').forEach(el=>{
+      let ht=null;
+      el.addEventListener('input',()=>{fromDOM(b.id,el);autoSave();clearTimeout(ht);ht=setTimeout(pushH,1500);});
+      el.addEventListener('focus',()=>{savedSel=saveSel();showRT();updRT();});
+      el.addEventListener('blur',e2=>{const r=e2.relatedTarget;if(r&&(r.closest('#rtbar')||r.closest('#nlCanvas')))return;hideRT();});
+    });
+  },0);
+  return w;
+}
+
+/* ════════════════════════════════════
+   BLOCK OPS
+════════════════════════════════════ */
+function selBlk(id){
+  selId=id;
+  document.querySelectorAll('.nl-blk').forEach(el=>el.classList.toggle('sel',el.dataset.id===id));
+  document.getElementById('noSel').style.display='none';
+  document.querySelectorAll('.blkp').forEach(el=>el.classList.remove('on'));
+  const b=S.blocks.find(x=>x.id===id); if(!b)return;
+  const p=document.getElementById('bp-'+b.type); if(p){p.classList.add('on');syncProp(b);}
+  switchPanel('block');
+}
+
+function syncProp(b){
+  const c=b.content||{}, sv=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined)el.value=v;};
+  switch(b.type){
+    case 'heading':{const s=document.querySelector('#bp-heading select');if(s)s.value=c.level||'h2';}break;
+    case 'image': sv('imgUrl',c.url||'');sv('imgW',parseFloat(c.img_width)||100);sv('imgR',c.img_radius||8);sv('imgAl',c.img_align||'center');sv('imgCap',c.caption||'');break;
+    case 'gif': sv('gifUrl',c.url||'');sv('gifW',parseFloat(c.gif_width)||100);sv('gifAl',c.gif_align||'center');break;
+    case 'video': sv('ytInp',c.youtube_id||'');break;
+    case 'cta': sv('ctaTxt',c.text||'');sv('ctaUrl',c.url||'');sv('ctaCol',c.color||'#FF8C00');break;
+    case 'quote': sv('qAuth',c.author||'');break;
+    case 'spacer': sv('spacerH',c.height||24);break;
+    case 'hdr': sv('hdrBg',c.bg||'#1A1A2E');sv('hdrFg',c.color||'#ffffff');break;
+    case 'social': sv('socialJ',JSON.stringify(c.links||[],null,2));break;
+  }
+}
+
+function addBlock(type){
+  const D={heading:{level:'h2',text:'Your Heading'},text:{html:'<p>Write your content here.</p>'},
+    image:{url:'',img_width:'100%',img_radius:8,img_align:'center',caption:''},
+    gif:{url:'',gif_width:'100%',gif_align:'center'},video:{youtube_id:''},
+    cta:{text:'Click Here',url:'#',color:S.theme.accent_color||'#FF8C00'},divider:{},
+    quote:{text:'Your inspiring quote.',author:''},
+    '2col':{left:'<p>Left column</p>',right:'<p>Right column</p>'},spacer:{height:24},
+    hdr:{text:'Section Heading',bg:'#1A1A2E',color:'#ffffff'},
+    social:{links:[{icon:'🐦',name:'Twitter',url:'https://twitter.com'},{icon:'💼',name:'LinkedIn',url:'https://linkedin.com'}]}};
+  const b={id:'b'+Date.now(),type,content:D[type]||{}};
+  S.blocks.push(b); render(); selBlk(b.id); pushH(); autoSave();
+}
+
+function delB(id){S.blocks=S.blocks.filter(b=>b.id!==id);if(selId===id){selId=null;document.getElementById('noSel').style.display='';}render();pushH();autoSave();}
+function mvB(id,d){const i=S.blocks.findIndex(b=>b.id===id),j=i+d;if(j<0||j>=S.blocks.length)return;[S.blocks[i],S.blocks[j]]=[S.blocks[j],S.blocks[i]];render();pushH();autoSave();}
+function dupB(id){const i=S.blocks.findIndex(b=>b.id===id);if(i<0)return;const cp=JSON.parse(JSON.stringify(S.blocks[i]));cp.id='b'+Date.now();S.blocks.splice(i+1,0,cp);render();selBlk(cp.id);pushH();autoSave();}
+function swapB(a,b2){const ai=S.blocks.findIndex(x=>x.id===a),bi=S.blocks.findIndex(x=>x.id===b2);if(ai<0||bi<0)return;[S.blocks[ai],S.blocks[bi]]=[S.blocks[bi],S.blocks[ai]];render();pushH();}
+
+function fromDOM(id,el){const b=S.blocks.find(x=>x.id===id);if(!b)return;b.content=b.content||{};b.content[el.dataset.f||'html']=el.innerHTML;}
+
+function updB(k,v){
+  if(!selId)return;
+  const b=S.blocks.find(x=>x.id===selId); if(!b)return;
+  b.content=b.content||{}; b.content[k]=v;
+  const w=document.querySelector(`.nl-blk[data-id="${selId}"]`);
+  if(w){const inn=w.querySelector('div:last-child');if(inn)inn.innerHTML=blkHTML(b);}
+  autoSave();
+}
+
+function setYtId(v){const m=v.match(/(?:v=|youtu\.be\/|\/embed\/|\/shorts\/)([a-zA-Z0-9_-]{11})/);updB('youtube_id',m?m[1]:v.trim().slice(0,11));}
+function setSocial(raw){try{updB('links',JSON.parse(raw));}catch(e){}}
+
+function syncDOM(){
+  document.querySelectorAll('.nl-blk').forEach(w=>{
+    const id=w.dataset.id,b=S.blocks.find(x=>x.id===id);if(!b)return;
+    w.querySelectorAll('[contenteditable][data-f]').forEach(el=>{b.content=b.content||{};b.content[el.dataset.f]=el.innerHTML;});
+  });
+  S.title=document.getElementById('nlHdrTitle').textContent.trim();
+  S.subtitle=document.getElementById('nlHdrSub').textContent.trim();
+  S.footer=document.getElementById('nlFooterTxt').textContent.trim();
+  S.theme.logo_text=document.getElementById('nlLogoTxt').textContent.trim();
+}
+
+/* ════════════════════════════════════
+   HEADER UI
+════════════════════════════════════ */
+function updateHdrUI(){
+  const hdr=document.getElementById('nlHdr');
+  const bg=document.getElementById('nlHdrBg');
+  const ov=document.getElementById('nlHdrOverlay');
+  const img=S.theme.header_image||'';
+  const col=S.theme.header_color||'#1A1A2E';
+
+  hdr.style.background=img?'transparent':col;
+  if(img){bg.style.backgroundImage=`url("${img}")`;bg.style.display='block';}
+  else{bg.style.display='none';}
+
+  const opPct=(S.theme.overlay||40);
+  if(img){ov.style.display='block';ov.style.background=`rgba(0,0,0,${opPct/100})`;}
+  else{ov.style.display='none';}
+
+  // mini preview
+  const prev=document.getElementById('hdrPreview');
+  const prevBg=document.getElementById('hdrPrevBg');
+  const prevOv=document.getElementById('hdrPrevOverlay');
+  prev.style.background=img?'transparent':col;
+  if(img){prevBg.style.backgroundImage=`url("${img}")`;prevBg.style.display='block';prevOv.style.display='block';prevOv.style.background=`rgba(0,0,0,${opPct/100})`;}
+  else{prevBg.style.display='none';prevOv.style.display='none';}
+  document.getElementById('hdrPrevTxt').textContent=S.title;
+
+  // logo
+  const li=document.getElementById('nlLogoImg');
+  const lt=document.getElementById('nlLogoTxt');
+  if(S.theme.logo_url && S.theme.logo_url.trim()){
+    li.src=S.theme.logo_url;li.style.display='block';lt.style.display='none';
+  } else {
+    li.style.display='none';lt.style.display='block';
+  }
+}
+
+function setHdrColor(c){S.theme.header_color=c;document.getElementById('pHdrColor').value=c;updateHdrUI();}
+function setHdrBgImg(url){S.theme.header_image=url;updateHdrUI();autoSave();}
+function setOverlayOpacity(v){S.theme.overlay=+v;document.getElementById('overlayVal').textContent=v+'%';updateHdrUI();autoSave();}
+function setLogoTxt(v){S.theme.logo_text=v;document.getElementById('nlLogoTxt').textContent=v;}
+function setLogoUrl(v){S.theme.logo_url=v;updateHdrUI();autoSave();}
+function syncTitle(v){S.title=v;document.getElementById('nlHdrTitle').textContent=v;document.getElementById('hdrPrevTxt').textContent=v;document.getElementById('sendSub').value=v;}
+
+async function uploadHdrBg(e){
+  const f=e.target.files[0];if(!f)return;
+  const du=await toDataUrl(f);
+  const r=await fetch('/newsletter/upload-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data_url:du})});
+  const d=await r.json();
+  if(d.success){document.getElementById('pHdrBgUrl').value=d.url;setHdrBgImg(d.url);}
+  else toast('⚠ Upload failed','err');
+}
+
+async function uploadLogo(e){
+  const f=e.target.files[0];if(!f)return;
+  const du=await toDataUrl(f);
+  const r=await fetch('/newsletter/upload-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data_url:du})});
+  const d=await r.json();
+  if(d.success){document.getElementById('pLogoUrl').value=d.url;setLogoUrl(d.url);}
+  else toast('⚠ Upload failed','err');
+}
+
+async function upBlkImg(e,field){
+  const f=e.target.files[0];if(!f)return;
+  const du=await toDataUrl(f);
+  const r=await fetch('/newsletter/upload-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data_url:du})});
+  const d=await r.json();
+  if(d.success)updB(field,d.url);
+  else toast('⚠ Upload failed','err');
+}
+
+function toDataUrl(f){return new Promise((res,rej)=>{const rd=new FileReader();rd.onload=()=>res(rd.result);rd.onerror=rej;rd.readAsDataURL(f);});}
+
+/* ════════════════════════════════════
+   RICH TEXT
+════════════════════════════════════ */
+function saveSel(){const s=window.getSelection();if(!s||!s.rangeCount)return null;return s.getRangeAt(0).cloneRange();}
+function restoreSel(){if(!savedSel)return;const s=window.getSelection();s.removeAllRanges();s.addRange(savedSel);}
+function showRT(){document.getElementById('rtbar').classList.add('show');}
+function hideRT(){document.getElementById('rtbar').classList.remove('show');}
+function updRT(){['bold','italic','underline','strikeThrough'].forEach(c=>{const b=document.querySelector(`.rtbtn[title="${c.charAt(0).toUpperCase()+c.slice(1)}"]`);if(b)b.classList.toggle('on',document.queryCommandState(c));});}
+function fmt(cmd,val){restoreSel();document.execCommand(cmd,false,val||null);savedSel=saveSel();updRT();const a=document.activeElement;if(a&&a.isContentEditable&&a.dataset.f){const w=a.closest('.nl-blk');if(w)fromDOM(w.dataset.id,a);}autoSave();}
+function insertLink(){const u=prompt('Enter URL:','https://');if(u){restoreSel();document.execCommand('createLink',false,u);autoSave();}}
+
+document.addEventListener('selectionchange',()=>{
+  const s=window.getSelection();if(!s)return;
+  const n=s.anchorNode;if(!n)return;
+  const el=n.nodeType===3?n.parentElement:n;
+  if(!el)return;
+  if(el.closest('#nlCanvas')||el.closest('#nlHdr')){savedSel=saveSel();showRT();updRT();}
+});
+
+/* ════════════════════════════════════
+   SAVE
+════════════════════════════════════ */
+async function _upB64(blocks){
+  for(const b of blocks){
+    const c=b.content||{};
+    for(const k of Object.keys(c)){
+      if(typeof c[k]==='string'&&c[k].startsWith('data:image/')){
+        try{
+          const r=await fetch('/newsletter/upload-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data_url:c[k]})});
+          const d=await r.json();
+          if(d.success&&d.url)c[k]=d.url;
+        }catch(e){}
+      }
+    }
+  }
+}
+
+async function doSave(){
+  syncDOM();
+  await _upB64(S.blocks);
+  const payload={nl_id:NL_ID,title:S.title,subtitle:S.subtitle,footer:S.footer,blocks:S.blocks,theme:{...S.theme,header_color:document.getElementById('pHdrColor').value,accent_color:document.getElementById('pAccColor').value}};
+  try{
+    const r=await fetch('/newsletter/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const d=await r.json();
+    if(d.success)showAS();
+    else toast('⚠ '+d.error,'err');
+  }catch(e){toast('⚠ '+e.message,'err');}
+}
+
+function autoSave(){clearTimeout(asTmr);asTmr=setTimeout(doSave,3000);}
+function showAS(){const el=document.getElementById('autosave');el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000);}
+
+/* ════════════════════════════════════
+   HISTORY
+════════════════════════════════════ */
+function pushH(){hist=hist.slice(0,hi+1);hist.push(JSON.parse(JSON.stringify(S)));hi=hist.length-1;}
+function undo(){if(hi<=0)return;hi--;Object.assign(S,JSON.parse(JSON.stringify(hist[hi])));render();syncPanelFromS();}
+function redo(){if(hi>=hist.length-1)return;hi++;Object.assign(S,JSON.parse(JSON.stringify(hist[hi])));render();syncPanelFromS();}
+function syncPanelFromS(){
+  document.getElementById('pTitle').value=S.title;
+  document.getElementById('pSubtitle').value=S.subtitle;
+  document.getElementById('pFooter').value=S.footer;
+  document.getElementById('pHdrColor').value=S.theme.header_color;
+  document.getElementById('pAccColor').value=S.theme.accent_color;
+  document.getElementById('pLogoTxt').value=S.theme.logo_text;
+  document.getElementById('pLogoUrl').value=S.theme.logo_url||'';
+  document.getElementById('pHdrBgUrl').value=S.theme.header_image||'';
+  document.getElementById('nlHdrTitle').textContent=S.title;
+  document.getElementById('nlHdrSub').textContent=S.subtitle;
+  document.getElementById('nlFooterTxt').textContent=S.footer;
+  updateHdrUI();
+}
+
+/* ════════════════════════════════════
+   PANEL
+════════════════════════════════════ */
+function switchPanel(tab){
+  document.querySelectorAll('.ps').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.ptab').forEach(el=>el.classList.remove('on'));
+  const s=document.getElementById('ps-'+tab);if(s)s.classList.add('on');
+  const t=document.getElementById('ptab-'+tab);if(t)t.classList.add('on');
+}
+
+/* ════════════════════════════════════
+   PREVIEW
+════════════════════════════════════ */
+async function openPreview(){
+  syncDOM();
+  try{
+    const r=await fetch('/newsletter/preview-live',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:S.title,subtitle:S.subtitle,footer:S.footer,blocks:S.blocks,theme:{...S.theme,header_color:document.getElementById('pHdrColor').value,accent_color:document.getElementById('pAccColor').value}})});
+    const d=await r.json();
+    if(!d.success){toast('⚠ '+d.error,'err');return;}
+    document.getElementById('prevFrame').srcdoc=d.html;
+    document.getElementById('prevSz').textContent=(d.html.length/1024).toFixed(0)+'KB';
+    document.getElementById('prevBg').classList.add('open');
+  }catch(e){toast('⚠ '+e.message,'err');}
+}
+function closePreview(){document.getElementById('prevBg').classList.remove('open');document.getElementById('prevFrame').srcdoc='';}
+
+/* ════════════════════════════════════
+   SEND
+════════════════════════════════════ */
+const recips=[];
+function addR(e){
+  const inp=document.getElementById('rInp');
+  if(e.key==='Enter'||e.key===','){
+    e.preventDefault();
+    const em=inp.value.trim().replace(/,$/,'');
+    if(!em||!em.includes('@'))return;
+    if(!recips.includes(em)){
+      recips.push(em);
+      const ch=document.createElement('span');ch.className='chip';
+      ch.innerHTML=`${em}<span class="x" onclick="rmR('${em}',this.parentElement)">✕</span>`;
+      document.getElementById('rbox').insertBefore(ch,inp);
+    }
+    inp.value='';
+  }
+}
+function rmR(em,ch){const i=recips.indexOf(em);if(i>=0)recips.splice(i,1);ch.remove();}
+
+async function doSend(){
+  const al=document.getElementById('sendAl'); al.style.display='none';
+  const typed=document.getElementById('rInp').value.trim().replace(/,$/,'');
+  if(typed&&typed.includes('@')&&!recips.includes(typed))recips.push(typed);
+  if(!recips.length){al.className='al al-err';al.textContent='Add at least one recipient';al.style.display='block';return;}
+  const btn=document.querySelector('.btn-send');btn.textContent='⏳ Sending…';btn.disabled=true;
+  await doSave();
+  try{
+    const r=await fetch('/newsletter/send',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({nl_id:NL_ID,subject:document.getElementById('sendSub').value||S.title,
+        preview_text:document.getElementById('sendPrev').value,recipients:recips})});
+    const d=await r.json();
+    if(d.success){al.className='al al-ok';al.innerHTML=`✅ Sent to <strong>${d.sent_count}</strong> recipient${d.sent_count!==1?'s':''}!`;}
+    else{al.className='al al-err';al.textContent='⚠ '+d.error;}
+    al.style.display='block';
+    if(d.success)toast(`✅ Sent to ${d.sent_count}!`,'ok');
+  }catch(e){al.className='al al-err';al.textContent='⚠ '+e.message;al.style.display='block';}
+  btn.textContent='✉ Send Newsletter';btn.disabled=false;
+}
+
+/* ════════════════════════════════════
+   AI WRITE
+════════════════════════════════════ */
+function openAI(){document.getElementById('aiModalBg').classList.add('open');setTimeout(()=>document.getElementById('aiPrompt').focus(),100);}
+function closeAI(){document.getElementById('aiModalBg').classList.remove('open');}
+function setAIPrompt(txt){document.getElementById('aiPrompt').value=txt;document.getElementById('aiPrompt').focus();}
+function setTone(btn,tone){document.querySelectorAll('.ai-tone-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');aiTone=tone;}
+
+async function doAIGen(){
+  const prompt=document.getElementById('aiPrompt').value.trim();
+  if(!prompt){toast('Enter a prompt first','err');return;}
+  const btn=document.getElementById('aiGenBtn');
+  btn.textContent='⏳ Generating…';btn.disabled=true;
+  document.getElementById('aiResult').classList.remove('show');
+  document.getElementById('aiUseBtn').classList.remove('show');
+
+  const fullPrompt=`Write a ${aiTone} newsletter paragraph or section. ${prompt}. Keep it concise, engaging and suitable for email. Plain text only, no markdown symbols.`;
+
+  try{
+    const r=await fetch('/newsletter/ai-write',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt:fullPrompt})});
+    const d=await r.json();
+    if(d.success){
+      aiGenerated=d.text;
+      const res=document.getElementById('aiResult');
+      res.textContent=d.text; res.classList.add('show');
+      document.getElementById('aiUseBtn').classList.add('show');
+    } else {
+      toast('⚠ '+d.error,'err');
+    }
+  }catch(e){toast('⚠ '+e.message,'err');}
+  btn.textContent='✨ Generate';btn.disabled=false;
+}
+
+function useAIResult(){
+  if(!aiGenerated)return;
+  const b={id:'b'+Date.now(),type:'text',content:{html:`<p>${aiGenerated.replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>')}</p>`}};
+  S.blocks.push(b); render(); selBlk(b.id); closeAI(); pushH(); autoSave();
+  toast('✅ Block added!','ok');
+}
+
+/* ════════════════════════════════════
+   UTILS
+════════════════════════════════════ */
+function toast(m,t=''){const el=document.getElementById('toast');el.textContent=m;el.className='toast show'+(t==='ok'?' ok':t==='err'?' err':'');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),4000);}
+
+// keyboard
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();doSave();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='y'){e.preventDefault();redo();}
+  if(e.key==='Escape'){closePreview();closeAI();}
+});
+
+['nlHdrTitle','nlHdrSub','nlLogoTxt','nlFooterTxt'].forEach(id=>{
+  const el=document.getElementById(id);if(!el)return;
+  el.addEventListener('focus',()=>{savedSel=saveSel();showRT();updRT();});
+  el.addEventListener('blur',e2=>{if(e2.relatedTarget&&e2.relatedTarget.closest('#rtbar'))return;hideRT();});
+});
+
+/* Init */
+render();
+updateHdrUI();
+if(S.theme.header_image)document.getElementById('pHdrBgUrl').value=S.theme.header_image;
+if(S.theme.overlay)document.getElementById('pOverlay').value=S.theme.overlay;
+</script>
+
+{% endblock %}

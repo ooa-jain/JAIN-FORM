@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — INTERN STAR</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Comic Neue',cursive;background:#f0ece0;min-height:100vh;}
+
+    .header{background:#1a1a2e;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #FFE066;}
+    .header h1{font-family:'Bangers',cursive;font-size:28px;color:#FFE066;letter-spacing:2px;}
+    .logout{background:#FF4757;color:#fff;border:2px solid #FFE066;border-radius:4px;padding:6px 16px;font-family:'Bangers',cursive;font-size:14px;letter-spacing:1px;cursor:pointer;text-decoration:none;}
+
+    .stats{background:#fffef7;border-bottom:3px solid #1a1a2e;padding:16px 32px;display:flex;gap:24px;}
+    .stat-box{background:#FFE066;border:2px solid #1a1a2e;border-radius:4px;padding:8px 24px;text-align:center;box-shadow:3px 3px 0 #1a1a2e;}
+    .stat-box .num{font-family:'Bangers',cursive;font-size:32px;color:#1a1a2e;}
+    .stat-box .lbl{font-size:11px;color:#555;font-weight:700;letter-spacing:1px;}
+
+    .toolbar{padding:16px 32px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+    .search{padding:9px 14px;border:2.5px solid #1a1a2e;border-radius:4px;font-family:'Comic Neue',cursive;font-size:14px;min-width:280px;background:#fffef7;box-shadow:2px 2px 0 #1a1a2e;}
+    .search:focus{outline:none;border-color:#7B2FBE;}
+    .btn{padding:9px 20px;border:2.5px solid #1a1a2e;border-radius:4px;font-family:'Bangers',cursive;font-size:15px;letter-spacing:1px;cursor:pointer;box-shadow:3px 3px 0 #1a1a2e;transition:transform .1s;}
+    .btn:hover{transform:translate(-1px,-1px);}
+    .btn-green{background:#2ed573;}
+
+    .table-wrap{padding:0 32px 32px;overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;background:#fffef7;border:2.5px solid #1a1a2e;border-radius:4px;overflow:hidden;box-shadow:4px 4px 0 #1a1a2e;}
+    thead tr{background:#1a1a2e;}
+    thead th{padding:12px 14px;color:#FFE066;font-family:'Bangers',cursive;font-size:13px;letter-spacing:1px;text-align:left;white-space:nowrap;}
+    tbody tr{border-bottom:1px solid #e0ddd0;cursor:pointer;}
+    tbody tr:hover{background:#fff8e7;}
+    tbody td{padding:11px 14px;font-size:13px;color:#1a1a2e;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    tbody td.name-cell{font-weight:700;color:#7B2FBE;text-decoration:underline;}
+    .view-btn{background:#7B2FBE;color:#fff;border:1.5px solid #1a1a2e;border-radius:3px;padding:4px 12px;font-family:'Bangers',cursive;font-size:12px;cursor:pointer;letter-spacing:1px;}
+    .del-btn{background:#FF4757;color:#fff;border:1.5px solid #1a1a2e;border-radius:3px;padding:4px 12px;font-family:'Bangers',cursive;font-size:12px;cursor:pointer;letter-spacing:1px;}
+
+    /* MODAL */
+    .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
+    .modal-bg.open{display:flex;}
+    .modal{background:#fffef7;border:3px solid #1a1a2e;border-radius:8px;width:100%;max-width:760px;box-shadow:6px 6px 0 #1a1a2e;margin:auto;}
+    .modal-header{background:#1a1a2e;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-radius:5px 5px 0 0;}
+    .modal-header h2{font-family:'Bangers',cursive;font-size:20px;color:#FFE066;letter-spacing:1px;}
+    .modal-btns{display:flex;gap:8px;}
+    .mbtn{padding:6px 14px;border:2px solid #FFE066;border-radius:4px;font-family:'Bangers',cursive;font-size:13px;letter-spacing:1px;cursor:pointer;}
+    .mbtn-close{background:#FF4757;color:#fff;}
+    .mbtn-csv{background:#2ed573;color:#1a1a2e;}
+    .mbtn-txt{background:#FFE066;color:#1a1a2e;}
+    .modal-body{padding:20px;display:flex;flex-direction:column;gap:12px;}
+    .msec{border:2px solid #1a1a2e;border-radius:4px;overflow:hidden;box-shadow:2px 2px 0 #1a1a2e;}
+    .msec-head{padding:8px 14px;font-family:'Bangers',cursive;font-size:14px;letter-spacing:1px;color:#1a1a2e;border-bottom:2px solid #1a1a2e;}
+    .msec-body{padding:6px 14px;}
+    .mrow{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid #f0ece0;font-size:13px;}
+    .mrow:last-child{border-bottom:none;}
+    .mkey{font-weight:700;color:#555;min-width:150px;flex-shrink:0;}
+    .mval{color:#1a1a2e;white-space:pre-wrap;word-break:break-word;}
+    .mval.empty{color:#bbb;font-style:italic;}
+
+    .no-data{text-align:center;padding:60px;color:#888;font-style:italic;font-size:16px;}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>⚡ INTERN STAR — ADMIN</h1>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <span style="color:#aaa;font-size:13px;">Office of Academics</span>
+    <a href="/admin/logout" class="logout">LOGOUT</a>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat-box">
+    <div class="num" id="totalCount">{{ count }}</div>
+    <div class="lbl">TOTAL SUBMISSIONS</div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <input class="search" type="text" id="searchBox" placeholder="🔍 Search by name, student ID, programme..." oninput="filterTable()"/>
+  <button class="btn btn-green" onclick="exportAllCSV()">⬇ EXPORT ALL CSV</button>
+</div>
+
+<div class="table-wrap">
+  {% if submissions %}
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Submitted At</th>
+        <th>Name</th>
+        <th>Student ID</th>
+        <th>Programme</th>
+        <th>Duration</th>
+        <th>Department</th>
+        <th>Strategy</th>
+        <th>Conf Before</th>
+        <th>Conf After</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      {% for s in submissions %}
+      <tr id="row-{{ s._id }}">
+        <td>{{ loop.index }}</td>
+        <td>{{ (s.submitted_at or '')[:16] }}</td>
+        <td class="name-cell" onclick="viewById('{{ s._id }}')" title="Click to view full data">{{ s.name or '—' }}</td>
+        <td>{{ s.sid or '—' }}</td>
+        <td>{{ s.prog or '—' }}</td>
+        <td>{{ s.dur or '—' }}</td>
+        <td>{{ s.company or '—' }}</td>
+        <td>{{ s.strategy or '—' }}</td>
+        <td>{{ s.conf_b or '—' }}</td>
+        <td>{{ s.conf_a or '—' }}</td>
+        <td>
+          <button class="view-btn" onclick="viewById('{{ s._id }}')">VIEW</button>
+          <button class="del-btn" onclick="deleteRecord('{{ s._id }}')">DEL</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="no-data">📭 No submissions yet. Share the form to start collecting!</div>
+  {% endif %}
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal" onclick="bgClose(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Student Report</h2>
+      <div class="modal-btns">
+        <button class="mbtn mbtn-csv" onclick="exportSingleCSV()">⬇ CSV</button>
+        <button class="mbtn mbtn-txt" onclick="exportSingleTXT()">⬇ TXT</button>
+        <button class="mbtn mbtn-close" onclick="closeModal()">✕ CLOSE</button>
+      </div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- Store all data as JSON in a script tag — avoids HTML attribute escaping issues -->
+<script id="allData" type="application/json">{{ submissions | tojson }}</script>
+
+<script>
+// Parse all submission data safely from the script tag
+const ALL_DATA = JSON.parse(document.getElementById('allData').textContent);
+const DATA_MAP = {};
+ALL_DATA.forEach(s => { DATA_MAP[s._id] = s; });
+
+const SECTIONS = [
+  {title:'🦸 Hero Profile',color:'#FFE066',fields:[
+    ['submitted_at','Submitted At'],['name','Name'],['sid','Student ID'],
+    ['prog','Programme'],['dur','Duration'],['company','Department'],
+    ['origin','Origin Story'],['superpower','Superpower Goal']
+  ]},
+  {title:'🧠 Learn to Learn',color:'#C8F7C5',fields:[
+    ['skill','Skill Acquired'],['strategy','Learning Strategy'],
+    ['conf_b','Confidence Before'],['conf_a','Confidence After']
+  ]},
+  {title:'💡 Learn to Think',color:'#FFCFDF',fields:[
+    ['problem','Problem'],['thinking','Thinking Process'],
+    ['outcome','Outcome'],['think_mode','Thinking Mode']
+  ]},
+  {title:'🤝 Learn to Collaborate',color:'#D0E8FF',fields:[
+    ['team','Team'],['team_role','My Role'],
+    ['collab_win','Collab Win'],['collab_fail','Collab Challenge'],['role_style','Role Style']
+  ]},
+  {title:'⚖️ Learn to Regulate',color:'#FFF0CC',fields:[
+    ['setback','Setback & Comeback'],['time_mgmt','Time Management'],
+    ['wellbeing','Wellbeing'],['stress','Stress Level']
+  ]},
+  {title:'🛠️ The Arsenal',color:'#E8D5FF',fields:[
+    ['t_ai','AI Tools'],['t_collab','Work Tools'],['best_tool','Best Tool']
+  ]},
+  {title:'📅 Journey Timeline',color:'#C5F7EB',fields:[
+    ['m1t','Mission 1'],['m1b','Mission 1 Detail'],
+    ['m2t','Mission 2'],['m2b','Mission 2 Detail'],
+    ['m3t','Mission 3'],['m3b','Mission 3 Detail']
+  ]},
+  {title:'💥 The Impact',color:'#FFE4CC',fields:[
+    ['contribution','What I Delivered'],['value','Value Created'],['school_back','Knowledge Drop']
+  ]},
+  {title:'🌟 Mentor Spotlight',color:'#FFD6D6',fields:[
+    ['mentor_name','Mentor Name'],['mentor_role','Mentor Role'],
+    ['mentor_lesson','Mentor Lesson'],['mentor_rating','Mentor Rating']
+  ]},
+  {title:"🚀 What's Next",color:'#D5F0FF',fields:[
+    ['takeaways','Top 3 Power-ups'],['goals','Next Arc Goals'],['advice','Message to Next Hero']
+  ]}
+];
+
+const ALL_FIELDS = SECTIONS.flatMap(s => s.fields);
+let currentData = null;
+
+// ── FILTER ────────────────────────────────────────────
+function filterTable(){
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  let vis = 0;
+  document.querySelectorAll('#tableBody tr').forEach(row => {
+    const show = row.textContent.toLowerCase().includes(q);
+    row.style.display = show ? '' : 'none';
+    if(show) vis++;
+  });
+  document.getElementById('totalCount').textContent = vis;
+}
+
+// ── VIEW ──────────────────────────────────────────────
+function viewById(id){
+  currentData = DATA_MAP[id];
+  if(!currentData) return;
+  document.getElementById('modalTitle').textContent = '👤 ' + (currentData.name || 'Student') + ' — Full Report';
+  document.getElementById('modalBody').innerHTML = SECTIONS.map(sec => `
+    <div class="msec">
+      <div class="msec-head" style="background:${sec.color}">${sec.title}</div>
+      <div class="msec-body">
+        ${sec.fields.map(([k,label]) => {
+          const val = currentData[k] || '';
+          return `<div class="mrow">
+            <span class="mkey">${label}</span>
+            <span class="mval${val?'':' empty'}">${val || '—'}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+  currentData = null;
+}
+
+function bgClose(e){
+  if(e.target === document.getElementById('modal')) closeModal();
+}
+
+// ── DELETE ────────────────────────────────────────────
+function deleteRecord(id){
+  if(!confirm('Delete this submission permanently?')) return;
+  fetch('/admin/delete/' + id, {method:'POST'})
+  .then(r => r.json())
+  .then(d => {
+    if(d.success){
+      const row = document.getElementById('row-' + id);
+      if(row) row.remove();
+      delete DATA_MAP[id];
+      const c = document.getElementById('totalCount');
+      c.textContent = parseInt(c.textContent) - 1;
+    }
+  });
+}
+
+// ── EXPORT ALL CSV ────────────────────────────────────
+function exportAllCSV(){
+  const headers = ALL_FIELDS.map(f => f[1]);
+  const rows = [];
+  document.querySelectorAll('#tableBody tr').forEach(row => {
+    if(row.style.display === 'none') return;
+    const id = row.id.replace('row-','');
+    const data = DATA_MAP[id];
+    if(!data) return;
+    rows.push(ALL_FIELDS.map(([k]) => '"'+(data[k]||'').toString().replace(/"/g,'""')+'"').join(','));
+  });
+  dl(new Blob([[headers.join(','),...rows].join('\n')],{type:'text/csv'}),
+    'intern-star-all-'+today()+'.csv');
+}
+
+// ── EXPORT SINGLE CSV ─────────────────────────────────
+function exportSingleCSV(){
+  if(!currentData) return;
+  const headers = ALL_FIELDS.map(f => f[1]);
+  const row = ALL_FIELDS.map(([k]) => '"'+(currentData[k]||'').toString().replace(/"/g,'""')+'"').join(',');
+  const name = (currentData.name||'student').toLowerCase().replace(/\s+/g,'-');
+  dl(new Blob([[headers.join(','),row].join('\n')],{type:'text/csv'}),
+    `intern-star-${name}-${today()}.csv`);
+}
+
+// ── EXPORT SINGLE TXT ─────────────────────────────────
+function exportSingleTXT(){
+  if(!currentData) return;
+  const d = currentData;
+  const g = k => d[k]||'—';
+  const lines = [
+    'INTERN STAR — STUDENT FULL REPORT',
+    '='.repeat(55),
+    `Generated : ${new Date().toLocaleString()}`,
+    `Name      : ${g('name')}`,
+    `Student ID: ${g('sid')}`,
+    `Programme : ${g('prog')}`,
+    `Duration  : ${g('dur')}`,
+    '='.repeat(55),'',
+    ...SECTIONS.flatMap(sec => [
+      sec.title.replace(/[^\w\s']/gi,'').trim().toUpperCase(),
+      '-'.repeat(40),
+      ...sec.fields.map(([k,label]) => `${label}:\n  ${g(k)}`),
+      ''
+    ]),
+    '='.repeat(55),
+    'INTERN STAR © JAIN UNIVERSITY 2026',
+    '='.repeat(55)
+  ];
+  const name = (d.name||'student').toLowerCase().replace(/\s+/g,'-');
+  dl(new Blob([lines.join('\n')],{type:'text/plain'}),
+    `intern-star-${name}-${today()}.txt`);
+}
+
+function dl(blob, filename){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+
+function today(){
+  return new Date().toISOString().slice(0,10);
+}
+</script>
+</body>
+</html>

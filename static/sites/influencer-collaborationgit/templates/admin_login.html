@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login — Influencer Collaboration Form</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --mango: #FF8C00; --mango-light: #FFB347; --mango-dark: #E07000;
+    --cream: #FFF8F0; --dark: #1A1A2E; --mid: #3D3D5C;
+    --error: #E63946; --border: rgba(255,140,0,0.25);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: linear-gradient(135deg, var(--dark) 0%, #2D1B00 60%, #1A3D2E 100%);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  }
+  .login-card {
+    background: #fff; border-radius: 24px; padding: 48px 44px;
+    width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+  }
+  .brand { text-align: center; margin-bottom: 32px; }
+  .brand .emoji { font-size: 3rem; display: block; margin-bottom: 8px; }
+  .brand h1 { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--dark); }
+  .brand p { color: #999; font-size: 0.85rem; margin-top: 4px; }
+  label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--mid); margin-bottom: 7px; }
+  input[type="text"], input[type="password"] {
+    width: 100%; padding: 13px 16px; border: 1.5px solid #E8E0D5;
+    border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.92rem;
+    color: var(--dark); background: var(--cream); outline: none; transition: all 0.2s; margin-bottom: 18px;
+  }
+  input:focus { border-color: var(--mango); background: #fff; box-shadow: 0 0 0 3px rgba(255,140,0,0.1); }
+  .btn-login {
+    width: 100%; padding: 14px; background: linear-gradient(135deg, var(--mango), var(--mango-dark));
+    color: white; border: none; border-radius: 12px; font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.25s;
+    box-shadow: 0 6px 20px rgba(255,140,0,0.35); letter-spacing: 0.03em;
+  }
+  .btn-login:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(255,140,0,0.45); }
+  .error-banner {
+    background: #FFF0F0; border: 1.5px solid #ffc0c0; border-radius: 10px;
+    padding: 11px 16px; margin-bottom: 20px; color: var(--error);
+    font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 8px;
+  }
+  .back-link { display: block; text-align: center; margin-top: 20px; color: #aaa; font-size: 0.82rem; text-decoration: none; }
+  .back-link:hover { color: var(--mango); }
+</style>
+</head>
+<body>
+<div class="login-card">
+  <div class="brand">
+    <span class="emoji">🥭</span>
+    <h1>Admin Login</h1>
+    <p>Influencer Collaboration FormResponse Dashboard</p>
+  </div>
+
+  {% if error %}
+  <div class="error-banner">⚠️ {{ error }}</div>
+  {% endif %}
+
+  <form method="POST" action="/admin/login">
+    <label>Username</label>
+    <input type="text" name="username" placeholder="admin" autocomplete="username" required>
+    <label>Password</label>
+    <input type="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+    <button type="submit" class="btn-login">🔐 Sign In</button>
+  </form>
+  <a href="/" class="back-link">← Back to Form</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Nomination Admin Login — FORM.AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1a1a2e;--gold:#b8963e;--gold-light:#f0dfa0;--gold-pale:#fdf8ed;
+  --cream:#fafaf7;--white:#fff;--border:#e4e0d4;--error:#c0392b;--error-bg:#fdf0ee;
+}
+body{font-family:'Outfit',sans-serif;background:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(184,150,62,.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(29,106,90,.06) 0%,transparent 50%);pointer-events:none}
+
+.login-card{background:var(--white);border-radius:20px;overflow:hidden;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(0,0,0,.4);position:relative}
+
+/* Header */
+.lc-header{background:var(--ink);padding:36px 38px 32px;text-align:center;position:relative;overflow:hidden}
+.lc-header::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;border:1px solid rgba(184,150,62,.15);pointer-events:none}
+.lc-header::after{content:'';position:absolute;bottom:-40px;left:-40px;width:140px;height:140px;border-radius:50%;border:1px solid rgba(184,150,62,.1);pointer-events:none}
+.lc-logo{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--gold-light);letter-spacing:.04em;margin-bottom:18px;position:relative;z-index:1}
+.lc-logo span{color:var(--gold)}
+.lc-icon{width:56px;height:56px;border-radius:14px;background:rgba(184,150,62,.12);border:1px solid rgba(184,150,62,.25);display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 14px;position:relative;z-index:1}
+.lc-title{font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:500;color:var(--white);margin-bottom:6px;position:relative;z-index:1}
+.lc-sub{font-size:.82rem;color:rgba(255,255,255,.45);position:relative;z-index:1}
+
+/* Body */
+.lc-body{padding:32px 38px 36px}
+.error-box{background:var(--error-bg);border:1px solid rgba(192,57,43,.25);border-radius:9px;padding:10px 14px;font-size:.83rem;color:var(--error);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.error-box::before{content:'⚠';font-size:.9rem;flex-shrink:0}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:.72rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.fg input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'Outfit',sans-serif;font-size:.92rem;color:var(--ink);background:var(--cream);outline:none;transition:all .2s}
+.fg input:focus{border-color:var(--gold);background:var(--white);box-shadow:0 0 0 3px rgba(184,150,62,.1)}
+.btn-login{width:100%;padding:13px;background:var(--ink);color:var(--gold-light);border:1px solid transparent;border-radius:10px;font-family:'Outfit',sans-serif;font-size:.93rem;font-weight:600;cursor:pointer;transition:all .2s;margin-top:6px;letter-spacing:.02em}
+.btn-login:hover{background:#2d2d5a;border-color:rgba(184,150,62,.3)}
+.btn-login:active{transform:scale(.99)}
+.lc-hint{margin-top:16px;padding:11px 14px;background:#f5f5f8;border-radius:9px;font-size:.76rem;color:#aaa;text-align:center;line-height:1.7}
+.lc-hint strong{color:#888;font-weight:600}
+
+/* Back link */
+.back-wrap{text-align:center;margin-top:20px}
+.back-wrap a{font-size:.8rem;color:rgba(255,255,255,.35);text-decoration:none;transition:color .2s}
+.back-wrap a:hover{color:var(--gold-light)}
+</style>
+</head>
+<body>
+<div>
+  <div class="login-card">
+    <div class="lc-header">
+      <div class="lc-logo">◈ FORM<span>.AI</span></div>
+      <div class="lc-icon">📋</div>
+      <div class="lc-title">Nomination Admin</div>
+      <div class="lc-sub">Jain University · Expert Nominations Portal</div>
+    </div>
+    <div class="lc-body">
+      {% if error %}
+      <div class="error-box">{{ error }}</div>
+      {% endif %}
+      <form method="POST">
+        <div class="fg">
+          <label>Username</label>
+          <input type="text" name="username" placeholder="Enter username" autofocus autocomplete="username">
+        </div>
+        <div class="fg">
+          <label>Password</label>
+          <input type="password" name="password" placeholder="Enter password" autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn-login">Sign in to Admin →</button>
+      </form>
+      <div class="lc-hint">
+        <strong>Default credentials</strong><br>
+        Username: <strong>admin</strong> &nbsp;·&nbsp; Password: <strong>admin123</strong>
+      </div>
+    </div>
+  </div>
+  <div class="back-wrap">
+    <a href="/nomination/">← Back to nomination form</a>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Member Profile Form</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header class="page-header">
+  <div class="header-eyebrow">Academic Network</div>
+  <h1>Member <em>Profile</em> Form</h1>
+  <p>Help us understand your expertise and aspirations so we can connect you with the right opportunities.</p>
+</header>
+
+<div class="progress-bar-wrap">
+  <div class="progress-steps">
+    <div class="step-item">
+      <div class="step-dot active" id="dot-1">1</div>
+      <div class="step-label active" id="lbl-1">Personal</div>
+    </div>
+    <div class="step-line" id="line-1"></div>
+    <div class="step-item">
+      <div class="step-dot" id="dot-2">2</div>
+      <div class="step-label" id="lbl-2">Academic</div>
+    </div>
+    <div class="step-line" id="line-2"></div>
+    <div class="step-item">
+      <div class="step-dot" id="dot-3">3</div>
+      <div class="step-label" id="lbl-3">Interests</div>
+    </div>
+    <div class="step-line" id="line-3"></div>
+    <div class="step-item">
+      <div class="step-dot" id="dot-4">4</div>
+      <div class="step-label" id="lbl-4">Profile</div>
+    </div>
+    <div class="step-line" id="line-4"></div>
+    <div class="step-item">
+      <div class="step-dot" id="dot-5">5</div>
+      <div class="step-label" id="lbl-5">Review</div>
+    </div>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <!-- Step 1: Personal Details -->
+  <div class="form-section active" id="step-1">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <div class="section-title">Personal Details</div>
+      <div class="section-subtitle">Basic contact info</div>
+    </div>
+    <div class="section-body">
+      <div class="field-row">
+        <div class="field">
+          <label>Full name <span class="req">*</span></label>
+          <input type="text" id="name" placeholder="e.g. Dr. Priya Sharma" />
+          <div class="field-error" id="err-name">Please enter your full name</div>
+        </div>
+        <div class="field">
+          <label>Email address <span class="req">*</span></label>
+          <input type="email" id="email" placeholder="you@institution.edu" />
+          <div class="field-error" id="err-email">Please enter a valid email</div>
+        </div>
+      </div>
+      <div class="field" style="max-width: 320px;">
+        <label>Phone number <span class="hint">— optional</span></label>
+        <input type="tel" id="phone" placeholder="+91 98765 43210" />
+      </div>
+      <div class="nav-row">
+        <div></div>
+        <button class="btn btn-primary" onclick="goTo(2)">Continue &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Academic Background -->
+  <div class="form-section" id="step-2">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <div class="section-title">Academic Background</div>
+      <div class="section-subtitle">Your teaching expertise</div>
+    </div>
+    <div class="section-body">
+      <div class="field-row">
+        <div class="field">
+          <label>Subject taught <span class="req">*</span></label>
+          <input type="text" id="subject" placeholder="e.g. Computer Science, Economics…" />
+          <div class="field-error" id="err-subject">Please enter your subject</div>
+        </div>
+        <div class="field">
+          <label>Years of academic experience <span class="req">*</span></label>
+          <select id="experience">
+            <option value="" disabled selected>Select range</option>
+            <option>0 – 2 years</option>
+            <option>3 – 5 years</option>
+            <option>6 – 10 years</option>
+            <option>11 – 15 years</option>
+            <option>16 – 20 years</option>
+            <option>20+ years</option>
+          </select>
+          <div class="field-error" id="err-experience">Please select your experience</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Current institution <span class="hint">— optional</span></label>
+        <input type="text" id="institution" placeholder="e.g. IIT Bengaluru, Christ University…" />
+      </div>
+      <div class="field">
+        <label>Highest qualification <span class="hint">— optional</span></label>
+        <select id="qualification">
+          <option value="" disabled selected>Select qualification</option>
+          <option>Ph.D.</option>
+          <option>M.Phil.</option>
+          <option>M.Tech / M.E.</option>
+          <option>MBA / PGDM</option>
+          <option>M.A. / M.Sc.</option>
+          <option>Other PG</option>
+        </select>
+      </div>
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goTo(1)">&larr; Back</button>
+        <button class="btn btn-primary" onclick="goTo(3)">Continue &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Areas of Interest -->
+  <div class="form-section" id="step-3">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <div class="section-title">Areas of Interest</div>
+      <div class="section-subtitle">Future role preferences</div>
+    </div>
+    <div class="section-body">
+      <p class="interest-note">Select up to <strong>3 areas</strong> you'd like to focus on in future roles. <span id="chips-count" style="color:var(--gold-dark); font-weight:500;">0 of 3 selected</span></p>
+      <div class="chips-grid" id="chips-grid"></div>
+      <div class="field-error" id="err-interests" style="margin-top:10px;">Please select at least one area</div>
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goTo(2)">&larr; Back</button>
+        <button class="btn btn-primary" onclick="goTo(4)">Continue &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4: Brief Profile -->
+  <div class="form-section" id="step-4">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <div class="section-title">Brief Profile</div>
+      <div class="section-subtitle">Up to 300 words</div>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label>About you <span class="req">*</span></label>
+        <textarea id="profile" rows="8" placeholder="Share your academic background, key achievements, research interests, notable publications or projects, and what you bring to future roles…"></textarea>
+        <div class="word-counter">
+          <span class="tip">Cover your background, achievements &amp; aspirations</span>
+          <span class="count" id="word-count">0 / 300 words</span>
+        </div>
+        <div class="field-error" id="err-profile">Please write a brief profile (min. 20 words)</div>
+      </div>
+      <div class="field">
+        <label>LinkedIn profile <span class="hint">— optional</span></label>
+        <input type="text" id="linkedin" placeholder="https://linkedin.com/in/your-profile" />
+      </div>
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goTo(3)">&larr; Back</button>
+        <button class="btn btn-primary" onclick="goTo(5)">Review &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5: Review & Submit -->
+  <div class="form-section" id="step-5">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <div class="section-title">Review &amp; Submit</div>
+      <div class="section-subtitle">Check before submitting</div>
+    </div>
+    <div class="section-body">
+      <div class="review-card">
+        <div class="review-section-title">Personal Details</div>
+        <div class="review-row"><div class="review-label">Full name</div><div class="review-value" id="rv-name">—</div></div>
+        <div class="review-row"><div class="review-label">Email</div><div class="review-value" id="rv-email">—</div></div>
+        <div class="review-row"><div class="review-label">Phone</div><div class="review-value" id="rv-phone">—</div></div>
+      </div>
+      <div class="review-card">
+        <div class="review-section-title">Academic Background</div>
+        <div class="review-row"><div class="review-label">Subject</div><div class="review-value" id="rv-subject">—</div></div>
+        <div class="review-row"><div class="review-label">Experience</div><div class="review-value" id="rv-experience">—</div></div>
+        <div class="review-row"><div class="review-label">Institution</div><div class="review-value" id="rv-institution">—</div></div>
+        <div class="review-row"><div class="review-label">Qualification</div><div class="review-value" id="rv-qualification">—</div></div>
+      </div>
+      <div class="review-card">
+        <div class="review-section-title">Areas of Interest</div>
+        <div class="review-row"><div class="review-label">Top interests</div><div class="review-value"><div class="review-chips" id="rv-interests"></div></div></div>
+      </div>
+      <div class="review-card">
+        <div class="review-section-title">Brief Profile</div>
+        <div class="review-row"><div class="review-label">About you</div><div class="review-value" id="rv-profile" style="font-size:13px; line-height:1.7; color:var(--ink-mid);">—</div></div>
+        <div class="review-row"><div class="review-label">LinkedIn</div><div class="review-value" id="rv-linkedin">—</div></div>
+      </div>
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goTo(4)">&larr; Edit</button>
+        <button class="btn btn-submit" id="submit-btn" onclick="submitForm()">Submit Profile ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Screen -->
+  <div id="success-screen">
+    <div class="success-icon">
+      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 14.5L11.5 20L22 9" stroke="#1a1814" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h2>Profile Submitted!</h2>
+    <p id="success-msg">Thank you! Your member profile has been received.</p>
+    <div class="success-detail" id="success-detail"></div>
+    <button class="btn btn-ghost" onclick="resetForm()">Submit another response</button>
+  </div>
+</div>
+
+<footer class="page-footer">
+  <p>Academic Member Network &nbsp;&bull;&nbsp; <span>Confidential — for internal circulation only</span></p>
+</footer>
+
+<script src="{{ url_for('static', filename='js/form.js') }}"></script>
+</body>
+</html>
