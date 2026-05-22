@@ -1,10 +1,10 @@
-"""FORM.AI Deploy — MongoDB helper"""
+"""Draftspace Deploy — MongoDB helper"""
 import os
 from pymongo import MongoClient
-MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://santoshks_db_user:viefoCaPp3CMCqTq@cluster0.v8wfkok.mongodb.net/formcraft?retryWrites=true&w=majority&appName=Cluster0")
+MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://santoshks_db_user:viefoCaPp3CMCqTq@cluster0.v8wfkok.mongodb.net/Draftspace?retryWrites=true&w=majority&appName=Cluster0")
 try:
     _client=MongoClient(MONGO_URI,serverSelectionTimeoutMS=5000)
-    _db=_client.get_database("formcraft"); _ok=True
+    _db=_client.get_database("Draftspace"); _ok=True
 except Exception as e:
     print(f"offline: {e}"); _db=None; _ok=False
 _FORMS=[
@@ -1723,7 +1723,7 @@ _FORMS=[
       "logo_align": "center",
       "logo_height": 50,
       "logo_radius": 6,
-      "logo_text": "\u25c8 FORM.AI",
+      "logo_text": "\u25c8 Draftspace",
       "logo_url": "",
       "logo_width": 140
     },
@@ -1796,7 +1796,7 @@ _FORMS=[
       "logo_align": "center",
       "logo_height": 50,
       "logo_radius": 6,
-      "logo_text": "\u25c8 FORM.AI",
+      "logo_text": "\u25c8 Draftspace",
       "logo_url": "",
       "logo_width": 140
     },
@@ -2001,7 +2001,7 @@ _FORMS=[
       "logo_align": "left",
       "logo_height": 50,
       "logo_radius": 6,
-      "logo_text": "\u25c8 FORM.AI",
+      "logo_text": "\u25c8 Draftspace",
       "logo_url": "/static/nl_uploads/logo_b2540a15432741db819dd413e73875a6.png",
       "logo_width": 94
     },

@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 from flask import Flask, jsonify, request
-=======
-from flask import Flask, jsonify
->>>>>>> 9ea1a66fec365df468b76099a79796cc7c3ae0ce
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
 from pymongo import MongoClient
@@ -12,8 +8,8 @@ import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(basedir, '.env'))
 
-MONGO_URI  = os.getenv('MONGO_URI',  'mongodb+srv://santoshks_db_user:viefoCaPp3CMCqTq@cluster0.v8wfkok.mongodb.net/formcraft?retryWrites=true&w=majority&appName=Cluster0')
-SECRET_KEY = os.getenv('SECRET_KEY', 'formcraft-secret-jain-2024-xK9mP2qR')
+MONGO_URI  = os.getenv('MONGO_URI',  'mongodb+srv://santoshks_db_user:viefoCaPp3CMCqTq@cluster0.v8wfkok.mongodb.net/Draftspace?retryWrites=true&w=majority&appName=Cluster0')
+SECRET_KEY = os.getenv('SECRET_KEY', 'Draftspace-secret-jain-2024-xK9mP2qR')
 MAIL_FROM  = os.getenv('MAIL_FROM',  'officeofacademicaffairs@jainuniversity.ac.in')
 
 # ── SMTP — bridge both naming conventions ─────────────────────────────────────
@@ -27,7 +23,7 @@ os.environ['SMTP_HOST'] = _smtp_host
 os.environ['SMTP_PORT'] = str(_smtp_port)
 
 client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-db     = client.get_database('formcraft')
+db     = client.get_database('Draftspace')
 
 login_manager = LoginManager()
 bcrypt        = Bcrypt()
@@ -38,11 +34,8 @@ def create_app():
     app.config['SECRET_KEY']         = SECRET_KEY
 
     # ── CRITICAL for Hostinger: allow large JSON payloads (base64 images) ──
-<<<<<<< HEAD
-=======
     # Nginx on Hostinger defaults to 1MB — we set Flask limit higher.
     # You ALSO need client_max_body_size 50m; in Nginx config (see README).
->>>>>>> 9ea1a66fec365df468b76099a79796cc7c3ae0ce
     app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB
 
     # ── Session cookie settings for hosted HTTPS ──
@@ -66,7 +59,6 @@ def create_app():
     # ── Handle generic server errors ──
     @app.errorhandler(500)
     def server_error(e):
-<<<<<<< HEAD
         import traceback
         traceback.print_exc()
         try:
@@ -98,9 +90,6 @@ def create_app():
             &nbsp;&nbsp;<a href="/newsletter/" style="color:#FF8C00">Newsletters</a>
             &nbsp;&nbsp;<a href="/deploy" style="color:#FF8C00">Deploy</a></p>
         </body></html>''', 500
-=======
-        return jsonify({'success': False, 'error': 'Server error. Check server logs.'}), 500
->>>>>>> 9ea1a66fec365df468b76099a79796cc7c3ae0ce
 
     from routes.auth          import auth_bp
     from routes.nomination    import nomination_bp
@@ -112,8 +101,8 @@ def create_app():
     from routes.responses     import responses_bp
     from routes.newsletter    import newsletter_bp
     from routes.admin         import admin_bp
-<<<<<<< HEAD
     from routes.deploy        import deploy_bp
+    from routes.pricing       import pricing_bp
 
     # ── Ensure static/sites folder exists ────────────────────────────────────
     sites_dir = os.path.join(basedir, 'static', 'sites')
@@ -121,9 +110,6 @@ def create_app():
 
     # ── Register deploy_bp FIRST so /sites/<slug>/ routes take priority ──────
     app.register_blueprint(deploy_bp)
-=======
-
->>>>>>> 9ea1a66fec365df468b76099a79796cc7c3ae0ce
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(builder_bp)
@@ -134,6 +120,7 @@ def create_app():
     app.register_blueprint(ai_nl_bp)
     app.register_blueprint(newsletter_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(pricing_bp)
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -145,22 +132,23 @@ def create_app():
         except Exception:
             return None
 
+    @app.route('/')
+    def index():
+        from flask import redirect, url_for
+        return redirect(url_for('auth.login'))
+
     return app
 
 
 if __name__ == '__main__':
     try:
         client.admin.command('ping')
-        print('✅ MongoDB connected!')
+        print('[OK] MongoDB connected!')
     except Exception as e:
-        print(f'❌ MongoDB error: {e}')
+        print(f'[ERR] MongoDB error: {e}')
 
-    print(f'📧 SMTP: {os.getenv("SMTP_USER")} via {os.getenv("SMTP_HOST")}:{os.getenv("SMTP_PORT")}')
-    print(f'📧 Pass: {"✅ set" if os.getenv("SMTP_PASS") else "❌ NOT SET"}')
+    print(f'[SMTP] User: {os.getenv("SMTP_USER")} via {os.getenv("SMTP_HOST")}:{os.getenv("SMTP_PORT")}')
+    print(f'[SMTP] Pass: {"set" if os.getenv("SMTP_PASS") else "NOT SET"}')
 
     app = create_app()
-<<<<<<< HEAD
-    app.run(debug=False, host='0.0.0.0', port=5000) 
-=======
-    app.run(debug=False, host='0.0.0.0', port=5000)
->>>>>>> 9ea1a66fec365df468b76099a79796cc7c3ae0ce
+    app.run(debug=True, host='0.0.0.0', port=5000)

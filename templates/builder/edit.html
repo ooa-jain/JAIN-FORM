@@ -1,11 +1,19 @@
 {% extends 'base.html' %}
-{% block title %}{{ form.title }} — FORM.AI Builder{% endblock %}
+{% block title %}{{ form.title }} — Draftspace Builder{% endblock %}
 {% block body_class %}builder-page{% endblock %}
 {% block body %}
+<!-- Background Shapes -->
+<div class="auth-floating-shapes">
+  <div class="shape s1"></div>
+  <div class="shape s2"></div>
+  <div class="shape s3"></div>
+</div>
+
+{% include 'components/sidebar.html' %}
 
 <div class="bld-bar">
   <div class="bld-bar-l">
-    <a href="{{ url_for('dashboard.index') }}" class="back-btn">← Back</a>
+    <!-- Back button removed; sidebar handles navigation -->
     <input id="formTitle" type="text" class="title-inp" value="{{ form.title }}">
   </div>
   <div class="bld-bar-c">
@@ -349,7 +357,7 @@
       <div style="width:36px;height:36px;background:linear-gradient(135deg,#FF8C00,#E07000);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;color:white;flex-shrink:0">✦</div>
       <div>
         <div style="font-weight:600;font-size:1rem">Improve with AI</div>
-        <div style="font-size:.8rem;color:#888">Tell FORM.AI what to change, add, or remove</div>
+        <div style="font-size:.8rem;color:#888">Tell Draftspace what to change, add, or remove</div>
       </div>
       <button onclick="document.getElementById('aiModal').style.display='none'" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:1.1rem;color:#aaa">✕</button>
     </div>

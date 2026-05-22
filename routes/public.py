@@ -73,7 +73,7 @@ def send_notification(form, response_data):
         <table style="width:100%;border-collapse:collapse">{rows}</table>
       </div>
       <div style="padding:16px 36px;background:#f8f9fa;font-size:0.8rem;color:#aaa;text-align:center">
-        Sent by FormCraft · {form["title"]}
+        Sent by Draftspace · {form["title"]}
       </div>
     </div>'''
 

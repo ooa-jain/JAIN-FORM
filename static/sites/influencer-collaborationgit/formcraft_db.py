@@ -1,10 +1,10 @@
-"""FORM.AI Deploy — MongoDB helper"""
+"""Draftspace Deploy — MongoDB helper"""
 import os
 from pymongo import MongoClient
-MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://santoshks_db_user:viefoCaPp3CMCqTq@cluster0.v8wfkok.mongodb.net/formcraft?retryWrites=true&w=majority&appName=Cluster0")
+MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://santoshks_db_user:viefoCaPp3CMCqTq@cluster0.v8wfkok.mongodb.net/Draftspace?retryWrites=true&w=majority&appName=Cluster0")
 try:
     _client=MongoClient(MONGO_URI,serverSelectionTimeoutMS=5000)
-    _db=_client.get_database("formcraft"); _ok=True
+    _db=_client.get_database("Draftspace"); _ok=True
 except Exception as e:
     print(f"offline: {e}"); _db=None; _ok=False
 _FORMS=[
@@ -1883,7 +1883,7 @@ _FORMS=[
       "logo_align": "center",
       "logo_height": 50,
       "logo_radius": 6,
-      "logo_text": "\u25c8 FORM.AI",
+      "logo_text": "\u25c8 Draftspace",
       "logo_url": "",
       "logo_width": 140
     },
@@ -1956,7 +1956,7 @@ _FORMS=[
       "logo_align": "center",
       "logo_height": 50,
       "logo_radius": 6,
-      "logo_text": "\u25c8 FORM.AI",
+      "logo_text": "\u25c8 Draftspace",
       "logo_url": "",
       "logo_width": 140
     },
@@ -2179,7 +2179,7 @@ _FORMS=[
     "theme": {
       "header_color": "#544b2b",
       "accent_color": "#db800f",
-      "logo_text": "\u25c8 FORM.AI",
+      "logo_text": "\u25c8 Draftspace",
       "logo_url": "/static/nl_uploads/img_2baef85988814160b58bdcfdafa1d6f8.jpg",
       "logo_align": "left",
       "logo_width": 94,
@@ -2371,7 +2371,7 @@ _FORMS=[
     "theme": {
       "header_color": "#1a1a2e",
       "accent_color": "#8e2de2",
-      "logo_text": "\u25c8 FORM.AI",
+      "logo_text": "\u25c8 Draftspace",
       "logo_url": "/static/nl_uploads/img_6b50560220f64ad994ded11dbccc138d.png",
       "logo_align": "center",
       "logo_width": 140,
@@ -2389,12 +2389,12 @@ _FORMS=[
     "user_id": "69cbaf893e4b965c3ac9bf4f",
     "title": "ev",
     "subtitle": "",
-    "footer": "Sent by FORM.AI \u00b7 Unsubscribe",
+    "footer": "Sent by Draftspace \u00b7 Unsubscribe",
     "blocks": [],
     "theme": {
       "header_color": "#1A1A2E",
       "accent_color": "#FF8C00",
-      "logo_text": "\u25c8 FORM.AI",
+      "logo_text": "\u25c8 Draftspace",
       "logo_align": "center"
     },
     "created_at": "2026-04-29T08:33:50.570000",
@@ -2405,12 +2405,12 @@ _FORMS=[
     "user_id": "69cbaf893e4b965c3ac9bf4f",
     "title": "evdfbc",
     "subtitle": "",
-    "footer": "Sent by FORM.AI \u00b7 Unsubscribe",
+    "footer": "Sent by Draftspace \u00b7 Unsubscribe",
     "blocks": [],
     "theme": {
       "header_color": "#1A1A2E",
       "accent_color": "#FF8C00",
-      "logo_text": "\u25c8 FORM.AI",
+      "logo_text": "\u25c8 Draftspace",
       "logo_align": "center"
     },
     "created_at": "2026-04-29T08:34:06.537000",
@@ -2421,12 +2421,12 @@ _FORMS=[
     "user_id": "69cbaf893e4b965c3ac9bf4f",
     "title": "dajzvnjszfcnjnf",
     "subtitle": "",
-    "footer": "Sent by FORM.AI \u00b7 Unsubscribe",
+    "footer": "Sent by Draftspace \u00b7 Unsubscribe",
     "blocks": [],
     "theme": {
       "header_color": "#1A1A2E",
       "accent_color": "#FF8C00",
-      "logo_text": "\u25c8 FORM.AI",
+      "logo_text": "\u25c8 Draftspace",
       "logo_align": "center"
     },
     "created_at": "2026-04-29T09:49:56.346000",
@@ -2437,7 +2437,7 @@ _FORMS=[
     "user_id": "69cbaf893e4b965c3ac9bf4f",
     "title": "wredhg",
     "subtitle": "",
-    "footer": "Sent by FORM.AI \u00b7 Unsubscribe",
+    "footer": "Sent by Draftspace \u00b7 Unsubscribe",
     "blocks": [
       {
         "id": "b1777457179457",
@@ -2450,7 +2450,7 @@ _FORMS=[
     "theme": {
       "header_color": "#1a1a2e",
       "accent_color": "#ff8c00",
-      "logo_text": "\u25c8 FORM.AI",
+      "logo_text": "\u25c8 Draftspace",
       "logo_url": "/static/nl_uploads/img_fb22cf4439a84e1ea60ffb7523c3eba3.jpg",
       "logo_align": "center",
       "logo_width": 140,
@@ -2467,11 +2467,11 @@ _FORMS=[
     "user_id": "69cbaf893e4b965c3ac9bf4f",
     "title": "Your Weekly Boost",
     "subtitle": "",
-    "footer": "Sent by FORM.AI \u00b7 Unsubscribe",
+    "footer": "Sent by Draftspace \u00b7 Unsubscribe",
     "blocks": [
       {
         "content": {
-          "html": "<p><font size=\"5\"><font color=\"#e69728\">Hello everyone</font>,</font></p><p><i>You're doing fantastic! Keep up the great work and never give up. Always remember, keep smiling and keep using Form.ai. Stay motivated and keep shining. Best regards,</i><br>Form.ai</p>"
+          "html": "<p><font size=\"5\"><font color=\"#e69728\">Hello everyone</font>,</font></p><p><i>You're doing fantastic! Keep up the great work and never give up. Always remember, keep smiling and keep using Draftspace. Stay motivated and keep shining. Best regards,</i><br>Draftspace</p>"
         },
         "id": "b1777457332713",
         "type": "text"

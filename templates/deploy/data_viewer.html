@@ -1,17 +1,8 @@
 {% extends 'base.html' %}
-{% block title %}Data Viewer — FORM.AI{% endblock %}
+{% block title %}Data Viewer — Draftspace{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
 {% block body %}
-<nav class="app-nav">
-  <div class="nav-brand">◈ FORM<span style="color:var(--mango)">.AI</span></div>
-  <div class="nav-right">
-    <a href="{{ url_for('deploy.deploy_index') }}" class="btn-ghost-sm">← Deploy</a>
-    <a href="{{ url_for('dashboard.index') }}" class="btn-ghost-sm">Dashboard</a>
-    <div class="user-pill">
-      <div class="user-init">{{ current_user.name[0].upper() }}</div>
-      <span>{{ current_user.name }}</span>
-    </div>
-  </div>
-</nav>
+{% include 'components/sidebar.html' %}
 
 <style>
 .dv-wrap{max-width:1100px;margin:0 auto;padding:28px 22px}

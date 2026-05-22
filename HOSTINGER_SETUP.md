@@ -1,4 +1,4 @@
-# Hostinger Deployment Fix — FORM.AI Newsletter
+# Hostinger Deployment Fix — Draftspace Newsletter
 
 ## Files to upload/replace
 
@@ -26,7 +26,7 @@ You'll see a folder — **copy that exact name** and update line in passenger_ws
 os.path.join(_HOME, 'virtualenv', 'YOUR_FOLDER_NAME', '3.11', 'bin', 'python'),
 ```
 
-Your folder is probably named the same as your domain or project (e.g. `fc2`, `formcraft`, etc.)
+Your folder is probably named the same as your domain or project (e.g. `fc2`, `Draftspace`, etc.)
 
 ---
 

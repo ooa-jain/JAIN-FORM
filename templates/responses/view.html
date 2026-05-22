@@ -1,14 +1,8 @@
 {% extends 'base.html' %}
 {% block title %}Responses — {{ form.title }}{% endblock %}
-{% block body_class %}app-page{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
 {% block body %}
-<nav class="app-nav">
-  <div class="nav-brand">✦ FormCraft</div>
-  <div class="nav-right">
-    <a href="{{ url_for('dashboard.index') }}" class="btn-ghost-sm">← Dashboard</a>
-    <a href="{{ url_for('builder.edit', form_id=form_id) }}" class="btn-ghost-sm">Edit Form</a>
-  </div>
-</nav>
+{% include 'components/sidebar.html' %}
 <div class="app-body">
   <div class="page-head">
     <div>

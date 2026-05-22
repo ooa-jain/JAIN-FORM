@@ -8,7 +8,7 @@ import json
 from dotenv import load_dotenv
 load_dotenv()
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "formcraft-secret-jain-2024-xK9mP2qRuse")
+app.secret_key = os.environ.get("SECRET_KEY", "Draftspace-secret-jain-2024-xK9mP2qRuse")
 
 # ── MongoDB ──────────────────────────────────────────────────────────────────
 MONGO_URI = os.environ.get("MONGO_URI")

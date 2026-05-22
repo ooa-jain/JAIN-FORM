@@ -1,5 +1,5 @@
 """
-routes/deploy.py  —  FORM.AI Deploy System  v3
+routes/deploy.py  —  Draftspace Deploy System  v3
 ═══════════════════════════════════════════════
 Sources:
   • Upload ZIP  (any framework)
@@ -78,7 +78,7 @@ def _app_mongo_uri() -> str:
         from app import MONGO_URI as APP_URI
         return APP_URI
     except Exception:
-        return os.getenv('MONGO_URI', 'mongodb://localhost:27017/formcraft')
+        return os.getenv('MONGO_URI', 'mongodb://localhost:27017/Draftspace')
 
 
 def _user_data(user_id: str) -> dict:
@@ -153,11 +153,11 @@ def _strip_zip_prefix(raw_files: dict) -> dict:
 # ═══════════════════════════════════════════════════════════════════════════════
 def _inject_html(files: dict, data_json: str, mongo_uri: str) -> dict:
     script = (
-        f'<script>\n/* FORM.AI Deploy */\n'
-        f'window.FORMCRAFT_MONGO_URI="{mongo_uri}";\n'
-        f'window.FORMCRAFT_DATA={data_json};\n'
-        f'window.FORMCRAFT_FORMS=window.FORMCRAFT_DATA.forms;\n'
-        f'window.FORMCRAFT_NL=window.FORMCRAFT_DATA.newsletters;\n</script>\n'
+        f'<script>\n/* Draftspace Deploy */\n'
+        f'window.Draftspace_MONGO_URI="{mongo_uri}";\n'
+        f'window.Draftspace_DATA={data_json};\n'
+        f'window.Draftspace_FORMS=window.Draftspace_DATA.forms;\n'
+        f'window.Draftspace_NL=window.Draftspace_DATA.newsletters;\n</script>\n'
     )
     out = {}
     for name, content in files.items():
@@ -180,7 +180,7 @@ def _inject_flask_conversion(files: dict, data_json: str,
     """
     Convert an HTML-only project into a minimal Flask app.
     Moves HTML files into templates/, assets into static/,
-    creates app.py + formcraft_db.py + requirements.txt
+    creates app.py + Draftspace_db.py + requirements.txt
     """
     out     = {}
     fj      = json.dumps(user_data['forms'],       default=str, indent=2)
@@ -216,9 +216,9 @@ def _inject_flask_conversion(files: dict, data_json: str,
             clean = val.lstrip('./')
             return f'{attr}={quote}{{{{ url_for("static", filename="{clean}") }}}}{quote}'
         html = re.sub(r'\b(href|src)=(["\'])([^"\'#\s>]{1,400})\2', _to_jinja, html)
-        # Inject FORMCRAFT data
-        inj = (f'<script>\nwindow.FORMCRAFT_MONGO_URI="{mongo_uri}";\n'
-               f'window.FORMCRAFT_DATA={data_json};\n</script>\n')
+        # Inject Draftspace data
+        inj = (f'<script>\nwindow.Draftspace_MONGO_URI="{mongo_uri}";\n'
+               f'window.Draftspace_DATA={data_json};\n</script>\n')
         if '</head>' in html:
             html = html.replace('</head>', inj+'</head>', 1)
         tpl_files[path] = html
@@ -235,11 +235,11 @@ def _inject_flask_conversion(files: dict, data_json: str,
 def {endpoint}():
     return render_template("{path}")''')
 
-    app_py = f'''"""Flask app — converted by FORM.AI Deploy"""
+    app_py = f'''"""Flask app — converted by Draftspace Deploy"""
 import os
 from flask import Flask, render_template
 from dotenv import load_dotenv
-import formcraft_db
+import Draftspace_db
 
 load_dotenv()
 app = Flask(__name__)
@@ -251,8 +251,8 @@ if __name__ == "__main__":
     app.run(debug=False)
 '''
 
-    # ── formcraft_db.py ──────────────────────────────────────────────────────
-    db_py = f'''"""FORM.AI Deploy — MongoDB helper"""
+    # ── Draftspace_db.py ──────────────────────────────────────────────────────
+    db_py = f'''"""Draftspace Deploy — MongoDB helper"""
 import os
 from pymongo import MongoClient
 from dotenv import load_dotenv
@@ -261,10 +261,10 @@ load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI", "{mongo_uri}")
 try:
     _client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-    _db     = _client.get_database("formcraft")
+    _db     = _client.get_database("Draftspace")
     _ok     = True
 except Exception as e:
-    print(f"[formcraft_db] offline: {{e}}")
+    print(f"[Draftspace_db] offline: {{e}}")
     _db = None; _ok = False
 
 _FORMS = {fj}
@@ -287,10 +287,10 @@ def is_connected(): return _ok
 
     out['.env']              = f'MONGO_URI={mongo_uri}\nSECRET_KEY={rand_key}\n'
     out['app.py']            = app_py
-    out['formcraft_db.py']   = db_py
+    out['Draftspace_db.py']   = db_py
     out['requirements.txt']  = 'flask\npymongo==4.6.1\npython-dotenv==1.0.0\ndnspython==2.4.2\ngunicorn\n'
     out['Procfile']          = 'web: gunicorn app:app\n'
-    out['FORMCRAFT_README.md'] = f'''# Converted by FORM.AI Deploy
+    out['Draftspace_README.md'] = f'''# Converted by Draftspace Deploy
 
 ## Run locally
 ```bash
@@ -322,13 +322,13 @@ def _inject_existing_flask(files: dict, data_json: str,
     fj   = json.dumps(user_data['forms'],       default=str, indent=2)
     nj   = json.dumps(user_data['newsletters'],  default=str, indent=2)
     out['.env']           = f'MONGO_URI={mongo_uri}\nSECRET_KEY={uuid.uuid4().hex[:20]}\n'
-    out['formcraft_db.py'] = f'''"""FORM.AI Deploy — MongoDB helper"""
+    out['Draftspace_db.py'] = f'''"""Draftspace Deploy — MongoDB helper"""
 import os
 from pymongo import MongoClient
 MONGO_URI = os.getenv("MONGO_URI", "{mongo_uri}")
 try:
     _client=MongoClient(MONGO_URI,serverSelectionTimeoutMS=5000)
-    _db=_client.get_database("formcraft"); _ok=True
+    _db=_client.get_database("Draftspace"); _ok=True
 except Exception as e:
     print(f"offline: {{e}}"); _db=None; _ok=False
 _FORMS={fj}; _NL={nj}
@@ -356,13 +356,13 @@ def is_connected(): return _ok
 def _inject_react(files: dict, data_json: str, mongo_uri: str) -> dict:
     out = dict(files)
     out['.env'] = f'REACT_APP_MONGO_URI={mongo_uri}\n'
-    out['src/formcraft/data.js'] = (
-        f'export const FORMCRAFT_DATA={data_json};\n'
-        f'export const FORMS=FORMCRAFT_DATA.forms;\n'
-        f'export const NL=FORMCRAFT_DATA.newsletters;\n'
+    out['src/Draftspace/data.js'] = (
+        f'export const Draftspace_DATA={data_json};\n'
+        f'export const FORMS=Draftspace_DATA.forms;\n'
+        f'export const NL=Draftspace_DATA.newsletters;\n'
     )
-    out['src/formcraft/db.js'] = f'''const URI=process.env.REACT_APP_MONGO_URI||"{mongo_uri}";
-async function q(col,f={{}}){{const r=await fetch(`${{URI}}/action/find`,{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{collection:col,database:'formcraft',filter:f}})}});const d=await r.json();return d.documents||[];}}
+    out['src/Draftspace/db.js'] = f'''const URI=process.env.REACT_APP_MONGO_URI||"{mongo_uri}";
+async function q(col,f={{}}){{const r=await fetch(`${{URI}}/action/find`,{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{collection:col,database:'Draftspace',filter:f}})}});const d=await r.json();return d.documents||[];}}
 export const fetchForms=(uid)=>q('forms',uid?{{user_id:uid}}:{{}});
 export const fetchNL=(uid)=>q('newsletters',uid?{{user_id:uid}}:{{}});
 export default{{fetchForms,fetchNL}};'''
@@ -508,7 +508,7 @@ footer span{{color:var(--acc)}}
 </style>"""
 
     nav  = f'<nav><div class="brand">◈ {title}</div><div class="nav-links"><a href="index.html">Home</a><a href="forms.html">Forms</a><a href="newsletters.html">Newsletters</a></div></nav>'
-    foot = f'<footer>Built with <span>◈ FORM.AI</span> by {user_name}</footer>'
+    foot = f'<footer>Built with <span>◈ Draftspace</span> by {user_name}</footer>'
 
     tr   = sum(len(f.get('responses',[])) for f in forms)
     lf   = sum(1 for f in forms if f.get('settings',{}).get('is_published'))
@@ -728,6 +728,9 @@ def deploy_analyze():
 @deploy_bp.route('/deploy/upload', methods=['POST'])
 @login_required
 def deploy_upload():
+    if not current_user.can_deploy():
+        return jsonify({'success': False, 'error': 'Deployment limit reached for your plan. Please upgrade.'}), 403
+        
     source     = request.form.get('source','zip')
     mongo_uri  = (request.form.get('mongo_uri','') or _app_mongo_uri()).strip()
     homepage   = request.form.get('homepage','index.html').strip()
@@ -1271,7 +1274,7 @@ def export_excel(form_id):
     ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=max(total_cols, 3))
     sc = ws.cell(row=2, column=1,
                  value=f'Exported {datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")}  ·  '
-                       f'{len(responses)} response{"s" if len(responses)!=1 else ""}  ·  FORM.AI')
+                       f'{len(responses)} response{"s" if len(responses)!=1 else ""}  ·  Draftspace')
     sc.font      = Font(name='Segoe UI', size=9, color='FF888888')
     sc.fill      = PatternFill('solid', fgColor=GREY_HDR)
     sc.alignment = Alignment(horizontal='left', vertical='center', indent=1)

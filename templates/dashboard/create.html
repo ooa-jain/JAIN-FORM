@@ -1,0 +1,446 @@
+{% extends 'base.html' %}
+{% block title %}Create Form — Draftspace{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
+{% block body %}
+<div class="auth-floating-shapes">
+  <div class="shape s1"></div><div class="shape s2"></div><div class="shape s3"></div>
+</div>
+{% include 'components/sidebar.html' %}
+
+<div class="app-body" style="max-width:960px">
+
+  <!-- HEADER -->
+  <div style="margin-bottom:36px">
+    <a href="{{ url_for('dashboard.index') }}" style="display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:#999;text-decoration:none;margin-bottom:18px;transition:color .2s" onmouseover="this.style.color='#FF8C00'" onmouseout="this.style.color='#999'">
+      <i class="ph ph-arrow-left"></i> Back to Home
+    </a>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
+      <div style="width:46px;height:46px;background:linear-gradient(135deg,#FF8C00,#CC7000);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;box-shadow:0 6px 20px rgba(255,140,0,.3)">🦆</div>
+      <div>
+        <h1 style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:800;color:#1A1A2E;margin:0">Create a New Form</h1>
+        <p style="color:#888;font-size:.92rem;margin:3px 0 0">Choose how you want to get started — Draftspace does the rest</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPTION CARDS -->
+  <div class="cr-grid">
+
+    <!-- Classic Form -->
+    <div class="cr-card" id="opt-classic" onclick="openModal('form')">
+      <div class="cr-card-top cr-orange">
+        <i class="ph ph-list-dashes cr-big-icon"></i>
+        <div class="cr-badge">Most Popular</div>
+      </div>
+      <div class="cr-body">
+        <div class="cr-title">Classic Form</div>
+        <div class="cr-sub">Card-based layout, one field at a time. Perfect for surveys &amp; registrations.</div>
+        <div class="cr-go">Get Started <i class="ph ph-arrow-right"></i></div>
+      </div>
+    </div>
+
+    <!-- Web Style -->
+    <div class="cr-card" id="opt-web" onclick="openModal('web')">
+      <div class="cr-card-top cr-blue">
+        <i class="ph ph-globe cr-big-icon"></i>
+      </div>
+      <div class="cr-body">
+        <div class="cr-title">Web Style Form</div>
+        <div class="cr-sub">Full-screen hero + scrollable fields. Looks like a landing page.</div>
+        <div class="cr-go">Get Started <i class="ph ph-arrow-right"></i></div>
+      </div>
+    </div>
+
+    <!-- Quiz -->
+    <div class="cr-card" id="opt-quiz" onclick="openModal('quiz')">
+      <div class="cr-card-top cr-green">
+        <i class="ph ph-exam cr-big-icon"></i>
+      </div>
+      <div class="cr-body">
+        <div class="cr-title">Quiz</div>
+        <div class="cr-sub">Scored quizzes with correct answers, auto-grading and feedback.</div>
+        <div class="cr-go">Get Started <i class="ph ph-arrow-right"></i></div>
+      </div>
+    </div>
+
+    <!-- Import Excel -->
+    <div class="cr-card" id="opt-excel" onclick="document.getElementById('excelInput').click()">
+      <div class="cr-card-top cr-teal">
+        <i class="ph ph-microsoft-excel-logo cr-big-icon"></i>
+      </div>
+      <div class="cr-body">
+        <div class="cr-title">Import Excel / CSV</div>
+        <div class="cr-sub">Upload a spreadsheet — columns become form fields instantly.</div>
+        <div class="cr-go">Upload File <i class="ph ph-arrow-right"></i></div>
+      </div>
+      <input type="file" id="excelInput" accept=".xlsx,.csv" style="display:none" onchange="handleImport(event)">
+    </div>
+
+    <!-- AI Generate — full width -->
+    <div class="cr-card cr-ai-card" id="opt-ai" onclick="showAI()">
+      <div style="display:flex;align-items:center;gap:18px;flex:1">
+        <div style="width:58px;height:58px;border-radius:16px;background:linear-gradient(135deg,#FF8C00,#8e2de2);display:flex;align-items:center;justify-content:center;font-size:1.7rem;flex-shrink:0;box-shadow:0 6px 20px rgba(142,45,226,.35)">
+          <i class="ph ph-sparkle" style="color:#fff"></i>
+        </div>
+        <div>
+          <div style="font-size:1.1rem;font-weight:800;color:#1A1A2E;margin-bottom:3px">Generate with AI <span style="font-size:.65rem;background:linear-gradient(135deg,#FF8C00,#8e2de2);color:#fff;padding:2px 9px;border-radius:20px;font-weight:700;vertical-align:middle;margin-left:4px">AI</span></div>
+          <div style="font-size:.85rem;color:#888">Describe your form in plain English — AI builds it in seconds with all fields</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:.85rem;font-weight:700;color:#FF8C00;white-space:nowrap;padding-left:12px">Try Now <i class="ph ph-arrow-right"></i></div>
+    </div>
+
+  </div>
+
+  <!-- AI SECTION -->
+  <div id="aiSection" style="display:none;margin-top:8px">
+    <div style="background:#fff;border-radius:18px;border:1.5px solid rgba(142,45,226,.2);box-shadow:0 8px 36px rgba(142,45,226,.08);padding:26px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <div style="width:38px;height:38px;background:linear-gradient(135deg,#FF8C00,#8e2de2);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem"><i class="ph ph-sparkle"></i></div>
+        <div><div style="font-weight:700;font-size:1rem;color:#1A1A2E">AI Form Generator</div><div style="font-size:.78rem;color:#aaa">Describe your form in plain English</div></div>
+        <button onclick="hideAI()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#ccc;font-size:1.1rem;padding:4px;border-radius:6px"><i class="ph ph-x"></i></button>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:.7rem;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Try an example</div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px">
+          <button class="ai-chip" onclick="useEx(this)">Student feedback survey</button>
+          <button class="ai-chip" onclick="useEx(this)">Job application form</button>
+          <button class="ai-chip" onclick="useEx(this)">Event registration form</button>
+          <button class="ai-chip" onclick="useEx(this)">Patient intake form</button>
+          <button class="ai-chip" onclick="useEx(this)">Quiz on programming basics</button>
+        </div>
+      </div>
+      <textarea id="aiPrompt" class="ai-textarea" placeholder="e.g. Create a 3-page student feedback form with questions about teaching quality, course content and suggestions..." rows="3" style="margin-bottom:12px"></textarea>
+      <div style="display:flex;gap:10px;margin-bottom:14px">
+        <div id="aiStyleForm" onclick="setAIStyle('form')" class="ai-style-opt ai-style-sel">
+          <i class="ph ph-list-dashes" style="font-size:1.3rem"></i>
+          <div style="font-weight:700;font-size:.82rem;margin-top:4px">Classic Form</div>
+        </div>
+        <div id="aiStyleWeb" onclick="setAIStyle('web')" class="ai-style-opt">
+          <i class="ph ph-globe" style="font-size:1.3rem"></i>
+          <div style="font-weight:700;font-size:.82rem;margin-top:4px">Web Style</div>
+        </div>
+      </div>
+      <div id="aiErr" style="display:none;background:#FFF0F0;color:#E63946;border-radius:9px;padding:10px 13px;font-size:.83rem;margin-bottom:10px;border:1px solid #FFCDD2"></div>
+      <button id="aiBtn" onclick="generateAI()" style="width:100%;padding:13px;background:linear-gradient(135deg,#FF8C00,#8e2de2);color:#fff;border:none;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(255,140,0,.3);transition:all .2s">
+        <span id="aiBtnTxt"><i class="ph ph-sparkle"></i> Generate Form</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- IMPORT PROGRESS -->
+  <div id="importProgress" style="display:none;background:#fff;border-radius:14px;border:1.5px solid rgba(0,119,182,.2);padding:20px;margin-top:12px;text-align:center">
+    <div style="font-size:1.5rem;color:#0077B6;margin-bottom:8px"><i class="ph ph-spinner-gap ai-spinner"></i></div>
+    <div style="font-weight:600;color:#1A1A2E;margin-bottom:4px">Importing your file…</div>
+    <div style="font-size:.83rem;color:#aaa" id="importMsg">Reading columns and generating form fields</div>
+  </div>
+
+  <!-- MY FORMS SECTION -->
+  <div id="my-forms" class="page-head" style="margin-top:50px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 40px;">
+    <div>
+      <h2 class="page-title">My Forms</h2>
+      <p class="page-sub">{{ forms|length }} form{{ 's' if forms|length != 1 }}</p>
+    </div>
+  </div>
+
+  {% if not forms %}
+  <div class="empty-state" style="padding: 40px 20px;">
+    <div class="empty-emoji"><i class="ph ph-note-pencil" style="color:#ddd;font-size:3rem"></i></div>
+    <h3>No forms yet</h3>
+    <p>Create a classic form, start with AI, or import from Excel above</p>
+  </div>
+  {% else %}
+  <div class="forms-grid">
+    {% for f in forms %}
+    <div class="fcard-outer glass-card" style="border:none;">
+      <div class="fcard-cover" style="background:{{ f.theme.header_color }}">
+        {% if f.theme.cover_image and f.theme.cover_image.startswith('http') %}
+        <img src="{{ f.theme.cover_image }}" alt="">
+        {% endif %}
+        <span class="fcard-badge {{ 'live' if f.settings.is_published }}">
+          {{ 'Live' if f.settings.is_published else 'Draft' }}
+        </span>
+      </div>
+      <div class="fcard-body">
+        <div class="fcard-title">{{ f.title }}</div>
+        <div class="fcard-meta">{{ f.pages|length }} page{{ 's' if f.pages|length!=1 }} · {{ f.response_count }} response{{ 's' if f.response_count!=1 }}</div>
+        <div class="fcard-date">{{ f.updated_at.strftime('%d %b %Y') }}</div>
+      </div>
+      <div class="fcard-actions">
+        <a href="{{ url_for('builder.edit',form_id=f._id) }}" class="btn-xs"><i class="ph ph-pencil-simple"></i> Edit</a>
+        <a href="{{ url_for('responses.view',form_id=f._id) }}" class="btn-xs"><i class="ph ph-chart-bar"></i> Results</a>
+        {% if f.settings.is_published %}
+        <a href="{{ url_for('forms.view',slug=f.slug) }}" target="_blank" class="btn-xs accent"><i class="ph ph-link"></i> Open</a>
+        {% endif %}
+        <div class="fcard-more">
+          <button class="btn-dot" onclick="toggleDrop(this)">⋮</button>
+          <div class="drop-menu">
+            <form action="{{ url_for('dashboard.duplicate_form',form_id=f._id) }}" method="POST"><button>Duplicate</button></form>
+            {% if f.settings.is_published %}<button onclick="copyLink('{{ request.host_url }}f/{{ f.slug }}')">Copy Link</button>{% endif %}
+            <form action="{{ url_for('dashboard.delete_form',form_id=f._id) }}" method="POST" onsubmit="return confirm('Delete this form?')"><button class="del">Delete</button></form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- CREATE MODAL -->
+<div class="modal-overlay" id="crModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:20px;overflow:hidden;width:100%;max-width:580px;box-shadow:0 24px 80px rgba(0,0,0,.25)">
+    <div style="background:#1A1A2E;padding:24px 28px 20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:.66rem;font-weight:700;letter-spacing:.14em;color:rgba(255,255,255,.35);text-transform:uppercase" id="modalLbl">New Form</div>
+        <button onclick="document.getElementById('crModal').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:1.1rem"><i class="ph ph-x"></i></button>
+      </div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff;margin-bottom:3px">Choose presentation style</div>
+      <div style="font-size:.78rem;color:rgba(255,255,255,.4)">You can always switch inside the builder</div>
+    </div>
+    <div style="padding:18px 20px 14px;background:#F5F4F1;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div id="mOptForm" onclick="pickStyle('form')" class="m-style-card m-style-sel">
+        <div style="background:#1A1A2E;padding:14px 12px 10px;border-radius:10px 10px 0 0">
+          <div style="font-size:.6rem;color:rgba(255,255,255,.35);margin-bottom:3px">◈ Draftspace</div>
+          <div style="font-size:.65rem;font-weight:700;color:#fff;font-family:'Playfair Display',serif">Form Title</div>
+        </div>
+        <div style="padding:8px 10px;background:#FAFAF8">
+          <div style="background:#fff;border:1px solid #E2DDD8;border-radius:5px;padding:5px 8px;margin-bottom:5px"><div style="font-size:.44rem;color:#bbb;margin-bottom:2px">Your name *</div><div style="height:4px;background:#F0EEE8;border-radius:2px;width:60%"></div></div>
+          <div style="background:#FF8C00;border-radius:20px;padding:3px 9px;display:inline-block;font-size:.44rem;font-weight:700;color:#fff">Submit →</div>
+        </div>
+        <div style="padding:9px 11px;border-top:1px solid #F0EEE8">
+          <div style="font-weight:700;font-size:.84rem;display:flex;align-items:center;gap:5px"><i class="ph ph-list-dashes" style="color:#FF8C00"></i> Classic Form <span id="chkForm" style="display:none;margin-left:auto;color:#FF8C00">✓</span></div>
+          <div style="font-size:.68rem;color:#aaa;margin-top:2px">Card-based · One field at a time</div>
+        </div>
+      </div>
+      <div id="mOptWeb" onclick="pickStyle('web')" class="m-style-card">
+        <div style="background:linear-gradient(135deg,#1A1A2E,#2D1B00);padding:14px 12px 10px;border-radius:10px 10px 0 0;min-height:60px;display:flex;flex-direction:column;justify-content:flex-end">
+          <div style="font-size:.65rem;font-weight:700;color:#fff;font-family:'Playfair Display',serif;margin-bottom:2px">Form Title</div>
+          <div style="display:flex;gap:4px"><div style="background:#FF8C00;border-radius:20px;padding:2px 7px;font-size:.42rem;font-weight:700;color:#1A1A2E">Get Started</div></div>
+        </div>
+        <div style="padding:8px 10px;background:#FAFAF8">
+          <div style="background:#fff;border-radius:6px;border:1px solid #E2DDD8;padding:5px 8px;margin-bottom:5px"><div style="font-size:.44rem;color:#888;margin-bottom:2px">Your name</div><div style="height:4px;background:#F0EEE8;border-radius:2px;width:55%"></div></div>
+          <div style="background:#FF8C00;border-radius:20px;padding:3px 9px;display:inline-block;font-size:.44rem;font-weight:700;color:#fff">Continue →</div>
+        </div>
+        <div style="padding:9px 11px;border-top:1px solid #F0EEE8">
+          <div style="font-weight:700;font-size:.84rem;display:flex;align-items:center;gap:5px"><i class="ph ph-globe" style="color:#0077B6"></i> Web Style <span id="chkWeb" style="display:none;margin-left:auto;color:#FF8C00">✓</span></div>
+          <div style="font-size:.68rem;color:#aaa;margin-top:2px">Full-screen hero + scroll</div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:0 20px 20px;background:#F5F4F1">
+      <label style="display:block;font-size:.66rem;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.09em;margin-bottom:5px;padding-top:12px">Form title</label>
+      <input type="text" id="crTitle" placeholder="e.g. Student Feedback Survey"
+        style="width:100%;padding:10px 13px;border:1.5px solid #E2DDD8;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.9rem;color:#1A1A2E;background:#fff;outline:none;margin-bottom:11px"
+        onfocus="this.style.borderColor='#FF8C00';this.style.boxShadow='0 0 0 3px rgba(255,140,0,.1)'"
+        onblur="this.style.borderColor='#E2DDD8';this.style.boxShadow='none'">
+      <div style="display:flex;gap:10px">
+        <button onclick="document.getElementById('crModal').style.display='none'" style="flex:1;padding:10px;border:1.5px solid #E2DDD8;border-radius:10px;background:#fff;font-family:'DM Sans',sans-serif;font-size:.87rem;color:#aaa;cursor:pointer">Cancel</button>
+        <button id="crBtn" onclick="createForm()" style="flex:2;padding:10px 22px;background:linear-gradient(135deg,#FF8C00,#CC7000);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(255,140,0,.28)">
+          <span id="crBtnTxt">Create Form →</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<style>
+.cr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.cr-ai-card {
+  grid-column: 1 / -1;
+  flex-direction: row !important;
+  align-items: center;
+  padding: 22px 26px !important;
+}
+.cr-card {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255,255,255,0.7);
+  border: 1.5px solid rgba(255,255,255,0.9);
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+.cr-card:hover { transform: translateY(-4px); box-shadow: 0 14px 40px rgba(0,0,0,0.08); border-color: rgba(255,140,0,0.3); }
+.cr-card-top {
+  height: 100px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.cr-orange { background: linear-gradient(135deg, #FF8C00, #FFB347); }
+.cr-blue   { background: linear-gradient(135deg, #0077B6, #48CAE4); }
+.cr-green  { background: linear-gradient(135deg, #2D6A4F, #52B788); }
+.cr-teal   { background: linear-gradient(135deg, #0096C7, #48CAE4); }
+.cr-big-icon { font-size: 2.8rem; color: rgba(255,255,255,0.9); }
+.cr-badge {
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(255,255,255,0.25); color: #fff;
+  font-size: .65rem; font-weight: 700; padding: 3px 9px;
+  border-radius: 20px; backdrop-filter: blur(8px);
+}
+.cr-body { padding: 18px 20px 20px; flex: 1; display: flex; flex-direction: column; }
+.cr-title { font-weight: 800; font-size: 1rem; color: #1A1A2E; margin-bottom: 6px; }
+.cr-sub { font-size: .82rem; color: #888; line-height: 1.45; flex: 1; }
+.cr-go {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-top: 14px; font-size: .82rem; font-weight: 700;
+  color: #FF8C00; transition: gap .2s;
+}
+.cr-card:hover .cr-go { gap: 8px; }
+
+.ai-style-opt {
+  flex: 1; padding: 12px 14px; border: 2px solid #E2DDD8;
+  border-radius: 11px; cursor: pointer; background: #fff;
+  text-align: center; transition: all .2s; color: #aaa;
+}
+.ai-style-sel { border-color: #FF8C00; background: #FFF9F0; color: #FF8C00; }
+.ai-style-opt:hover { border-color: #FF8C00; }
+
+.m-style-card {
+  cursor: pointer; border-radius: 12px; border: 2px solid #E2DDD8;
+  background: #fff; overflow: hidden; transition: all .2s;
+}
+.m-style-sel { border-color: #FF8C00; box-shadow: 0 0 0 3px rgba(255,140,0,.1); }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.ai-spinner { display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite }
+
+@media(max-width:640px) {
+  .cr-grid { grid-template-columns: 1fr; }
+  .cr-ai-card { flex-direction: column !important; }
+}
+</style>
+
+<script>
+const API  = '/forms/new-api';
+const GENURL = '/ai/generate';
+let ctx = 'form', style = 'form', aiStyle = 'form';
+
+function openModal(c) {
+  ctx = c; style = 'form';
+  document.getElementById('modalLbl').textContent = c === 'quiz' ? 'New Quiz' : 'New Form';
+  document.getElementById('crTitle').value = '';
+  updateModalUI();
+  document.getElementById('crModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('crTitle').focus(), 100);
+}
+
+function pickStyle(s) { style = s; updateModalUI(); }
+function updateModalUI() {
+  const isForm = style === 'form';
+  document.getElementById('mOptForm').className = 'm-style-card' + (isForm ? ' m-style-sel' : '');
+  document.getElementById('mOptWeb').className  = 'm-style-card' + (!isForm ? ' m-style-sel' : '');
+  document.getElementById('chkForm').style.display = isForm ? 'inline' : 'none';
+  document.getElementById('chkWeb').style.display  = !isForm ? 'inline' : 'none';
+}
+
+async function createForm() {
+  const title = document.getElementById('crTitle').value.trim() || (ctx === 'quiz' ? 'New Quiz' : 'Untitled Form');
+  const btn = document.getElementById('crBtn'), txt = document.getElementById('crBtnTxt');
+  btn.disabled = true; txt.textContent = 'Creating…';
+  try {
+    const res = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({title, default_style: style}) });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    try { localStorage.setItem('formStyle_'+d.form_id, style); } catch(e){}
+    showToast('Opening builder…','success');
+    setTimeout(() => { window.location.href = '/builder/' + d.form_id; }, 500);
+  } catch(e) {
+    showToast('Error: '+e.message,'info');
+    btn.disabled = false; txt.textContent = 'Create Form →';
+  }
+}
+
+function showAI() {
+  document.getElementById('aiSection').style.display = 'block';
+  document.getElementById('aiSection').scrollIntoView({behavior:'smooth',block:'nearest'});
+  setTimeout(() => document.getElementById('aiPrompt').focus(), 300);
+}
+function hideAI() { document.getElementById('aiSection').style.display = 'none'; }
+function useEx(btn) { document.getElementById('aiPrompt').value = btn.textContent; }
+function setAIStyle(s) {
+  aiStyle = s;
+  document.getElementById('aiStyleForm').className = 'ai-style-opt' + (s==='form' ? ' ai-style-sel' : '');
+  document.getElementById('aiStyleWeb').className  = 'ai-style-opt' + (s==='web' ? ' ai-style-sel' : '');
+}
+
+async function generateAI() {
+  const prompt = document.getElementById('aiPrompt').value.trim();
+  if (!prompt) { alert('Please describe the form you want.'); return; }
+  const btn = document.getElementById('aiBtn'), txt = document.getElementById('aiBtnTxt');
+  const err = document.getElementById('aiErr');
+  err.style.display = 'none'; btn.disabled = true;
+  try {
+    txt.innerHTML = '<span class="ai-spinner"></span> Thinking…';
+    const g = await (await fetch(GENURL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt}) })).json();
+    if (!g.success) throw new Error(g.error || 'AI error');
+    txt.innerHTML = '<span class="ai-spinner"></span> Creating…';
+    const c = await (await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title:g.form.title||'AI Form',default_style:aiStyle}) })).json();
+    if (!c.success) throw new Error(c.error || 'Create failed');
+    try { localStorage.setItem('formStyle_'+c.form_id, aiStyle); } catch(e){}
+    txt.innerHTML = '<span class="ai-spinner"></span> Saving…';
+    const s = await (await fetch('/builder/'+c.form_id+'/save', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(g.form) })).json();
+    if (!s.success) throw new Error('Save failed');
+    showToast('✦ Form generated! Opening…','success');
+    setTimeout(() => { window.location.href = '/builder/'+c.form_id; }, 700);
+  } catch(e) {
+    err.textContent = '⚠ '+e.message; err.style.display = 'block';
+    btn.disabled = false; txt.innerHTML = '<i class="ph ph-sparkle"></i> Generate Form';
+  }
+}
+
+async function handleImport(e) {
+  const file = e.target.files[0]; if (!file) return;
+  document.getElementById('importProgress').style.display = 'block';
+  document.getElementById('importMsg').textContent = 'Reading columns…';
+  const fd = new FormData(); fd.append('file', file); fd.append('title', file.name.replace(/\.[^.]+$/, ''));
+  try {
+    const res = await fetch('/forms/import', { method:'POST', body:fd });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Import failed');
+    document.getElementById('importMsg').textContent = 'Done! Opening builder…';
+    showToast('Import successful!','success');
+    setTimeout(() => { window.location.href = '/builder/'+d.form_id; }, 800);
+  } catch(err) {
+    document.getElementById('importProgress').style.display = 'none';
+    showToast('Error: '+err.message,'info');
+  }
+}
+
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast '+type+' show';
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function copyLink(url) {
+  navigator.clipboard.writeText(url).then(() => showToast('Link copied!', 'success'));
+}
+
+function toggleDrop(btn) {
+  const menu = btn.nextElementSibling;
+  document.querySelectorAll('.drop-menu.open').forEach(m => { if(m !== menu) m.classList.remove('open'); });
+  menu.classList.toggle('open');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.fcard-more')) document.querySelectorAll('.drop-menu.open').forEach(m => m.classList.remove('open'));
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateModalUI();
+  document.getElementById('crTitle').addEventListener('keydown', e => { if(e.key==='Enter') createForm(); });
+  document.getElementById('aiPrompt').addEventListener('keydown', e => { if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)) generateAI(); });
+});
+</script>
+{% endblock %}

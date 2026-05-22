@@ -11,7 +11,7 @@ def _db():
     from app import db; return db
 
 def is_admin():
-    admin_emails = os.getenv('ADMIN_EMAILS', 'admin@formcraft.ai').split(',')
+    admin_emails = os.getenv('ADMIN_EMAILS', 'admin@Draftspace.ai').split(',')
     return current_user.email.strip() in [e.strip() for e in admin_emails]
 
 @admin_bp.route('/')
@@ -78,12 +78,26 @@ def delete_user(user_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+@admin_bp.route('/update-plan/<user_id>', methods=['POST'])
+@login_required
+def update_plan(user_id):
+    from bson import ObjectId
+    data = request.get_json()
+    new_plan = data.get('plan')
+    if new_plan not in ['free', 'basic', 'pro']:
+        return jsonify({'success': False, 'error': 'Invalid plan'})
+    try:
+        _db().users.update_one({'_id': ObjectId(user_id)}, {'$set': {'plan': new_plan}})
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 @admin_bp.route('/notify', methods=['POST'])
 @login_required
 def notify():
     data = request.get_json() or {}
     target = data.get('target', 'all')  # 'all' or user_id
-    subject = data.get('subject', 'Notification from FORM.AI')
+    subject = data.get('subject', 'Notification from Draftspace')
     message = data.get('message', '')
 
     if not message:
@@ -93,7 +107,7 @@ def notify():
     smtp_port = int(os.getenv('SMTP_PORT', '587'))
     smtp_user = os.getenv('SMTP_USER', '')
     smtp_pass = os.getenv('SMTP_PASS', '')
-    from_addr = os.getenv('MAIL_FROM', 'noreply@formcraft.ai')
+    from_addr = os.getenv('MAIL_FROM', 'noreply@Draftspace.ai')
 
     if not smtp_user or not smtp_pass:
         # Store notification in DB even if email fails
@@ -122,11 +136,11 @@ def notify():
 
     html_body = f'''<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)">
   <div style="background:#1A1A2E;padding:28px 32px">
-    <div style="font-size:1.1rem;font-weight:800;color:#FF8C00">◈ FORM.AI</div>
+    <div style="font-size:1.1rem;font-weight:800;color:#FF8C00">◈ Draftspace</div>
     <h2 style="color:white;margin:10px 0 0;font-size:1.3rem">{subject}</h2>
   </div>
   <div style="padding:24px 32px;line-height:1.8;color:#333">{message.replace(chr(10),"<br>")}</div>
-  <div style="padding:16px 32px;background:#f8f9fa;font-size:.75rem;color:#999;text-align:center">Sent via FORM.AI Admin Panel</div>
+  <div style="padding:16px 32px;background:#f8f9fa;font-size:.75rem;color:#999;text-align:center">Sent via Draftspace Admin Panel</div>
 </div>'''
 
     sent_count = 0

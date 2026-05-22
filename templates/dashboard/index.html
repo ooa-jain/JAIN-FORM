@@ -1,110 +1,119 @@
 {% extends 'base.html' %}
-{% block title %}My Workspace — FORM.AI{% endblock %}
-{% block body_class %}app-page{% endblock %}
+{% block title %}Home — Draftspace{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
 {% block body %}
-<nav class="app-nav">
-  <div class="nav-brand">◈ FORM<span style="color:var(--mango)">.AI</span></div>
-  <div class="nav-right">
-    <a href="{{ url_for('newsletter.index') }}" class="btn-ghost-sm">📰 Newsletters</a>
-    <a href="{{ url_for('nomination.index') }}" class="btn-ghost-sm">📋 Nominations</a>
-    <a href="{{ url_for('admin_panel.index') }}" class="btn-ghost-sm" style="color:#FFB347;border-color:rgba(255,140,0,.3)">⚡ Admin</a>
-    <div class="user-pill">
-      <div class="user-init">{{ current_user.name[0].upper() }}</div>
-      <span>{{ current_user.name }}</span>
-    </div>
-    <a href="{{ url_for('auth.logout') }}" class="btn-ghost-sm">Logout</a>
-  </div>
-</nav>
+<div class="auth-floating-shapes">
+  <div class="shape s1"></div>
+  <div class="shape s2"></div>
+  <div class="shape s3"></div>
+</div>
 
-<div class="app-body">
+{% include 'components/sidebar.html' %}
 
-  <!-- QUICK CREATE -->
-  <div class="quick-create-row">
-    <div class="qc-card" onclick="openStyleChooser('manual')">
-      <div class="qc-icon">📋</div>
-      <div class="qc-label">New Form</div>
-      <div class="qc-sub">Survey, quiz, feedback</div>
-    </div>
-    <div class="qc-card" onclick="toggleAIPanel()">
-      <div class="qc-icon">✦</div>
-      <div class="qc-label">AI Form</div>
-      <div class="qc-sub">Generate with AI</div>
-    </div>
-    <div class="qc-card" onclick="window.location.href='{{ url_for('newsletter.index') }}'">
-      <div class="qc-icon">📰</div>
-      <div class="qc-label">Newsletter</div>
-      <div class="qc-sub">Create &amp; send emails</div>
-    </div>
-    <div class="qc-card" onclick="openStyleChooser('quiz')">
-      <div class="qc-icon">🧠</div>
-      <div class="qc-label">Quiz Builder</div>
-      <div class="qc-sub">Grid layout &amp; scoring</div>
-    </div>
-  </div>
 
-  <!-- AI BANNER -->
-  <div class="ai-banner" id="aiBanner">
-    <div class="ai-banner-left">
-      <div class="ai-badge">✦ AI</div>
-      <div>
-        <div class="ai-banner-title">Generate a form with AI</div>
-        <div class="ai-banner-sub">Describe your form and FORM.AI will build it instantly</div>
-      </div>
-    </div>
-    <button class="ai-toggle-btn" onclick="toggleAIPanel()">Try it →</button>
-  </div>
+<div class="app-body" style="position: relative; z-index: 1;">
 
-  <!-- AI PANEL -->
-  <div class="ai-panel" id="aiPanel" style="display:none">
-    <div class="ai-panel-header">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div class="ai-icon">✦</div>
-        <div>
-          <div class="ai-panel-title">AI Form Generator</div>
-          <div class="ai-panel-sub">Powered by FORM.AI · Describe your form in plain English</div>
+  <!-- HERO SECTION -->
+  <div class="home-hero">
+    <div class="home-hero-text">
+      <div class="home-duck-badge"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" style="width:16px;height:16px;border-radius:3px;"> Draftspace</div>
+      <h1 style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:800;color:#1A1A2E;margin:10px 0 8px;line-height:1.15;">
+        Welcome back,<br><span style="color:var(--mango)">{{ current_user.name.split(' ')[0] if current_user.name else 'Builder' }}</span>
+      </h1>
+      <p style="font-size:1rem;color:#666;margin-bottom:28px;">What would you like to build today?</p>
+
+      <!-- STATS ROW -->
+      <div class="home-stats-row">
+        <div class="home-stat">
+          <div class="home-stat-num">{{ forms|length }}</div>
+          <div class="home-stat-lbl"><i class="ph ph-list-dashes"></i> Forms Drafted</div>
+        </div>
+        <div class="home-stat">
+          <div class="home-stat-num">{{ newsletter_count }}</div>
+          <div class="home-stat-lbl"><i class="ph ph-envelope-simple"></i> Newsletters</div>
+        </div>
+        <div class="home-stat">
+          <div class="home-stat-num">{{ forms | selectattr('settings.is_published') | list | length }}</div>
+          <div class="home-stat-lbl"><i class="ph ph-check-circle"></i> Live Forms</div>
         </div>
       </div>
-      <button class="ai-close" onclick="toggleAIPanel()">✕</button>
     </div>
-    <div class="ai-examples">
-      <div class="ai-ex-label">Try an example:</div>
-      <div class="ai-ex-chips">
-        <button class="ai-chip" onclick="useExample(this)">Student feedback survey for semester end</button>
-        <button class="ai-chip" onclick="useExample(this)">Job application form for software engineer</button>
-        <button class="ai-chip" onclick="useExample(this)">Event registration form for university seminar</button>
-        <button class="ai-chip" onclick="useExample(this)">Patient intake form for clinic</button>
-        <button class="ai-chip" onclick="useExample(this)">Research survey on mental health awareness</button>
-        <button class="ai-chip" onclick="useExample(this)">Expert nomination form for academic committee</button>
+
+    <!-- Duck mascot -->
+    <div class="home-duck-mascot" style="display: flex; align-items: flex-end; gap: 15px; flex-direction: row; z-index: 2;">
+      <div class="duck-bubble cloud-shape" style="position: relative; margin-right: -10px; margin-bottom: 20px;">
+        Welcome {{ current_user.name.split(' ')[0] if current_user.name else 'Builder' }}! I'm here to help you draft newsletters, forms, and deploy your project!
+        <div class="bubble-tail"></div>
       </div>
+      <img src="{{ url_for('static', filename='images/home.png') }}" class="mascot-img" alt="Mascot" style="width: 140px; animation: duckBob 3s ease-in-out infinite;">
     </div>
-    <div class="ai-input-row">
-      <textarea id="aiPrompt" class="ai-textarea" placeholder="e.g. Create a 3-page student feedback form for the end of semester with questions about teaching quality, course content, and suggestions for improvement..." rows="3"></textarea>
-      <button class="ai-gen-btn" id="aiGenBtn" onclick="openAIStyleChooser()">
-        <span id="aiGenTxt">✦ Generate Form</span>
-      </button>
-    </div>
-    <div class="ai-error" id="aiError" style="display:none"></div>
+
+    <!-- Old mascot removed -->
   </div>
 
-  <div class="page-head">
+  <!-- ACTION CARDS -->
+  <div class="home-actions-grid">
+
+    <a href="{{ url_for('dashboard.create') }}" class="home-action-card hac-forms">
+      <div class="hac-icon"><i class="ph ph-note-pencil"></i></div>
+      <div class="hac-label">Draft Forms</div>
+      <div class="hac-sub">Build surveys, quizzes, web-style forms & more</div>
+      <div class="hac-arrow"><i class="ph ph-arrow-right"></i></div>
+    </a>
+
+    <a href="{{ url_for('dashboard.create') }}" class="home-action-card hac-excel" onclick="event.preventDefault();document.getElementById('homeExcelInput').click()">
+      <div class="hac-icon"><i class="ph ph-microsoft-excel-logo"></i></div>
+      <div class="hac-label">Upload Excel</div>
+      <div class="hac-sub">Import a spreadsheet — columns become form fields instantly</div>
+      <div class="hac-arrow"><i class="ph ph-arrow-right"></i></div>
+    </a>
+
+    <a href="{{ url_for('newsletter.index') }}" class="home-action-card hac-nl">
+      <div class="hac-icon"><i class="ph ph-envelope-simple"></i></div>
+      <div class="hac-label">Newsletters</div>
+      <div class="hac-sub">Design emails, manage subscribers, send campaigns</div>
+      <div class="hac-arrow"><i class="ph ph-arrow-right"></i></div>
+    </a>
+
+    <a href="{{ url_for('deploy.deploy_index') }}" class="home-action-card hac-deploy">
+      <div class="hac-icon"><i class="ph ph-globe"></i></div>
+      <div class="hac-label">Deploy Sites</div>
+      <div class="hac-sub">Host projects, connect domains, push edits live</div>
+      <div class="hac-arrow"><i class="ph ph-arrow-right"></i></div>
+    </a>
+
+  </div>
+
+  <!-- Hidden Excel input for home page -->
+  <input type="file" id="homeExcelInput" accept=".xlsx,.csv" style="display:none" onchange="homeHandleImport(event)">
+  <div id="homeImportProgress" style="display:none;background:rgba(255,255,255,0.8);border-radius:14px;border:1.5px solid rgba(0,150,199,.2);padding:16px 20px;margin-top:10px;text-align:center;backdrop-filter:blur(16px)">
+    <div style="font-size:1.3rem;color:#0096C7;margin-bottom:6px"><i class="ph ph-spinner-gap" style="animation:spin .7s linear infinite;display:inline-block"></i></div>
+    <div style="font-weight:600;color:#1A1A2E;font-size:.9rem">Importing your spreadsheet…</div>
+    <div style="font-size:.8rem;color:#aaa" id="homeImportMsg">Reading columns and creating form fields</div>
+  </div>
+
+
+
+  <!-- CONTINUE DRAFTING SECTION -->
+  <div id="continue-drafting" class="page-head" style="margin-top:40px;">
     <div>
-      <h1 class="page-title">My Forms</h1>
-      <p class="page-sub">{{ forms|length }} form{{ 's' if forms|length != 1 }}</p>
+      <h2 class="page-title">Continue Drafting</h2>
+      <p class="page-sub">Jump back into your recent projects</p>
     </div>
-    <button class="btn-primary" onclick="openStyleChooser('manual')">+ New Form</button>
+    <a href="{{ url_for('dashboard.create') }}" class="btn-primary"><i class="ph ph-plus"></i> New Form</a>
   </div>
 
   {% if not forms %}
   <div class="empty-state">
-    <div class="empty-emoji">📋</div>
+    <div class="empty-emoji"><i class="ph ph-note-pencil" style="color:#ddd;font-size:3rem"></i></div>
     <h3>No forms yet</h3>
-    <p>Create your first form manually or use AI to generate one</p>
-    <button class="btn-primary" onclick="toggleAIPanel()">✦ Generate with AI</button>
+    <p>Draft your first form, import from Excel, or generate with AI</p>
+    <a href="{{ url_for('dashboard.create') }}" class="btn-primary" style="text-decoration:none"><i class="ph ph-plus"></i> Draft First Form</a>
   </div>
   {% else %}
   <div class="forms-grid">
     {% for f in forms %}
-    <div class="fcard-outer">
+    <div class="fcard-outer glass-card" style="border:none;">
       <div class="fcard-cover" style="background:{{ f.theme.header_color }}">
         {% if f.theme.cover_image and f.theme.cover_image.startswith('http') %}
         <img src="{{ f.theme.cover_image }}" alt="">
@@ -119,10 +128,10 @@
         <div class="fcard-date">{{ f.updated_at.strftime('%d %b %Y') }}</div>
       </div>
       <div class="fcard-actions">
-        <a href="{{ url_for('builder.edit',form_id=f._id) }}" class="btn-xs">✏️ Edit</a>
-        <a href="{{ url_for('responses.view',form_id=f._id) }}" class="btn-xs">📊 Results</a>
+        <a href="{{ url_for('builder.edit',form_id=f._id) }}" class="btn-xs"><i class="ph ph-pencil-simple"></i> Edit</a>
+        <a href="{{ url_for('responses.view',form_id=f._id) }}" class="btn-xs"><i class="ph ph-chart-bar"></i> Results</a>
         {% if f.settings.is_published %}
-        <a href="{{ url_for('forms.view',slug=f.slug) }}" target="_blank" class="btn-xs accent">🔗 Open</a>
+        <a href="{{ url_for('forms.view',slug=f.slug) }}" target="_blank" class="btn-xs accent"><i class="ph ph-link"></i> Open</a>
         {% endif %}
         <div class="fcard-more">
           <button class="btn-dot" onclick="toggleDrop(this)">⋮</button>
@@ -137,352 +146,237 @@
     {% endfor %}
   </div>
   {% endif %}
-</div>
 
-<!-- ══════════════════════════════════════════════════════
-     STYLE CHOOSER MODAL — shown before creating any form
-     ══════════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="styleChooserModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
-  <div style="background:#fff;border-radius:20px;overflow:hidden;width:100%;max-width:620px;box-shadow:0 24px 80px rgba(0,0,0,.25)">
-
-    <!-- Header -->
-    <div style="background:#1A1A2E;padding:26px 30px 22px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div style="font-size:.68rem;font-weight:700;letter-spacing:.14em;color:rgba(255,255,255,.35);text-transform:uppercase">New Form</div>
-        <button onclick="document.getElementById('styleChooserModal').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:1.15rem;line-height:1;padding:2px 6px;border-radius:5px;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.3)'">✕</button>
-      </div>
-      <div style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff;margin-bottom:4px">How should your form look?</div>
-      <div style="font-size:.8rem;color:rgba(255,255,255,.42)">Choose a presentation style — you can always switch inside the builder</div>
-    </div>
-
-    <!-- Style cards -->
-    <div style="padding:20px 22px 16px;background:#F5F4F1;display:grid;grid-template-columns:1fr 1fr;gap:14px">
-
-      <!-- Classic Form -->
-      <div id="styleOptForm" onclick="selectStyle('form')" style="cursor:pointer;border-radius:14px;border:2px solid #E2DDD8;background:#fff;overflow:hidden;transition:all .22s">
-        <!-- Preview -->
-        <div style="background:#1A1A2E;padding:16px 14px 12px">
-          <div style="font-size:.48rem;color:rgba(255,255,255,.35);letter-spacing:.08em;margin-bottom:4px">◈ FORM.AI</div>
-          <div style="font-size:.68rem;font-weight:700;color:#fff;margin-bottom:2px;font-family:'Playfair Display',serif">Form Title</div>
-          <div style="font-size:.5rem;color:rgba(255,255,255,.45)">Click to add description</div>
-        </div>
-        <div style="padding:10px 12px;background:#FAFAF8">
-          <div style="background:#fff;border:1px solid #E2DDD8;border-radius:6px;padding:6px 9px;margin-bottom:6px">
-            <div style="font-size:.47rem;color:#bbb;margin-bottom:3px">Your name *</div>
-            <div style="height:6px;background:#F0EEE8;border-radius:3px;width:65%"></div>
-          </div>
-          <div style="background:#fff;border:1px solid #E2DDD8;border-radius:6px;padding:6px 9px;margin-bottom:8px">
-            <div style="font-size:.47rem;color:#bbb;margin-bottom:3px">Email address</div>
-            <div style="height:6px;background:#F0EEE8;border-radius:3px;width:80%"></div>
-          </div>
-          <div style="background:#FF8C00;border-radius:20px;padding:4px 10px;display:inline-block;font-size:.47rem;font-weight:700;color:#fff">Submit →</div>
-        </div>
-        <!-- Label -->
-        <div style="padding:10px 13px 13px;border-top:1px solid #F0EEE8">
-          <div style="font-weight:700;font-size:.86rem;margin-bottom:3px;display:flex;align-items:center;gap:6px">
-            <span>📋</span> Classic Form
-            <span id="formStyleCheck" style="display:none;margin-left:auto;color:#FF8C00;font-size:.95rem;font-weight:900">✓</span>
-          </div>
-          <div style="font-size:.7rem;color:#aaa;line-height:1.55">Card-based layout. One field at a time. Best for surveys, registrations &amp; feedback.</div>
-        </div>
-      </div>
-
-      <!-- Webpage Style -->
-      <div id="styleOptWeb" onclick="selectStyle('web')" style="cursor:pointer;border-radius:14px;border:2px solid #E2DDD8;background:#fff;overflow:hidden;transition:all .22s">
-        <!-- Preview -->
-        <div style="background:linear-gradient(135deg,#1A1A2E 0%,#2D1B00 100%);padding:16px 14px 12px;min-height:72px;display:flex;flex-direction:column;justify-content:flex-end;position:relative">
-          <div style="font-size:.66rem;font-weight:700;color:#fff;font-family:'Playfair Display',serif;margin-bottom:2px">Form Title</div>
-          <div style="font-size:.48rem;color:rgba(255,255,255,.45);margin-bottom:6px">Scroll to explore</div>
-          <div style="display:flex;gap:5px">
-            <div style="background:#FF8C00;border-radius:20px;padding:3px 8px;font-size:.44rem;font-weight:700;color:#1A1A2E">Get Started</div>
-            <div style="background:transparent;border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:3px 7px;font-size:.44rem;color:rgba(255,255,255,.65)">View Questions</div>
-          </div>
-        </div>
-        <div style="padding:10px 12px;background:#FAFAF8">
-          <div style="background:#fff;border-radius:8px;border:1px solid #E2DDD8;padding:6px 9px;margin-bottom:6px;position:relative">
-            <div style="position:absolute;top:5px;right:7px;width:13px;height:13px;border-radius:50%;background:#FFF5E8;display:flex;align-items:center;justify-content:center;font-size:.42rem;color:#FF8C00;font-weight:700">1</div>
-            <div style="font-size:.47rem;color:#888;margin-bottom:3px">Your name</div>
-            <div style="height:6px;background:#F0EEE8;border-radius:3px;width:58%"></div>
-          </div>
-          <div style="background:#FF8C00;border-radius:20px;padding:4px 10px;display:inline-block;font-size:.47rem;font-weight:700;color:#fff">Continue →</div>
-        </div>
-        <div style="padding:10px 13px 13px;border-top:1px solid #F0EEE8">
-          <div style="font-weight:700;font-size:.86rem;margin-bottom:3px;display:flex;align-items:center;gap:6px">
-            <span>🌐</span> Webpage Style
-            <span id="webStyleCheck" style="display:none;margin-left:auto;color:#FF8C00;font-size:.95rem;font-weight:900">✓</span>
-          </div>
-          <div style="font-size:.7rem;color:#aaa;line-height:1.55">Full-screen hero + scrollable form. Looks like a landing page or website.</div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Title + action -->
-    <div style="padding:0 22px 22px;background:#F5F4F1;border-top:1px solid #EEECEA">
-      <div style="padding-top:14px;margin-bottom:12px">
-        <label style="display:block;font-size:.68rem;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px">Form title</label>
-        <input type="text" id="styleChooserTitle" placeholder="e.g. Student Feedback Survey"
-          style="width:100%;padding:11px 14px;border:1.5px solid #E2DDD8;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.92rem;color:#1A1A2E;background:#fff;outline:none;transition:border-color .2s"
-          onfocus="this.style.borderColor='#FF8C00';this.style.boxShadow='0 0 0 3px rgba(255,140,0,.1)'"
-          onblur="this.style.borderColor='#E2DDD8';this.style.boxShadow='none'">
-      </div>
-      <div style="display:flex;gap:10px">
-        <button onclick="document.getElementById('styleChooserModal').style.display='none'"
-          style="flex:1;padding:11px;border:1.5px solid #E2DDD8;border-radius:10px;background:#fff;font-family:'DM Sans',sans-serif;font-size:.88rem;color:#aaa;cursor:pointer;transition:all .18s"
-          onmouseover="this.style.borderColor='#ccc'" onmouseout="this.style.borderColor='#E2DDD8'">Cancel</button>
-        <button id="styleCreateBtn" onclick="createWithStyle()"
-          style="flex:2;padding:11px 24px;background:linear-gradient(135deg,#FF8C00,#CC7000);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .18s;box-shadow:0 4px 14px rgba(255,140,0,.28)"
-          onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
-          <span id="styleCreateTxt">Create Form →</span>
-        </button>
-      </div>
-      <div style="text-align:center;margin-top:10px;font-size:.7rem;color:#bbb">
-        Selected: <strong id="selectedStyleLabel" style="color:#FF8C00">Classic Form</strong> · Click a card above to switch
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════
-     AI STYLE CHOOSER MODAL
-     ══════════════════════════ -->
-<div class="modal-overlay" id="aiStyleModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
-  <div style="background:#fff;border-radius:20px;overflow:hidden;width:100%;max-width:520px;box-shadow:0 24px 80px rgba(0,0,0,.28)">
-    <!-- Header -->
-    <div style="background:#1A1A2E;padding:22px 26px 20px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:32px;height:32px;background:linear-gradient(135deg,#FF8C00,#CC7000);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.95rem;color:#fff">✦</div>
-          <div style="font-size:.68rem;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.38);text-transform:uppercase">AI Generate</div>
-        </div>
-        <button onclick="document.getElementById('aiStyleModal').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:1.1rem;padding:2px 6px;border-radius:5px">✕</button>
-      </div>
-      <div style="font-family:'Playfair Display',serif;font-size:1.35rem;color:#fff;margin-bottom:3px">Choose your form's presentation</div>
-      <div style="font-size:.78rem;color:rgba(255,255,255,.38)">AI generates the content — you pick how it's displayed</div>
-    </div>
-    <!-- Options -->
-    <div style="padding:20px 22px 22px;background:#F5F4F1">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
-        <div id="aiStyleForm" onclick="selectAIStyle('form')"
-          style="background:#fff;border:2px solid #E2DDD8;border-radius:13px;padding:18px 14px;cursor:pointer;transition:all .2s;text-align:center">
-          <div style="font-size:1.8rem;margin-bottom:8px">📋</div>
-          <div style="font-weight:700;font-size:.9rem;margin-bottom:3px">Classic Form</div>
-          <div style="font-size:.72rem;color:#bbb;margin-bottom:8px">Card-style · Clean fields</div>
-          <div id="aiFormCheck" style="display:none;color:#FF8C00;font-size:.75rem;font-weight:700;background:#FFF5E8;border-radius:20px;padding:3px 10px;display:none">✓ Selected</div>
-        </div>
-        <div id="aiStyleWeb" onclick="selectAIStyle('web')"
-          style="background:#fff;border:2px solid #E2DDD8;border-radius:13px;padding:18px 14px;cursor:pointer;transition:all .2s;text-align:center">
-          <div style="font-size:1.8rem;margin-bottom:8px">🌐</div>
-          <div style="font-weight:700;font-size:.9rem;margin-bottom:3px">Webpage Style</div>
-          <div style="font-size:.72rem;color:#bbb;margin-bottom:8px">Hero + landing page</div>
-          <div id="aiWebCheck" style="display:none;color:#FF8C00;font-size:.75rem;font-weight:700;background:#FFF5E8;border-radius:20px;padding:3px 10px;display:none">✓ Selected</div>
-        </div>
-      </div>
-      <button id="aiStyleGenBtn" onclick="generateFormWithStyle()"
-        style="width:100%;padding:13px;background:linear-gradient(135deg,#FF8C00,#CC7000);color:#fff;border:none;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(255,140,0,.3);transition:all .2s">
-        <span id="aiStyleGenTxt">✦ Generate Form</span>
-      </button>
-      <div style="text-align:center;margin-top:10px;font-size:.7rem;color:#bbb">
-        Selected: <strong id="aiSelectedStyleLabel" style="color:#FF8C00">Classic Form</strong>
-      </div>
-    </div>
-  </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <style>
-.quick-create-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
-.qc-card{background:#fff;border-radius:var(--r-lg);padding:20px;text-align:center;cursor:pointer;border:1.5px solid var(--bd);transition:all .2s;box-shadow:var(--sh)}
-.qc-card:hover{border-color:var(--mango);transform:translateY(-2px);box-shadow:0 8px 28px rgba(255,140,0,.15)}
-.qc-icon{font-size:1.8rem;margin-bottom:8px}
-.qc-label{font-weight:700;font-size:.92rem;margin-bottom:3px}
-.qc-sub{font-size:.75rem;color:#aaa}
-@media(max-width:768px){.quick-create-row{grid-template-columns:repeat(2,1fr)}}
+/* Hero */
+.home-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 36px;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.home-hero-text { flex: 1; min-width: 260px; }
+.home-duck-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,140,0,0.1);
+  color: var(--mango);
+  font-size: .78rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,140,0,0.2);
+}
+
+/* Stats */
+.home-stats-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.home-stat {
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(255,255,255,0.9);
+  border-radius: 14px;
+  padding: 14px 20px;
+  backdrop-filter: blur(16px);
+  min-width: 110px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+}
+.home-stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #1A1A2E;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.home-stat-lbl {
+  font-size: .72rem;
+  color: #999;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Duck mascot */
+.home-duck-mascot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.cloud-shape {
+  background: #fff;
+  color: #1A1A2E;
+  font-size: 1.15rem;
+  font-weight: 700;
+  padding: 24px 30px;
+  border-radius: 40px;
+  max-width: 320px;
+  text-align: center;
+  line-height: 1.45;
+  box-shadow: 0 12px 36px rgba(255,140,0,0.12);
+  position: relative;
+}
+.cloud-shape::before {
+  content: ''; position: absolute;
+  top: -15px; left: 35px;
+  width: 50px; height: 50px;
+  background: #fff; border-radius: 50%; z-index: -1;
+}
+.cloud-shape::after {
+  content: ''; position: absolute;
+  top: -25px; right: 45px;
+  width: 70px; height: 70px;
+  background: #fff; border-radius: 50%; z-index: -1;
+}
+.bubble-tail {
+  position: absolute;
+  top: 50%; right: -10px;
+  width: 24px; height: 24px;
+  background: #fff;
+  transform: translateY(-50%) rotate(45deg);
+  border-radius: 4px;
+  z-index: -1;
+}
+
+/* Action cards */
+.home-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.home-action-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  border-radius: 18px;
+  text-decoration: none;
+  background: rgba(255,255,255,0.7);
+  border: 1.5px solid rgba(255,255,255,0.9);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+  overflow: hidden;
+}
+.home-action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 36px rgba(0,0,0,0.08);
+}
+.home-action-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 18px 18px 0 0;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.home-action-card:hover::before { opacity: 1; }
+.hac-forms::before  { background: linear-gradient(90deg, #FF8C00, #FFB347); }
+.hac-excel::before  { background: linear-gradient(90deg, #0096C7, #48CAE4); }
+.hac-nl::before     { background: linear-gradient(90deg, #2D6A4F, #52B788); }
+.hac-deploy::before { background: linear-gradient(90deg, #0077B6, #48CAE4); }
+.hac-icon {
+  font-size: 1.8rem;
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.hac-forms .hac-icon  { background: rgba(255,140,0,0.12); color: #FF8C00; }
+.hac-excel .hac-icon  { background: rgba(0,150,199,0.12); color: #0096C7; }
+.hac-nl .hac-icon     { background: rgba(45,106,79,0.12); color: #2D6A4F; }
+.hac-deploy .hac-icon { background: rgba(0,119,182,0.12); color: #0077B6; }
+.hac-label {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1A1A2E;
+}
+.hac-sub {
+  font-size: .82rem;
+  color: #888;
+  line-height: 1.45;
+  flex: 1;
+}
+.hac-arrow {
+  font-size: 1rem;
+  color: #ccc;
+  align-self: flex-end;
+  transition: color .2s, transform .2s;
+}
+.home-action-card:hover .hac-arrow { color: var(--mango); transform: translateX(4px); }
+
+/* Drop menu overrides */
+.white-gradient-page .drop-menu { background: rgba(255,255,255,0.95); border-color: rgba(0,0,0,0.08); backdrop-filter: blur(20px); box-shadow: 0 12px 36px rgba(0,0,0,0.08); }
+.white-gradient-page .drop-menu button { color: #1A1A2E; }
+.white-gradient-page .drop-menu button:hover { background: rgba(0,0,0,0.04); color: var(--mango-d); }
+.white-gradient-page .drop-menu button.del { color: #E63946; }
+.white-gradient-page .drop-menu button.del:hover { background: rgba(230,57,70,0.08); }
+
+@media(max-width:768px) {
+  .home-duck-mascot { display: none; }
+  .home-hero { flex-direction: column; }
+  .home-stats-row { gap: 10px; }
+  .home-actions-grid { grid-template-columns: 1fr; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 
 <script>
-const GENERATE_URL   = '/ai/generate';
-const CREATE_API_URL = '/forms/new-api';
-
-let chosenStyle    = 'form'; // 'form' | 'web'
-let chooserContext = 'manual';
-let aiChosenStyle  = 'form';
-
-/* ── Style Chooser (manual / quiz) ── */
-function openStyleChooser(ctx) {
-  chooserContext = ctx;
-  chosenStyle = 'form';
-  document.getElementById('styleChooserModal').style.display = 'flex';
-  document.getElementById('styleChooserTitle').value = '';
-  setTimeout(() => document.getElementById('styleChooserTitle').focus(), 120);
-  updateStyleUI();
-}
-
-function selectStyle(s) {
-  chosenStyle = s;
-  updateStyleUI();
-}
-
-function updateStyleUI() {
-  const cards  = { form: 'styleOptForm',  web: 'styleOptWeb'  };
-  const checks = { form: 'formStyleCheck', web: 'webStyleCheck' };
-  Object.keys(cards).forEach(s => {
-    const el = document.getElementById(cards[s]);
-    const ch = document.getElementById(checks[s]);
-    if (chosenStyle === s) {
-      el.style.borderColor = '#FF8C00';
-      el.style.boxShadow   = '0 0 0 3px rgba(255,140,0,.1)';
-      ch.style.display = 'inline';
-    } else {
-      el.style.borderColor = '#E2DDD8';
-      el.style.boxShadow   = 'none';
-      ch.style.display = 'none';
-    }
-  });
-  document.getElementById('selectedStyleLabel').textContent =
-    chosenStyle === 'web' ? 'Webpage Style' : 'Classic Form';
-}
-
-async function createWithStyle() {
-  const title = document.getElementById('styleChooserTitle').value.trim() ||
-    (chooserContext === 'quiz' ? 'New Quiz' : 'Untitled Form');
-  const btn = document.getElementById('styleCreateBtn');
-  const txt = document.getElementById('styleCreateTxt');
-  btn.disabled = true;
-  txt.textContent = 'Creating…';
-
-  try {
-    const res = await fetch(CREATE_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, default_style: chosenStyle })
-    });
-    const d = await res.json();
-    if (!d.success) throw new Error(d.error || 'Failed');
-    // Store chosen style so builder can read it
-    try { localStorage.setItem('formStyle_' + d.form_id, chosenStyle); } catch(e) {}
-    showToast('Opening builder…', 'success');
-    setTimeout(() => { window.location.href = '/builder/' + d.form_id; }, 500);
-  } catch(e) {
-    showToast('Error: ' + e.message, 'info');
-    btn.disabled = false;
-    txt.textContent = 'Create Form →';
-  }
-}
-
-/* ── AI Style Chooser ── */
-function openAIStyleChooser() {
-  const prompt = document.getElementById('aiPrompt').value.trim();
-  if (!prompt) { alert('Please describe the form you want to create.'); return; }
-  aiChosenStyle = 'form';
-  updateAIStyleUI();
-  document.getElementById('aiStyleModal').style.display = 'flex';
-}
-
-function selectAIStyle(s) {
-  aiChosenStyle = s;
-  updateAIStyleUI();
-}
-
-function updateAIStyleUI() {
-  const cards  = { form: 'aiStyleForm',  web: 'aiStyleWeb'  };
-  const checks = { form: 'aiFormCheck',  web: 'aiWebCheck'  };
-  Object.keys(cards).forEach(s => {
-    const el = document.getElementById(cards[s]);
-    const ch = document.getElementById(checks[s]);
-    if (aiChosenStyle === s) {
-      el.style.borderColor    = '#FF8C00';
-      el.style.background     = '#FFF9F0';
-      el.style.boxShadow      = '0 0 0 3px rgba(255,140,0,.1)';
-      ch.style.display = 'block';
-    } else {
-      el.style.borderColor = '#E2DDD8';
-      el.style.background  = '#fff';
-      el.style.boxShadow   = 'none';
-      ch.style.display = 'none';
-    }
-  });
-  document.getElementById('aiSelectedStyleLabel').textContent =
-    aiChosenStyle === 'web' ? 'Webpage Style' : 'Classic Form';
-}
-
-async function generateFormWithStyle() {
-  const prompt = document.getElementById('aiPrompt').value.trim();
-  const btn    = document.getElementById('aiStyleGenBtn');
-  const txt    = document.getElementById('aiStyleGenTxt');
-  const errEl  = document.getElementById('aiError');
-  errEl.style.display = 'none';
-  btn.disabled = true;
-
-  try {
-    txt.innerHTML = '<span class="ai-spinner"></span> Thinking…';
-    const genRes  = await fetch(GENERATE_URL, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt })
-    });
-    const genData = await genRes.json();
-    if (!genRes.ok || !genData.success) throw new Error(genData.error || `AI error ${genRes.status}`);
-
-    txt.innerHTML = '<span class="ai-spinner"></span> Creating…';
-    const createRes  = await fetch(CREATE_API_URL, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: genData.form.title || 'AI Generated Form', default_style: aiChosenStyle })
-    });
-    const rawText = await createRes.text();
-    let createData;
-    try { createData = JSON.parse(rawText); } catch(e) { throw new Error('Server error: ' + rawText.slice(0, 120)); }
-    if (!createRes.ok || !createData.success) throw new Error(createData.error || 'Could not create form');
-
-    const formId = createData.form_id;
-    try { localStorage.setItem('formStyle_' + formId, aiChosenStyle); } catch(e) {}
-
-    txt.innerHTML = '<span class="ai-spinner"></span> Saving…';
-    const saveRes  = await fetch('/builder/' + formId + '/save', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(genData.form)
-    });
-    const saveData = await saveRes.json();
-    if (!saveRes.ok || !saveData.success) throw new Error('Could not save form');
-
-    document.getElementById('aiStyleModal').style.display = 'none';
-    showToast('✦ Form generated! Opening builder…', 'success');
-    setTimeout(() => { window.location.href = '/builder/' + formId; }, 700);
-  } catch(e) {
-    errEl.textContent = '⚠ ' + e.message;
-    errEl.style.display = 'block';
-    document.getElementById('aiStyleModal').style.display = 'none';
-    btn.disabled = false;
-    txt.textContent = '✦ Generate Form';
-  }
-}
-
-/* ── Existing helpers ── */
-function toggleAIPanel() {
-  const p = document.getElementById('aiPanel');
-  const b = document.getElementById('aiBanner');
-  const show = p.style.display === 'none';
-  p.style.display = show ? 'block' : 'none';
-  b.style.display = show ? 'none' : 'flex';
-  if (show) document.getElementById('aiPrompt').focus();
-}
-function useExample(btn) { document.getElementById('aiPrompt').value = btn.textContent; }
 function showToast(msg, type = 'info') {
   const t = document.getElementById('toast');
   if (!t) return;
   t.textContent = msg; t.className = 'toast ' + type + ' show';
   clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3000);
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('aiPrompt').addEventListener('keydown', e => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) openAIStyleChooser();
-  });
-  document.getElementById('styleChooserTitle').addEventListener('keydown', e => {
-    if (e.key === 'Enter') createWithStyle();
-  });
-  updateStyleUI();
-  updateAIStyleUI();
+function copyLink(url) {
+  navigator.clipboard.writeText(url).then(() => showToast('Link copied!', 'success'));
+}
+function toggleDrop(btn) {
+  const menu = btn.nextElementSibling;
+  document.querySelectorAll('.drop-menu.open').forEach(m => { if(m !== menu) m.classList.remove('open'); });
+  menu.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.fcard-more')) document.querySelectorAll('.drop-menu.open').forEach(m => m.classList.remove('open'));
 });
+
+async function homeHandleImport(e) {
+  const file = e.target.files[0]; if (!file) return;
+  document.getElementById('homeImportProgress').style.display = 'block';
+  document.getElementById('homeImportMsg').textContent = 'Reading columns…';
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('title', file.name.replace(/\.[^.]+$/, ''));
+  try {
+    const res = await fetch('/forms/import', { method: 'POST', body: fd });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Import failed');
+    document.getElementById('homeImportMsg').textContent = 'Done! Opening builder…';
+    showToast('Import successful! Opening builder…', 'success');
+    setTimeout(() => { window.location.href = '/builder/' + d.form_id; }, 800);
+  } catch (err) {
+    document.getElementById('homeImportProgress').style.display = 'none';
+    showToast('Error: ' + err.message, 'info');
+    e.target.value = '';
+  }
+}
 </script>
 {% endblock %}

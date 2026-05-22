@@ -36,5 +36,5 @@ sudo systemctl start member-profile
 
 ## Features
 - 5-step form with validation
-- Saves to MongoDB (formcraft DB, members collection)
+- Saves to MongoDB (Draftspace DB, members collection)
 - Admin dashboard: view, search, delete, export CSV/TXT per member

@@ -1,0 +1,58 @@
+<div class="mobile-header">
+  <div class="mh-left">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" class="mh-logo" alt="Draftspace">
+    <span class="mh-text">DRAFT<span style="color:var(--mango)">SPACE</span></span>
+  </div>
+  <button class="mh-hamburger" onclick="toggleMobileNav()"><i class="ph ph-list"></i></button>
+</div>
+<div class="mob-overlay" onclick="toggleMobileNav()"></div>
+<nav class="app-nav" id="mainSidebar">
+  <div class="nav-brand">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" class="sb-icon duck-logo" alt="Draftspace">
+    <span class="sb-text">DRAFT<span style="color:var(--mango)">SPACE</span></span>
+  </div>
+  <div class="nav-right">
+
+    <!-- Primary Nav -->
+    <a href="{{ url_for('dashboard.index') }}" class="btn-ghost-sm {% if request.endpoint == 'dashboard.index' %}sb-active{% endif %}" title="Home">
+      <span class="sb-icon"><i class="ph ph-house"></i></span><span class="sb-text">Home</span>
+    </a>
+    <a href="{{ url_for('dashboard.create') }}" class="btn-ghost-sm {% if request.endpoint == 'dashboard.create' %}sb-active{% endif %}" title="Draft Form">
+      <span class="sb-icon"><i class="ph ph-plus-circle"></i></span><span class="sb-text">Draft Form</span>
+    </a>
+
+    <a href="{{ url_for('newsletter.index') }}" class="btn-ghost-sm {% if 'newsletter' in request.endpoint %}sb-active{% endif %}" title="Newsletters">
+      <span class="sb-icon"><i class="ph ph-envelope-simple"></i></span><span class="sb-text">Newsletters</span>
+    </a>
+    <a href="{{ url_for('deploy.deploy_index') }}" class="btn-ghost-sm {% if 'deploy' in request.endpoint %}sb-active{% endif %}" title="Deploy">
+      <span class="sb-icon"><i class="ph ph-globe"></i></span><span class="sb-text">Deploy</span>
+    </a>
+
+    <!-- Spacer -->
+    <div style="flex:1"></div>
+
+    <!-- User + Upgrade + Logout -->
+    <div class="user-pill" title="{{ current_user.name }}">
+      <div class="user-init">{{ current_user.name[0].upper() if current_user.name else 'U' }}</div>
+      <span class="sb-text">{{ current_user.name }}</span>
+    </div>
+    <a href="{{ url_for('pricing.index') }}" class="btn-ghost-sm sb-upgrade" title="Upgrade Plan">
+      <span class="sb-icon"><i class="ph ph-diamond"></i></span><span class="sb-text">Upgrade Plan</span>
+    </a>
+    <a href="{{ url_for('auth.logout') }}" class="btn-ghost-sm sb-logout" title="Logout">
+      <span class="sb-icon"><i class="ph ph-sign-out"></i></span><span class="sb-text">Logout</span>
+    </a>
+    <button class="btn-ghost-sm sb-toggle-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
+      <span class="sb-icon" id="toggleIcon"><i class="ph ph-caret-left"></i></span><span class="sb-text">Collapse</span>
+    </button>
+  </div>
+</nav>
+
+<style>
+.duck-logo { width: 64px; height: 64px; object-fit: contain; margin-right: 12px; border-radius: 8px; }
+.sb-active { color: var(--mango) !important; background: rgba(255,140,0,0.08) !important; border-color: rgba(255,140,0,0.25) !important; }
+.sb-upgrade { color: var(--mango) !important; }
+.sb-upgrade:hover { background: rgba(255,140,0,0.1) !important; }
+.sb-logout { color: #E63946 !important; }
+.sb-logout:hover { background: rgba(230,57,70,0.08) !important; border-color: rgba(230,57,70,0.3) !important; }
+</style>

@@ -11,6 +11,30 @@ class User(UserMixin):
         self.auth_provider= data.get('auth_provider','email')
         self.password_hash= data.get('password_hash','')
         self.created_at   = data.get('created_at')
+        self.plan         = data.get('plan', 'free')
+
+    def get_quotas(self):
+        limits = {
+            'free': {'forms': 3, 'newsletters': 10, 'deploys': 10},
+            'basic': {'forms': 30, 'newsletters': 30, 'deploys': 15},
+            'pro': {'forms': float('inf'), 'newsletters': float('inf'), 'deploys': float('inf')}
+        }
+        return limits.get(self.plan, limits['free'])
+
+    def can_create_form(self):
+        if self.plan == 'pro': return True
+        count = self._db().forms.count_documents({'user_id': self.id})
+        return count < self.get_quotas()['forms']
+
+    def can_create_newsletter(self):
+        if self.plan == 'pro': return True
+        count = self._db().newsletters.count_documents({'user_id': self.id})
+        return count < self.get_quotas()['newsletters']
+
+    def can_deploy(self):
+        if self.plan == 'pro': return True
+        count = self._db().published_sites.count_documents({'user_id': self.id})
+        return count < self.get_quotas()['deploys']
 
     def get_id(self): return self.id
 
@@ -38,7 +62,7 @@ class User(UserMixin):
     def create(name, email, password=None, auth_provider='email', avatar=''):
         from app import bcrypt
         doc = {'name':name,'email':email,'avatar':avatar,
-                'auth_provider':auth_provider,'created_at':datetime.utcnow()}
+                'auth_provider':auth_provider,'created_at':datetime.utcnow(), 'plan': 'free'}
         if password:
             doc['password_hash'] = bcrypt.generate_password_hash(password).decode('utf-8')
         r = User._db().users.insert_one(doc)
