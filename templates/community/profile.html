@@ -1,0 +1,341 @@
+{% extends 'base.html' %}
+{% block title %}{{ user.name }} (@{{ user.name }}) — Draftspace{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
+{% block body %}
+<div class="auth-floating-shapes">
+  <div class="shape s1" style="background:rgba(255,140,0,0.05)"></div>
+  <div class="shape s2" style="background:rgba(0,119,182,0.03)"></div>
+</div>
+
+{% include 'components/sidebar.html' %}
+
+<div class="app-body" style="position: relative; z-index: 1;">
+  
+  <div class="profile-header glass-card">
+    
+    <!-- User identity -->
+    <div class="ph-avatar-section">
+      <div class="ph-avatar">{{ user.name[0].upper() }}</div>
+      {% if user.verified_creator %}
+      <span class="ph-verified-badge" title="Verified Creator"><i class="ph ph-seal-check-fill"></i></span>
+      {% endif %}
+    </div>
+
+    <div class="ph-identity">
+      <h1 class="ph-name">
+        {{ user.name }}
+        <span class="ph-level-badge">lvl {{ user.level }}</span>
+      </h1>
+      <p class="ph-email">@{{ user.name }} · Creator since {{ user.created_at.strftime('%B %Y') if user.created_at else 'Recently' }}</p>
+      
+      <!-- Bio -->
+      <p class="ph-bio">{{ user.bio or "This creator is busy drafting forms and newsletters and hasn't written a bio yet!" }}</p>
+      
+      <!-- Stats tally -->
+      <div class="ph-tally-row">
+        <span><strong>{{ forms|length }}</strong> Published Forms</span>
+        <span><strong>{{ user.followers_count }}</strong> Followers</span>
+        <span><strong>{{ user.following_count }}</strong> Following</span>
+      </div>
+    </div>
+
+    <!-- Follow / Upgrade Actions -->
+    <div class="ph-actions">
+      {% if user.id == current_user.id %}
+      <a href="{{ url_for('pricing.index') }}" class="btn-ghost-sm sb-upgrade" style="border: 1px solid rgba(255,140,0,0.25);"><i class="ph ph-diamond"></i> Plan: {{ user.plan.upper() }}</a>
+      {% else %}
+      <button class="btn-primary follow-trigger {% if is_following %}active{% endif %}" onclick="toggleFollow('{{ user.id }}', this)">
+        {% if is_following %}
+        <i class="ph ph-user-minus"></i> Unfollow
+        {% else %}
+        <i class="ph ph-user-plus"></i> Follow Creator
+        {% endif %}
+      </button>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <div class="profile-layout" style="margin-top:24px;">
+    
+    <!-- LEFT PANEL: STATS & ACHIEVEMENTS -->
+    <div class="profile-left-col">
+      
+      <!-- Gamification Card -->
+      <div class="profile-card glass-card">
+        <h3 class="pc-title"><i class="ph ph-sparkles" style="color:var(--mango)"></i> Leveling & Engagement</h3>
+        
+        <div style="margin-top:14px;">
+          <div style="display:flex;justify-content:between;font-size:0.8rem;font-weight:600;margin-bottom:6px;">
+            <span style="color:#555">XP Progression</span>
+            <span style="color:#1A1A2E">{{ user.xp }} / {{ user.level * 100 }} XP</span>
+          </div>
+          <!-- Progression bar -->
+          <div class="prog-bar-outer">
+            <div class="prog-bar-inner" style="width: {{ (user.xp / (user.level * 100)) * 100 }}%"></div>
+          </div>
+          <span style="font-size:0.7rem;color:#999;display:block;margin-top:4px;">Gain XP by answering surveys (+10 XP) and getting likes (+5 XP).</span>
+        </div>
+
+        <!-- Streak Row -->
+        {% if user.get('streak_count', 0) > 0 %}
+        <div class="streak-box" style="margin-top:16px;">
+          <div class="streak-flame"><i class="ph ph-fire-fill"></i></div>
+          <div>
+            <div class="streak-title">{{ user.get('streak_count', 0) }} Day Active Streak</div>
+            <div class="streak-subtitle">Checked in consecutively to keep earning daily rewards!</div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Achievements Grid -->
+      <div class="profile-card glass-card" style="margin-top:20px;">
+        <h3 class="pc-title"><i class="ph ph-award" style="color:#FFB347"></i> Achievements Unlocked</h3>
+        <div class="badges-grid">
+          {% if not badges %}
+          <div class="badges-empty">No achievements unlocked yet. Create a form to unlock "Form Pioneer"!</div>
+          {% else %}
+            {% for b in badges %}
+            <div class="badge-item" title="{{ b.desc }}">
+              <div class="badge-icon"><i class="{{ b.icon }}"></i></div>
+              <div class="badge-name">{{ b.title }}</div>
+            </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL: PUBLISHED CONTENT -->
+    <div class="profile-right-col">
+      <div class="page-head" style="margin-top:0; margin-bottom:16px;">
+        <div>
+          <h2 class="page-title">Published Surveys & Polls</h2>
+          <p class="page-sub">Public research from this creator</p>
+        </div>
+      </div>
+
+      {% if not forms %}
+      <div class="empty-state glass-card">
+        <div class="empty-emoji"><i class="ph ph-folders" style="color:#ddd;font-size:2.8rem"></i></div>
+        <h3>No published research</h3>
+        <p>This creator has not shared any public forms or templates yet.</p>
+      </div>
+      {% else %}
+      <div class="profile-forms-grid">
+        {% for f in forms %}
+        <div class="pf-card glass-card">
+          <div class="pf-card-cover" style="background:{{ f.theme.header_color }}"></div>
+          <div class="pf-card-body">
+            <h3 class="pf-title">{{ f.title }}</h3>
+            <p class="pf-desc">{{ f.description or "No description provided." }}</p>
+            <div class="pf-stats">
+              <span><i class="ph ph-clock"></i> {{ f.estimated_completion_time }} min</span>
+              <span><i class="ph ph-chat-centered-dots"></i> {{ f.response_count }} answers</span>
+              <span><i class="ph ph-heart"></i> {{ f.likes_count }} likes</span>
+            </div>
+          </div>
+          <div class="pf-card-actions">
+            <a href="/f/{{ f.slug }}" target="_blank" class="pf-btn primary"><i class="ph ph-link"></i> Fill Form</a>
+            <a href="/research/{{ f._id }}/report" class="pf-btn"><i class="ph ph-chart-bar"></i> Live Insights</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg; t.className = 'toast ' + type + ' show';
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+async function toggleFollow(userId, btn) {
+  const active = btn.classList.contains('active');
+  const endpoint = active ? `/unfollow/${userId}` : `/follow/${userId}`;
+  
+  try {
+    const res = await fetch(endpoint, { method: 'POST' });
+    const d = await res.json();
+    if (!d.success) return;
+    
+    if (d.following) {
+      btn.classList.add('active');
+      btn.innerHTML = '<i class="ph ph-user-minus"></i> Unfollow';
+      showToast('Following creator! Gained +15 XP.', 'success');
+    } else {
+      btn.classList.remove('active');
+      btn.innerHTML = '<i class="ph ph-user-plus"></i> Follow Creator';
+      showToast('Unfollowed creator.', 'info');
+    }
+    setTimeout(() => window.location.reload(), 800);
+  } catch(e) {
+    showToast('Failed to change follow status.', 'info');
+  }
+}
+</script>
+
+<style>
+/* Profile Card Cover & Headers */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 30px;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.8);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+  flex-wrap: wrap;
+}
+.ph-avatar-section {
+  position: relative;
+}
+.ph-avatar {
+  width: 90px; height: 90px;
+  background: linear-gradient(135deg, var(--mango), #FFB347);
+  color: white;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 2.2rem;
+  box-shadow: 0 10px 24px rgba(255,140,0,0.2);
+}
+.ph-verified-badge {
+  position: absolute;
+  bottom: 0; right: 0;
+  color: #0096C7; background: white;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.15rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.ph-identity { flex: 1; min-width: 260px; }
+.ph-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem; font-weight: 800;
+  color: #1A1A2E;
+  display: flex; align-items: center; gap: 10px;
+}
+.ph-level-badge {
+  font-size: .75rem;
+  font-weight: 700;
+  background: rgba(255,140,0,0.1);
+  color: var(--mango);
+  padding: 3px 8px; border-radius: 12px;
+  text-transform: uppercase;
+}
+.ph-email { font-size: .88rem; color: #888; margin-top: 4px; }
+.ph-bio { font-size: .92rem; color: #555; margin-top: 10px; line-height: 1.5; max-width: 600px; }
+.ph-tally-row { display: flex; gap: 20px; font-size: .88rem; color: #666; margin-top: 14px; }
+.ph-tally-row strong { color: #1A1A2E; }
+
+/* Grid Layout columns */
+.profile-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+}
+.profile-card {
+  padding: 24px; border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.8);
+}
+.pc-title { font-size: .9rem; font-weight: 700; color: #1A1A2E; display: flex; align-items: center; gap: 6px; }
+
+/* XP progression meter */
+.prog-bar-outer {
+  background: rgba(0,0,0,0.05);
+  height: 8px; border-radius: 10px;
+  overflow: hidden; margin-top: 4px;
+}
+.prog-bar-inner {
+  background: linear-gradient(90deg, var(--mango), #FFB347);
+  height: 100%; border-radius: 10px;
+  transition: width .4s ease-out;
+}
+
+/* Streaks Box */
+.streak-box {
+  display: flex; gap: 12px; align-items: center;
+  background: rgba(255,140,0,0.06);
+  padding: 14px; border-radius: 12px;
+  border: 1.5px solid rgba(255,140,0,0.15);
+}
+.streak-flame {
+  font-size: 1.8rem; color: var(--mango);
+  animation: duckBob 2s ease-in-out infinite;
+}
+.streak-title { font-weight: 700; font-size: .85rem; color: #1A1A2E; }
+.streak-subtitle { font-size: .72rem; color: #888; margin-top: 2px; line-height: 1.3; }
+
+/* Achievements Grid */
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px; margin-top: 16px;
+}
+.badges-empty { font-size: .78rem; color: #aaa; text-align: center; padding: 14px 0; grid-column: span 3; }
+.badge-item {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+  padding: 10px 4px; background: rgba(255,255,255,0.5); border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.02);
+}
+.badge-icon {
+  font-size: 1.5rem; color: #FFB347;
+  width: 42px; height: 42px;
+  background: rgba(255,179,71,0.1);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.badge-name { font-size: .68rem; font-weight: 700; color: #1A1A2E; line-height: 1.25; }
+
+/* Published forms layout */
+.profile-forms-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.pf-card {
+  display: flex; flex-direction: column; overflow: hidden;
+  border-radius: 18px; border: 1px solid rgba(255,255,255,0.8);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.02);
+}
+.pf-card-cover { height: 8px; }
+.pf-card-body { padding: 20px; flex: 1; }
+.pf-title { font-size: 1.15rem; font-weight: 800; color: #1A1A2E; }
+.pf-desc { font-size: .82rem; color: #666; line-height: 1.45; margin-top: 6px; }
+.pf-stats { display: flex; gap: 12px; font-size: .75rem; color: #aaa; font-weight: 500; margin-top: 14px; }
+.pf-stats span { display: flex; align-items: center; gap: 4px; }
+.pf-card-actions {
+  display: flex; gap: 8px; padding: 12px 20px;
+  background: rgba(0,0,0,0.01); border-top: 1px solid rgba(0,0,0,0.02);
+}
+.pf-btn {
+  flex: 1; text-align: center;
+  padding: 8px; border-radius: 8px;
+  font-size: .78rem; font-weight: 600;
+  text-decoration: none; color: #555;
+  background: white; border: 1px solid rgba(0,0,0,0.05);
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  transition: all .2s;
+}
+.pf-btn:hover { background: rgba(0,0,0,0.03); color: #1A1A2E; }
+.pf-btn.primary { background: #1A1A2E; color: white; border: none; }
+.pf-btn.primary:hover { background: #0c0c16; }
+
+@media(max-width:992px) {
+  .profile-layout { grid-template-columns: 1fr; }
+  .profile-forms-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}

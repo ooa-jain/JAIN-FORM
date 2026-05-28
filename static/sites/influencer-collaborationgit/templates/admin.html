@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — influencer Collaboration Form</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --mango: #FF8C00; --mango-light: #FFB347; --mango-dark: #E07000;
+    --cream: #FFF8F0; --leaf: #2D6A4F; --leaf-light: #52B788;
+    --dark: #1A1A2E; --mid: #3D3D5C; --soft: #F5E6D3;
+    --white: #FFFFFF; --error: #E63946;
+    --border: rgba(255,140,0,0.25); --shadow: 0 8px 40px rgba(255,140,0,0.12);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--dark); min-height: 100vh; }
+
+  .top-nav {
+    background: var(--dark); padding: 14px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+  .nav-brand { display: flex; align-items: center; gap: 10px; font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--mango-light); }
+  .nav-brand span { font-size: 1.5rem; }
+  .nav-actions { display: flex; gap: 10px; align-items: center; }
+  .btn-nav { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-nav.outline { background: transparent; border: 1.5px solid var(--mango); color: var(--mango-light); }
+  .btn-nav.outline:hover { background: var(--mango); color: var(--dark); }
+  .btn-nav.danger { background: transparent; border: 1.5px solid var(--error); color: #ff6b6b; }
+  .btn-nav.danger:hover { background: var(--error); color: white; }
+  .admin-tag { background: rgba(255,140,0,0.2); color: var(--mango-light); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+
+  .admin-wrap { max-width: 1200px; margin: 0 auto; padding: 36px 24px 60px; }
+  .admin-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
+  .admin-header h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--dark); }
+  .admin-header p { color: #888; font-size: 0.85rem; margin-top: 4px; }
+  .admin-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .btn-export { padding: 11px 22px; background: var(--leaf); color: white; border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 7px; }
+  .btn-export:hover { background: var(--leaf-light); transform: translateY(-1px); }
+  .btn-clear { padding: 11px 22px; background: transparent; color: var(--error); border: 1.5px solid var(--error); border-radius: 10px; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: all 0.2s; }
+  .btn-clear:hover { background: var(--error); color: white; }
+  .btn-refresh { padding: 11px 22px; background: transparent; color: var(--mango); border: 1.5px solid var(--mango); border-radius: 10px; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: all 0.2s; }
+  .btn-refresh:hover { background: var(--mango); color: var(--dark); }
+
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .stat-card { background: var(--white); border-radius: 14px; padding: 20px 22px; box-shadow: 0 2px 16px rgba(0,0,0,0.06); border-left: 4px solid var(--mango); }
+  .stat-card.green { border-left-color: var(--leaf); }
+  .stat-card.blue { border-left-color: #457B9D; }
+  .stat-card.purple { border-left-color: #9B5DE5; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--dark); font-weight: 900; }
+  .stat-label { font-size: 0.78rem; color: #999; margin-top: 2px; }
+
+  .table-wrap { background: var(--white); border-radius: 16px; box-shadow: 0 2px 20px rgba(0,0,0,0.07); overflow: hidden; border: 1px solid rgba(0,0,0,0.06); }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  thead th { background: var(--dark); color: rgba(255,255,255,0.75); padding: 13px 16px; text-align: left; font-weight: 600; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+  thead th:first-child { color: var(--mango-light); }
+  tbody tr { border-bottom: 1px solid #F3EDE5; transition: background 0.15s; }
+  tbody tr:hover { background: #FFF8F0; }
+  tbody td { padding: 12px 16px; color: var(--dark); vertical-align: top; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  tbody td:first-child { font-weight: 600; color: var(--mango-dark); }
+  .td-link a { color: var(--mango); text-decoration: none; font-weight: 500; }
+  .td-link a:hover { text-decoration: underline; }
+  .btn-del { background: none; border: none; cursor: pointer; color: #ccc; font-size: 1rem; padding: 2px 6px; border-radius: 6px; transition: all 0.2s; }
+  .btn-del:hover { background: #ffe0e0; color: var(--error); }
+
+  .empty-state { text-align: center; padding: 70px 24px; color: #bbb; }
+  .empty-state .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+  .empty-state p { font-size: 0.9rem; }
+
+  .loading { text-align: center; padding: 40px; color: #aaa; font-size: 0.9rem; }
+
+  .toast { position: fixed; bottom: 30px; right: 30px; background: var(--dark); color: white; padding: 14px 22px; border-radius: 12px; font-size: 0.88rem; font-weight: 500; box-shadow: 0 8px 30px rgba(0,0,0,0.25); transform: translateY(80px); opacity: 0; transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1); z-index: 999; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-left: 4px solid var(--leaf-light); }
+  .toast.info { border-left: 4px solid var(--mango); }
+  .toast.error { border-left: 4px solid var(--error); }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-brand"><span>🥭</span> influencer Collaboration Formb <span class="admin-tag">ADMIN</span></div>
+  <div class="nav-actions">
+    <a href="/" class="btn-nav outline">📝 Form</a>
+    <a href="/admin/logout" class="btn-nav danger">🔓 Logout</a>
+  </div>
+</nav>
+
+<div class="admin-wrap">
+  <div class="admin-header">
+    <div>
+      <h2>📊 Response Dashboard</h2>
+      <p>All submitted influencer collaboration applications — stored in MongoDB</p>
+    </div>
+    <div class="admin-actions">
+      <button class="btn-refresh" onclick="loadData()">🔄 Refresh</button>
+      <button class="btn-export" onclick="exportToExcel()">⬇ Export Excel</button>
+      <button class="btn-clear" onclick="clearAll()">🗑 Clear All</button>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num" id="stat_total">—</div><div class="stat-label">Total Responses</div></div>
+    <div class="stat-card green"><div class="stat-num" id="stat_bangalore">—</div><div class="stat-label">From Bangalore</div></div>
+    <div class="stat-card blue"><div class="stat-num" id="stat_kochi">—</div><div class="stat-label">From Kochi</div></div>
+    <div class="stat-card purple"><div class="stat-num" id="stat_today">—</div><div class="stat-label">Submitted Today</div></div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Timestamp</th><th>Full Name</th><th>USN</th><th>Email</th>
+            <th>Phone</th><th>Location</th><th>Campus</th><th>UG/PG</th><th>Department</th>
+            <th>Course</th><th>Social Profile</th><th>Content Type</th><th>Followers</th>
+            <th>Audience Location</th><th>Best Post Type</th><th>Engagement%</th>
+            <th>Auto-Reply</th><th>Share Insights</th><th>Paid Ads</th>
+            <th>Charges</th><th>Discount</th><th>Commission</th><th>Shipping Address</th>
+            <th>🗑</th>
+          </tr>
+        </thead>
+        <tbody id="responseBody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="emptyState" style="display:none">
+      <div class="empty-icon">📭</div>
+      <p>No responses yet. Share the form and watch them roll in!</p>
+    </div>
+    <div class="loading" id="loadingState">Loading responses…</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let allResponses = [];
+
+const COLS = ['name','usn','email','phone','location','campus','ugpg','dept','course',
+  'social','content_type','followers','audience_loc','post_type','engagement',
+  'autoreply','insights','paidads','charges','discount','commission','address'];
+
+async function loadData() {
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('responseBody').innerHTML = '';
+
+  try {
+    const [rRes, sRes] = await Promise.all([
+      fetch('/admin/api/responses'),
+      fetch('/admin/api/stats')
+    ]);
+    allResponses = await rRes.json();
+    const stats = await sRes.json();
+
+    document.getElementById('stat_total').textContent = stats.total;
+    document.getElementById('stat_bangalore').textContent = stats.bangalore;
+    document.getElementById('stat_kochi').textContent = stats.kochi;
+    document.getElementById('stat_today').textContent = stats.today;
+
+    document.getElementById('loadingState').style.display = 'none';
+
+    if (allResponses.length === 0) {
+      document.getElementById('emptyState').style.display = 'block';
+      return;
+    }
+
+    const tbody = document.getElementById('responseBody');
+    allResponses.forEach((r, i) => {
+      const tr = document.createElement('tr');
+      // format timestamp
+      const ts = r.timestamp ? new Date(r.timestamp).toLocaleString('en-IN') : '—';
+      const socialCell = r.social ? `<a href="${r.social}" target="_blank" rel="noopener">🔗 View</a>` : '—';
+      tr.innerHTML = `<td>${i+1}</td><td style="white-space:nowrap">${ts}</td>` +
+        COLS.map(c => {
+          if (c === 'social') return `<td class="td-link">${socialCell}</td>`;
+          return `<td title="${(r[c]||'').replace(/"/g,"'")}">${r[c]||'—'}</td>`;
+        }).join('') +
+        `<td><button class="btn-del" onclick="deleteRow('${r._id}', this)" title="Delete">🗑</button></td>`;
+      tbody.appendChild(tr);
+    });
+  } catch(e) {
+    document.getElementById('loadingState').textContent = 'Failed to load. Check connection.';
+    showToast('❌ Could not load responses', 'error');
+  }
+}
+
+async function deleteRow(id, btn) {
+  if (!confirm('Delete this response?')) return;
+  try {
+    await fetch('/admin/api/delete/' + id, { method: 'DELETE' });
+    btn.closest('tr').remove();
+    allResponses = allResponses.filter(r => r._id !== id);
+    // update total count
+    const total = parseInt(document.getElementById('stat_total').textContent) - 1;
+    document.getElementById('stat_total').textContent = total;
+    if (document.getElementById('responseBody').children.length === 0) {
+      document.getElementById('emptyState').style.display = 'block';
+    }
+    showToast('🗑 Response deleted', 'info');
+  } catch(e) {
+    showToast('❌ Delete failed', 'error');
+  }
+}
+
+async function clearAll() {
+  if (allResponses.length === 0) { showToast('Nothing to clear!', 'info'); return; }
+  if (!confirm(`Delete ALL ${allResponses.length} responses? This cannot be undone.`)) return;
+  try {
+    await fetch('/admin/api/clear', { method: 'DELETE' });
+    allResponses = [];
+    document.getElementById('responseBody').innerHTML = '';
+    document.getElementById('emptyState').style.display = 'block';
+    ['stat_total','stat_bangalore','stat_kochi','stat_today'].forEach(id => {
+      document.getElementById(id).textContent = '0';
+    });
+    showToast('🗑 All responses cleared', 'info');
+  } catch(e) {
+    showToast('❌ Clear failed', 'error');
+  }
+}
+
+function exportToExcel() {
+  if (allResponses.length === 0) { showToast('⚠ No responses to export!', 'info'); return; }
+
+  const headers = ['#','Timestamp','Full Name','USN','Email','Phone','Location','Campus',
+    'UG/PG','Department','Course','Social Profile','Content Type','Followers',
+    'Audience Location','Best Post Type','Engagement Rate (%)','Auto-Reply DMs',
+    'Share Insights','Paid Ads OK','Charges (1 Reel)','Discount Package',
+    'Commission Model','Shipping Address'];
+
+  const rows = allResponses.map((r, i) => [
+    i+1,
+    r.timestamp ? new Date(r.timestamp).toLocaleString('en-IN') : '',
+    r.name, r.usn, r.email, r.phone, r.location, r.campus,
+    r.ugpg, r.dept, r.course, r.social, r.content_type, r.followers,
+    r.audience_loc, r.post_type, r.engagement, r.autoreply, r.insights,
+    r.paidads, r.charges, r.discount, r.commission, r.address
+  ]);
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  ws['!cols'] = [
+    {wch:4},{wch:20},{wch:20},{wch:14},{wch:26},{wch:14},{wch:12},{wch:30},
+    {wch:7},{wch:36},{wch:18},{wch:32},{wch:18},{wch:12},
+    {wch:24},{wch:20},{wch:14},{wch:14},{wch:14},{wch:12},{wch:20},{wch:16},{wch:16},{wch:36}
+  ];
+  XLSX.utils.book_append_sheet(wb, ws, 'Responses');
+
+  // Summary sheet
+  const today = new Date().toDateString();
+  const summaryData = [
+    ['INFLUENCER COLLABORATION — RESPONSE SUMMARY'],
+    ['Generated on:', new Date().toLocaleString('en-IN')],
+    [],
+    ['Total Responses', allResponses.length],
+    ['Bangalore', allResponses.filter(r => r.location === 'Bangalore').length],
+    ['Kochi', allResponses.filter(r => r.location === 'Kochi').length],
+    ['UG Students', allResponses.filter(r => r.ugpg === 'UG').length],
+    ['PG Students', allResponses.filter(r => r.ugpg === 'PG').length],
+    ['Open to Commission', allResponses.filter(r => r.commission === 'Yes').length],
+    ['Use Auto-Reply DMs', allResponses.filter(r => r.autoreply === 'Yes').length],
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(summaryData);
+  ws2['!cols'] = [{wch:30},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
+
+  const fname = `Influencer_Responses_${new Date().toISOString().slice(0,10)}.xlsx`;
+  XLSX.writeFile(wb, fname);
+  showToast('📥 Excel file downloaded!', 'success');
+}
+
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// Load on page start
+loadData();
+</script>
+</body>
+</html>

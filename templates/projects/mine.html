@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}My Projects — Draftspace{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
+{% block body %}
+<div class="auth-floating-shapes"><div class="shape s1"></div><div class="shape s2"></div></div>
+{% include 'components/sidebar.html' %}
+<div class="app-body">
+  <div class="page-head">
+    <div>
+      <h1 class="page-title"><i class="ph ph-folder-open" style="color:var(--mango)"></i> My Projects</h1>
+      <p class="page-sub">Manage all your launched and draft projects.</p>
+    </div>
+    <a href="{{ url_for('projects.new_project') }}" class="btn-primary"><i class="ph ph-plus"></i> New Project</a>
+  </div>
+
+  {% if not projects %}
+  <div class="empty-state glass-card" style="padding:80px;text-align:center;">
+    <div style="font-size:3rem;margin-bottom:16px;">🚀</div>
+    <h3>No projects yet</h3>
+    <p>Launch your first project to showcase it to the community.</p>
+    <a href="{{ url_for('projects.new_project') }}" class="btn-primary" style="display:inline-flex;margin-top:16px;"><i class="ph ph-rocket-launch"></i> Launch Project</a>
+  </div>
+  {% else %}
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+    {% for p in projects %}
+    <div class="glass-card" style="border-radius:16px;overflow:hidden;">
+      <div style="height:80px;background:linear-gradient(135deg,#1A1A2E,#2D1B00);position:relative;">
+        {% if p.screenshots %}<img src="{{ p.screenshots[0] }}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" onerror="this.style.display='none'">{% endif %}
+        <div style="position:absolute;top:8px;left:8px;">
+          <span style="padding:2px 10px;border-radius:12px;font-size:.65rem;font-weight:700;background:{% if p.status=='live' %}rgba(45,106,79,.85){% else %}rgba(26,26,46,.75){% endif %};color:white;backdrop-filter:blur(4px);">{{ p.status.upper() }}</span>
+        </div>
+      </div>
+      <div style="padding:16px;">
+        <h3 style="font-size:.98rem;font-weight:800;color:#1A1A2E;margin-bottom:4px;">{{ p.title }}</h3>
+        <p style="font-size:.78rem;color:#666;margin-bottom:12px;">{{ p.tagline or 'No tagline' }}</p>
+        <div style="display:flex;gap:12px;font-size:.72rem;color:#aaa;margin-bottom:14px;">
+          <span><i class="ph ph-arrow-fat-up"></i> {{ p.upvotes_count }}</span>
+          <span><i class="ph ph-eye"></i> {{ p.views_count }}</span>
+          <span><i class="ph ph-chat-circle"></i> {{ p.comments_count }}</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <a href="{{ url_for('projects.detail', project_id=p._id) }}" class="btn-xs"><i class="ph ph-eye"></i> View</a>
+          <a href="{{ url_for('projects.edit', project_id=p._id) }}" class="btn-xs"><i class="ph ph-pencil-simple"></i> Edit</a>
+          <form action="{{ url_for('projects.delete', project_id=p._id) }}" method="POST" onsubmit="return confirm('Delete this project?')" style="margin-left:auto;">
+            <button class="btn-xs" style="color:#E63946;border-color:rgba(230,57,70,.2);"><i class="ph ph-trash"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

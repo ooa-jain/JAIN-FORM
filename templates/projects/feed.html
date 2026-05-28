@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Projects — Draftspace{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
+{% block body %}
+<div class="auth-floating-shapes"><div class="shape s1"></div><div class="shape s2"></div></div>
+{% include 'components/sidebar.html' %}
+<div class="app-body">
+  <div class="page-head">
+    <div>
+      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(45,106,79,.1);color:#2D6A4F;font-size:.75rem;font-weight:700;padding:3px 12px;border-radius:20px;border:1px solid rgba(45,106,79,.2);margin-bottom:8px;">
+        <i class="ph ph-rocket-launch"></i> PROJECT SHOWCASE
+      </div>
+      <h1 class="page-title" style="font-family:'Playfair Display',serif;">Discover <span style="color:var(--mango)">Projects</span></h1>
+      <p class="page-sub">Product Hunt-style creator launches, tools, startups, and side projects.</p>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <a href="{{ url_for('projects.my_projects') }}" class="btn-ghost"><i class="ph ph-folder-open"></i> My Projects</a>
+      <a href="{{ url_for('projects.new_project') }}" class="btn-primary"><i class="ph ph-rocket-launch"></i> Launch Project</a>
+    </div>
+  </div>
+
+  <!-- Sort + Category filters -->
+  <div class="glass-card" style="padding:12px 16px;margin-bottom:20px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+    {% for s in ['trending','newest','top'] %}
+    <a href="{{ url_for('projects.feed', sort=s, category=active_category) }}"
+       class="filter-pill {% if active_sort==s %}active{% endif %}">
+      {% if s=='trending' %}<i class="ph ph-fire"></i>{% elif s=='newest' %}<i class="ph ph-clock"></i>{% else %}<i class="ph ph-trophy"></i>{% endif %}
+      {{ s.title() }}
+    </a>
+    {% endfor %}
+    <span style="width:1px;height:20px;background:rgba(0,0,0,.08);margin:0 4px;"></span>
+    <a href="{{ url_for('projects.feed', sort=active_sort) }}" class="cat-pill {% if not active_category %}active{% endif %}">All</a>
+    {% for cat in categories %}
+    <a href="{{ url_for('projects.feed', sort=active_sort, category=cat) }}" class="cat-pill {% if active_category==cat %}active{% endif %}">{{ cat.replace('-',' ').title() }}</a>
+    {% endfor %}
+  </div>
+
+  {% if not projects %}
+  <div class="empty-state glass-card" style="padding:80px 20px;text-align:center;">
+    <div style="font-size:3.5rem;margin-bottom:16px;">🚀</div>
+    <h3 style="font-family:'Playfair Display',serif;">No projects launched yet</h3>
+    <p>Be the first creator to showcase your work!</p>
+    <a href="{{ url_for('projects.new_project') }}" class="btn-primary" style="margin-top:16px;display:inline-flex;"><i class="ph ph-rocket-launch"></i> Launch Your Project</a>
+  </div>
+  {% else %}
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;">
+    {% for p in projects %}
+    <div class="proj-card glass-card">
+      <!-- Cover -->
+      <div style="height:100px;background:linear-gradient(135deg,#1A1A2E,#2D1B00);border-radius:14px 14px 0 0;overflow:hidden;position:relative;">
+        {% if p.screenshots %}<img src="{{ p.screenshots[0] }}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">{% endif %}
+        <div style="position:absolute;top:8px;right:8px;">
+          <span style="padding:2px 10px;border-radius:12px;font-size:.65rem;font-weight:700;background:rgba(255,255,255,.15);color:white;backdrop-filter:blur(4px);">{{ p.category.replace('-',' ').upper() }}</span>
+        </div>
+      </div>
+      <div style="padding:16px;flex:1;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--dark);color:white;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;">{{ p.creator_name[0].upper() }}</div>
+          <div>
+            <div style="font-size:.76rem;font-weight:700;color:#1A1A2E;">{{ p.creator_name }}</div>
+            <div style="font-size:.65rem;color:#aaa;">Level {{ p.creator_level }}</div>
+          </div>
+          {% if p.upvoted_by_me %}<div style="margin-left:auto;font-size:.68rem;color:var(--mango);font-weight:700;"><i class="ph ph-arrow-fat-up-fill"></i> Upvoted</div>{% endif %}
+        </div>
+        <h3 style="font-size:1.05rem;font-weight:800;color:#1A1A2E;margin-bottom:4px;">{{ p.title }}</h3>
+        <p style="font-size:.8rem;color:#666;line-height:1.4;flex:1;margin-bottom:10px;">{{ p.tagline or (p.description[:80] + '…' if p.description and p.description|length > 80 else p.description or 'No description yet.') }}</p>
+        <!-- Tags -->
+        {% if p.tags %}
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">
+          {% for tag in p.tags[:3] %}<span style="padding:2px 8px;border-radius:10px;background:rgba(0,0,0,.04);font-size:.65rem;font-weight:600;color:#666;">{{ tag }}</span>{% endfor %}
+        </div>
+        {% endif %}
+        <!-- Stats -->
+        <div style="display:flex;gap:14px;font-size:.72rem;color:#aaa;margin-bottom:14px;">
+          <span><i class="ph ph-arrow-fat-up"></i> {{ p.upvotes_count }}</span>
+          <span><i class="ph ph-chat-circle"></i> {{ p.comments_count }}</span>
+          <span><i class="ph ph-eye"></i> {{ p.views_count }}</span>
+        </div>
+        <!-- Actions -->
+        <div style="display:flex;gap:8px;">
+          <a href="{{ url_for('projects.detail', project_id=p._id) }}" class="btn-primary" style="flex:1;justify-content:center;font-size:.78rem;padding:9px;">
+            <i class="ph ph-arrow-square-out"></i> View
+          </a>
+          <button onclick="upvoteProject('{{ p._id }}', this)"
+                  class="upvote-btn {% if p.upvoted_by_me %}upvoted{% endif %}"
+                  data-count="{{ p.upvotes_count }}">
+            <i class="ph ph-arrow-fat-up{% if p.upvoted_by_me %}-fill{% endif %}"></i>
+            <span class="upvote-count">{{ p.upvotes_count }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if page > 1 or projects|length >= 18 %}
+  <div style="text-align:center;padding:32px 0;display:flex;gap:10px;justify-content:center;">
+    {% if page > 1 %}<a href="{{ url_for('projects.feed', page=page-1, sort=active_sort, category=active_category) }}" class="btn-ghost">← Prev</a>{% endif %}
+    {% if projects|length >= 18 %}<a href="{{ url_for('projects.feed', page=page+1, sort=active_sort, category=active_category) }}" class="btn-ghost">Next →</a>{% endif %}
+  </div>
+  {% endif %}
+  {% endif %}
+</div>
+<div class="toast" id="toast"></div>
+<script>
+async function upvoteProject(pid, btn) {
+  btn.disabled = true;
+  const res  = await fetch(`/projects/${pid}/upvote`, {method:'POST'});
+  const d    = await res.json();
+  if (d.success) {
+    const icon  = btn.querySelector('i');
+    const count = btn.querySelector('.upvote-count');
+    if (d.upvoted) {
+      icon.className = 'ph ph-arrow-fat-up-fill';
+      btn.classList.add('upvoted');
+      showToast('Upvoted! +5 XP to creator', 'success');
+    } else {
+      icon.className = 'ph ph-arrow-fat-up';
+      btn.classList.remove('upvoted');
+    }
+    count.textContent = d.count;
+  }
+  btn.disabled = false;
+}
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type + ' show';
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+<style>
+.proj-card{border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:all .25s;}
+.filter-pill{display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:20px;font-size:.76rem;font-weight:600;color:#666;text-decoration:none;background:rgba(0,0,0,.03);border:1px solid rgba(0,0,0,.05);transition:all .2s;}
+.filter-pill:hover{color:var(--mango)}.filter-pill.active{background:var(--mango);color:white;border-color:transparent}
+.cat-pill{display:inline-block;padding:5px 12px;border-radius:20px;font-size:.73rem;font-weight:600;color:#666;text-decoration:none;background:rgba(0,0,0,.03);border:1px solid rgba(0,0,0,.05);transition:all .2s;}
+.cat-pill:hover{color:var(--mango)}.cat-pill.active{background:var(--dark);color:white;border-color:transparent}
+.upvote-btn{display:inline-flex;align-items:center;gap:5px;padding:9px 16px;border-radius:10px;font-size:.78rem;font-weight:700;border:1.5px solid rgba(0,0,0,.08);background:white;cursor:pointer;transition:all .2s;color:#555;}
+.upvote-btn:hover{border-color:var(--mango);color:var(--mango);}
+.upvote-btn.upvoted{background:var(--mango);color:white;border-color:var(--mango);}
+</style>
+{% endblock %}

@@ -1,0 +1,101 @@
+╔══════════════════════════════════════════════════════════╗
+║         ATTENDANCE SYSTEM — COMPLETE SETUP GUIDE         ║
+╚══════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  STEP 1 — BACKEND SETUP (Windows PowerShell)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+cd backend
+npm install
+
+[SWITCH TO MOBILE HOTSPOT — college WiFi blocks MongoDB Atlas]
+
+npm run seed
+npm run dev
+
+✅ You should see:
+   ✅ MongoDB connected: cluster0.v8wfkok.mongodb.net
+   🚀 Server running on http://localhost:3000
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  STEP 2 — FIND YOUR PC IP (for Flutter app)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Open cmd and type:
+  ipconfig
+
+Find "IPv4 Address" under your active adapter.
+Example: 192.168.43.105
+
+Edit flutter_app/lib/config.dart line 8:
+  static const String baseUrl = 'http://192.168.43.105:3000/api';
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  STEP 3 — FLUTTER APP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+cd flutter_app
+flutter pub get
+flutter run
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  TEST LOGINS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Teacher : rajan@college.edu  / teacher123
+Student : arjun@college.edu  / student123
+Student : priya@college.edu  / student123
+Student : rohit@college.edu  / student123
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  TEST API IN BROWSER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+http://localhost:3000/health
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+backend/
+  .env                          ← MongoDB credentials (pre-filled)
+  package.json
+  src/
+    index.js                    ← Express server entry
+    config/db.js                ← MongoDB connection
+    middleware/auth.js          ← JWT auth
+    models/
+      Teacher.js
+      Student.js
+      Session.js
+      Attendance.js
+      RejectedAttempt.js
+    routes/
+      auth.js                   ← Login, register device
+      sessions.js               ← Start/stop/token
+      attendance.js             ← Mark + reports
+    utils/
+      tokenService.js           ← Token rotation
+      seed.js                   ← Test data
+
+flutter_app/
+  lib/
+    main.dart                   ← App entry + splash
+    config.dart                 ← API URL ← CHANGE THIS
+    models/models.dart
+    screens/
+      login_screen.dart
+      teacher_home_screen.dart
+      student_home_screen.dart
+    services/
+      api_service.dart
+      auth_provider.dart
+      ble_service.dart
+      device_service.dart
+  android/app/src/main/
+    AndroidManifest.xml         ← BLE permissions
+    kotlin/
+      MainActivity.kt           ← Platform channel
+      BleAdvertiser.kt          ← Native BLE broadcast
+  pubspec.yaml

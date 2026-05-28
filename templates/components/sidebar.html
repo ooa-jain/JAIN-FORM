@@ -1,0 +1,125 @@
+<div class="mobile-header">
+  <div class="mh-left">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" class="mh-logo" alt="Draftspace">
+    <span class="mh-text">DRAFT<span style="color:var(--mango)">SPACE</span></span>
+  </div>
+  <button class="mh-hamburger" onclick="toggleMobileNav()"><i class="ph ph-list"></i></button>
+</div>
+<div class="mob-overlay" onclick="toggleMobileNav()"></div>
+<nav class="app-nav" id="mainSidebar">
+  <div class="nav-brand">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" class="sb-icon duck-logo" alt="Draftspace">
+    <span class="sb-text">DRAFT<span style="color:var(--mango)">SPACE</span></span>
+  </div>
+  <div class="nav-right">
+
+    <!-- Primary -->
+    <a href="{{ url_for('dashboard.index') }}" class="btn-ghost-sm {% if request.endpoint == 'dashboard.index' %}sb-active{% endif %}" title="Home">
+      <span class="sb-icon"><i class="ph ph-house"></i></span><span class="sb-text">Home</span>
+    </a>
+    <a href="{{ url_for('discover.feed') }}" class="btn-ghost-sm {% if 'discover' in request.endpoint %}sb-active{% endif %}" title="Discover">
+      <span class="sb-icon"><i class="ph ph-compass"></i></span><span class="sb-text">Discover</span>
+    </a>
+
+    <!-- Divider -->
+    <div class="sb-divider"><span class="sb-text sb-divider-label">CREATE</span></div>
+
+    <a href="{{ url_for('dashboard.create') }}" class="btn-ghost-sm {% if request.endpoint == 'dashboard.create' %}sb-active{% endif %}" title="Draft Form">
+      <span class="sb-icon"><i class="ph ph-plus-circle"></i></span><span class="sb-text">Draft Form</span>
+    </a>
+    <a href="{{ url_for('projects.new_project') }}" class="btn-ghost-sm {% if request.endpoint == 'projects.new_project' %}sb-active{% endif %}" title="Launch Project">
+      <span class="sb-icon"><i class="ph ph-rocket-launch"></i></span><span class="sb-text">Launch Project</span>
+    </a>
+    <a href="{{ url_for('newsletter.index') }}" class="btn-ghost-sm {% if 'newsletter' in request.endpoint %}sb-active{% endif %}" title="Newsletters">
+      <span class="sb-icon"><i class="ph ph-envelope-simple"></i></span><span class="sb-text">Newsletters</span>
+    </a>
+    <a href="/newsletter/community" class="btn-ghost-sm" title="Community Newsletters" style="padding-left:20px;opacity:.8">
+      <span class="sb-icon"><i class="ph ph-globe-simple"></i></span><span class="sb-text" style="font-size:.8rem">Community Feed</span>
+    </a>
+
+
+    <!-- Divider -->
+    <div class="sb-divider"><span class="sb-text sb-divider-label">COMMUNITY</span></div>
+
+    <a href="{{ url_for('projects.feed') }}" class="btn-ghost-sm {% if request.endpoint in ['projects.feed','projects.detail'] %}sb-active{% endif %}" title="Projects">
+      <span class="sb-icon"><i class="ph ph-squares-four"></i></span><span class="sb-text">Projects</span>
+    </a>
+    <a href="{{ url_for('community.feed') }}" class="btn-ghost-sm {% if 'community' in request.endpoint %}sb-active{% endif %}" title="Community">
+      <span class="sb-icon"><i class="ph ph-users-three"></i></span><span class="sb-text">Community</span>
+    </a>
+    <a href="{{ url_for('research.hub') }}" class="btn-ghost-sm {% if 'research' in request.endpoint %}sb-active{% endif %}" title="Research">
+      <span class="sb-icon"><i class="ph ph-flask"></i></span><span class="sb-text">Research</span>
+    </a>
+    <a href="{{ url_for('marketplace.store') }}" class="btn-ghost-sm {% if 'marketplace' in request.endpoint %}sb-active{% endif %}" title="Marketplace">
+      <span class="sb-icon"><i class="ph ph-shopping-bag"></i></span><span class="sb-text">Marketplace</span>
+    </a>
+
+    <!-- Divider -->
+    <div class="sb-divider"><span class="sb-text sb-divider-label">REWARDS</span></div>
+
+    <a href="{{ url_for('challenges.index') }}" class="btn-ghost-sm {% if 'challenges' in request.endpoint %}sb-active{% endif %}" title="Challenges">
+      <span class="sb-icon"><i class="ph ph-trophy"></i></span><span class="sb-text">Challenges</span>
+    </a>
+    <a href="{{ url_for('challenges.leaderboard') }}" class="btn-ghost-sm {% if request.endpoint == 'challenges.leaderboard' %}sb-active{% endif %}" title="Leaderboard">
+      <span class="sb-icon"><i class="ph ph-chart-bar"></i></span><span class="sb-text">Leaderboard</span>
+    </a>
+
+    <div class="sb-divider"><span class="sb-text sb-divider-label">TOOLS</span></div>
+
+    <a href="{{ url_for('deploy.deploy_index') }}" class="btn-ghost-sm {% if 'deploy' in request.endpoint %}sb-active{% endif %}" title="Deploy">
+      <span class="sb-icon"><i class="ph ph-globe"></i></span><span class="sb-text">Deploy</span>
+    </a>
+
+    <!-- Spacer -->
+    <div style="flex:1"></div>
+
+    <!-- XP Bar -->
+    {% if current_user.is_authenticated %}
+    <div class="sb-xp-bar sb-text">
+      <div style="display:flex;justify-content:space-between;font-size:.65rem;color:#aaa;margin-bottom:3px;">
+        <span><i class="ph ph-lightning" style="color:var(--mango)"></i> {{ current_user.xp }} XP</span>
+        <span>Lv {{ current_user.level }}</span>
+      </div>
+      <div style="height:4px;background:rgba(0,0,0,.08);border-radius:4px;overflow:hidden;">
+        <div style="height:100%;background:linear-gradient(90deg,var(--mango),var(--mango-d));border-radius:4px;width:{{ [((current_user.xp % (current_user.level * 100)) / (current_user.level * 100) * 100)|int, 100]|min }}%;transition:width .5s;"></div>
+      </div>
+      {% if current_user.streak_count > 0 %}
+      <div style="font-size:.65rem;color:#aaa;margin-top:4px;text-align:center;"><span style="color:#FF6B35;">🔥</span> {{ current_user.streak_count }}-day streak</div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- User + Upgrade + Logout -->
+    <div class="user-pill" title="{{ current_user.name }}">
+      <div class="user-init">{{ current_user.name[0].upper() if current_user.name else 'U' }}</div>
+      <div class="sb-text" style="overflow:hidden;">
+        <div style="font-weight:700;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ current_user.name }}</div>
+        <div style="font-size:.65rem;color:var(--mango);font-weight:600;">{{ current_user.creator_title if current_user.creator_title is defined else 'Creator' }}</div>
+      </div>
+    </div>
+    <a href="{{ url_for('pricing.index') }}" class="btn-ghost-sm sb-upgrade" title="Upgrade Plan">
+      <span class="sb-icon"><i class="ph ph-diamond"></i></span><span class="sb-text">Upgrade Plan</span>
+    </a>
+    <a href="{{ url_for('auth.logout') }}" class="btn-ghost-sm sb-logout" title="Logout">
+      <span class="sb-icon"><i class="ph ph-sign-out"></i></span><span class="sb-text">Logout</span>
+    </a>
+    <button class="btn-ghost-sm sb-toggle-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
+      <span class="sb-icon" id="toggleIcon"><i class="ph ph-caret-left"></i></span><span class="sb-text">Collapse</span>
+    </button>
+  </div>
+</nav>
+
+<style>
+.duck-logo { width: 64px; height: 64px; object-fit: contain; margin-right: 12px; border-radius: 8px; }
+.sb-active { color: var(--mango) !important; background: rgba(255,140,0,0.08) !important; border-color: rgba(255,140,0,0.25) !important; }
+.sb-upgrade { color: var(--mango) !important; }
+.sb-upgrade:hover { background: rgba(255,140,0,0.1) !important; }
+.sb-logout { color: #E63946 !important; }
+.sb-logout:hover { background: rgba(230,57,70,0.08) !important; border-color: rgba(230,57,70,0.3) !important; }
+.sb-divider { padding: 10px 16px 2px; }
+.sb-divider-label { font-size: .58rem !important; font-weight: 800 !important; color: #bbb !important; letter-spacing: .1em; text-transform: uppercase; }
+.sb-xp-bar { padding: 8px 12px; margin-bottom: 6px; }
+body.sidebar-collapsed .sb-xp-bar { display: none; }
+body.sidebar-collapsed .sb-divider { display: none; }
+</style>
+

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login — Member Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:#faf8f4;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+    .card{background:#fff;border:1px solid #ccc8c2;border-radius:10px;padding:40px;width:100%;max-width:400px;box-shadow:0 4px 24px rgba(0,0,0,0.06);}
+    h1{font-family:'DM Serif Display',serif;font-size:26px;font-weight:400;color:#1a1814;margin-bottom:4px;}
+    .sub{font-size:13px;color:#8a847c;margin-bottom:28px;}
+    label{display:block;font-size:13px;font-weight:500;color:#4a4640;margin-bottom:6px;}
+    input{width:100%;padding:10px 14px;border:1.5px solid #ccc8c2;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:14px;margin-bottom:16px;outline:none;background:#faf8f4;}
+    input:focus{border-color:#b8922a;box-shadow:0 0 0 3px rgba(184,146,42,0.12);background:#fff;}
+    button{width:100%;padding:12px;background:#1a1814;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#b8922a;cursor:pointer;}
+    button:hover{background:#8a6a18;color:#fff;}
+    .error-msg{background:#fdf2f2;color:#c0392b;padding:10px 14px;border-radius:6px;border:1px solid #f5c6c6;margin-bottom:16px;font-size:13px;}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Admin Access</h1>
+    <p class="sub">Member Profile Network — Internal Dashboard</p>
+    {% if error %}<div class="error-msg">{{ error }}</div>{% endif %}
+    <form method="POST">
+      <label>Username</label>
+      <input type="text" name="username" placeholder="admin" required autofocus/>
+      <label>Password</label>
+      <input type="password" name="password" placeholder="••••••••" required/>
+      <button type="submit">Sign in →</button>
+    </form>
+  </div>
+</body>
+</html>

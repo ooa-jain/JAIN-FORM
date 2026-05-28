@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>{{ form.title }}</title>
+<link href="https://fonts.googleapis.com/css2?family={{ form.theme.font.replace(' ','+') }}:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   CSS VARIABLES
+═══════════════════════════════════════════ */
+:root {
+  --bg:    {{ form.theme.bg_color }};
+  --hdr:   {{ form.theme.header_color }};
+  --acc:   {{ form.theme.accent_color }};
+  --txt:   {{ form.theme.text_color }};
+  --card:  {{ form.theme.card_color }};
+  --font:  '{{ form.theme.font }}', sans-serif;
+  --r:     14px;
+  --r-xl:  22px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+.hidden{display:none!important}
+
+/* ═══════════════════════════════════════════
+   SHARED INPUTS
+═══════════════════════════════════════════ */
+.fv-inp{width:100%;padding:11px 14px;border:1.5px solid rgba(0,0,0,.12);border-radius:10px;font-family:var(--font);font-size:.92rem;color:var(--txt);background:color-mix(in srgb,var(--bg) 60%,var(--card));outline:none;transition:all .2s;-webkit-appearance:none;appearance:none}
+.fv-inp:focus{border-color:var(--acc);background:var(--card);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 11%,transparent)}
+.fv-textarea{resize:vertical;min-height:90px;line-height:1.6}
+.fv-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%23999' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:42px;cursor:pointer}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opt{display:flex;align-items:center;gap:12px;padding:11px 15px;border:1.5px solid rgba(0,0,0,.1);border-radius:11px;cursor:pointer;transition:all .2s;font-size:.92rem;user-select:none;position:relative}
+.opt:hover{border-color:color-mix(in srgb,var(--acc) 50%,transparent);background:color-mix(in srgb,var(--acc) 4%,transparent)}
+.opt input{display:none}
+.opt-dot{width:19px;height:19px;border-radius:50%;border:2px solid #ccc;flex-shrink:0;transition:all .2s;background:#fff;display:flex;align-items:center;justify-content:center}
+.opt-dot::after{content:'';width:9px;height:9px;border-radius:50%;background:var(--acc);transform:scale(0);transition:transform .2s}
+.opt-box{width:19px;height:19px;border-radius:6px;border:2px solid #ccc;flex-shrink:0;transition:all .2s;background:#fff;display:flex;align-items:center;justify-content:center;font-size:.74rem;color:#fff;font-weight:700}
+.opt:has(input:checked){border-color:var(--acc);background:color-mix(in srgb,var(--acc) 6%,transparent)}
+.opt:has(input[type=radio]:checked) .opt-dot{border-color:var(--acc)}
+.opt:has(input[type=radio]:checked) .opt-dot::after{transform:scale(1)}
+.opt:has(input[type=checkbox]:checked) .opt-box{border-color:var(--acc);background:var(--acc)}
+.opt:has(input[type=checkbox]:checked) .opt-box::after{content:'✓'}
+.stars{display:flex;gap:7px;flex-wrap:wrap;margin-top:4px}
+.star{background:none;border:none;font-size:2.2rem;cursor:pointer;color:#E0E0E0;transition:color .15s,transform .15s;padding:2px;line-height:1}
+.star:hover,.star.on{color:#FFB347;transform:scale(1.18)}
+.scale-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.sc-btn{min-width:40px;height:40px;border:1.5px solid rgba(0,0,0,.12);border-radius:9px;background:none;cursor:pointer;font-family:var(--font);font-size:.88rem;font-weight:600;transition:all .18s;color:var(--txt)}
+.sc-btn:hover{border-color:var(--acc);color:var(--acc);background:color-mix(in srgb,var(--acc) 5%,transparent)}
+.sc-btn.on{background:var(--acc);border-color:var(--acc);color:#fff;box-shadow:0 4px 12px color-mix(in srgb,var(--acc) 35%,transparent)}
+.scale-lbls{display:flex;justify-content:space-between;font-size:.71rem;color:#aaa;margin-top:5px}
+.grid-wrap{overflow-x:auto;border-radius:9px;border:1.5px solid rgba(0,0,0,.1)}
+.fv-grid{width:100%;border-collapse:collapse;font-size:.87rem}
+.fv-grid th,.fv-grid td{border:1px solid rgba(0,0,0,.08);padding:10px 11px;text-align:center;vertical-align:middle}
+.fv-grid thead th{background:var(--acc);color:#fff;font-weight:600}
+.fv-grid thead th:first-child{background:color-mix(in srgb,var(--acc) 18%,var(--card));color:var(--txt);text-align:left}
+.fv-grid tbody tr:nth-child(even){background:rgba(0,0,0,.02)}
+.fv-grid tbody td:first-child{font-weight:500;text-align:left}
+.grid-radio,.grid-cb{width:17px;height:17px;cursor:pointer;accent-color:var(--acc)}
+.quiz-fb{display:none;margin-top:9px;padding:10px 14px;border-radius:9px;font-size:.83rem;font-weight:600}
+.quiz-fb.correct{background:color-mix(in srgb,#2D6A4F 10%,transparent);color:#2D6A4F;border:1px solid color-mix(in srgb,#2D6A4F 28%,transparent)}
+.quiz-fb.correct::before{content:'✓ '}
+.quiz-fb.wrong{background:color-mix(in srgb,#E63946 8%,transparent);color:#E63946;border:1px solid color-mix(in srgb,#E63946 22%,transparent)}
+.quiz-fb.wrong::before{content:'✗ '}
+.img-dz{border:2px dashed rgba(0,0,0,.14);border-radius:11px;padding:32px 18px;text-align:center;cursor:pointer;transition:all .2s;color:#bbb}
+.img-dz:hover,.img-dz.over{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 5%,transparent);color:var(--acc)}
+.img-dz-icon{font-size:2.6rem;margin-bottom:9px;display:block}
+.img-preview-el{max-width:100%;border-radius:9px;margin-top:13px;display:none;border:1.5px solid rgba(0,0,0,.07)}
+.img-preview-el.show{display:block}
+.yt-wrap{position:relative;padding-bottom:56.25%;border-radius:11px;overflow:hidden;background:#000}
+.yt-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+.fv-err{font-size:.77rem;color:#E63946;margin-top:7px;display:none}
+.fv-err.show{display:flex;align-items:center;gap:5px}
+.fv-err::before{content:'⚠';font-size:.78rem}
+.fv-field.is-header{background:transparent;border:none;box-shadow:none;padding-bottom:0}
+.fv-divider-line{border:none;border-top:2px solid rgba(0,0,0,.07);margin:2px 0}
+.fv-brand{text-align:center;padding:22px;font-size:.73rem;color:#bbb}
+.fv-brand strong{color:color-mix(in srgb,var(--acc) 70%,#888)}
+
+
+/* ═══════════════════════════════════════════
+   WEBSITE MODE — Full Landing Page
+═══════════════════════════════════════════ */
+
+/* ── TOP NAVBAR (pages as nav) ── */
+.site-nav{
+  position:sticky;
+  top:0;
+  z-index:200;
+  background:var(--hdr);
+  {% if form.theme.cover_image and form.theme.cover_image.startswith('http') %}
+  background:var(--hdr);
+  {% endif %}
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,.1);
+  box-shadow:0 2px 20px rgba(0,0,0,.2);
+}
+.site-nav-inner{
+  max-width:1100px;
+  margin:0 auto;
+  padding:0 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  height:58px;
+  gap:16px;
+}
+.site-nav-brand{
+  font-family:'Playfair Display',serif;
+  font-size:1.05rem;
+  font-weight:700;
+  color:#fff;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.site-nav-pages{
+  display:flex;
+  align-items:center;
+  gap:2px;
+  flex:1;
+  justify-content:center;
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.site-nav-pages::-webkit-scrollbar{display:none}
+.site-nav-tab{
+  padding:7px 18px;
+  border:none;
+  background:transparent;
+  color:rgba(255,255,255,.55);
+  font-family:var(--font);
+  font-size:.85rem;
+  font-weight:500;
+  cursor:pointer;
+  border-radius:8px;
+  transition:all .2s;
+  white-space:nowrap;
+  position:relative;
+}
+.site-nav-tab:hover{color:#fff;background:rgba(255,255,255,.08)}
+.site-nav-tab.active{color:#fff;font-weight:700;background:rgba(255,255,255,.12)}
+.site-nav-tab.active::after{
+  content:'';
+  position:absolute;
+  bottom:-1px;
+  left:18px;
+  right:18px;
+  height:2px;
+  background:var(--acc);
+  border-radius:2px 2px 0 0;
+}
+.site-nav-cta{
+  padding:8px 20px;
+  background:var(--acc);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-family:var(--font);
+  font-size:.84rem;
+  font-weight:700;
+  cursor:pointer;
+  transition:all .2s;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.site-nav-cta:hover{transform:translateY(-1px);box-shadow:0 4px 14px color-mix(in srgb,var(--acc) 40%,transparent)}
+/* Mobile nav hamburger */
+.site-nav-burger{display:none;background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;padding:6px;border-radius:6px}
+.site-nav-mobile{display:none;position:absolute;top:58px;left:0;right:0;background:var(--hdr);padding:10px 16px 16px;border-bottom:1px solid rgba(255,255,255,.1);z-index:199}
+.site-nav-mobile.open{display:block}
+.site-nav-mobile .site-nav-tab{display:block;text-align:left;width:100%;padding:10px 14px;border-radius:8px;margin-bottom:2px}
+
+/* ── HERO SECTION ── */
+.site-hero{
+  background:var(--hdr);
+  {% if form.theme.cover_image and form.theme.cover_image.startswith('http') %}
+  background-image:url('{{ form.theme.cover_image }}');
+  background-size:cover;
+  background-position:center;
+  {% elif form.theme.cover_image and form.theme.cover_image.startswith('linear') %}
+  background:{{ form.theme.cover_image }};
+  {% endif %}
+  min-height:85vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+  padding:60px 24px;
+}
+.site-hero::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.3) 50%,rgba(0,0,0,.58) 100%);
+}
+.site-hero-content{
+  position:relative;
+  z-index:1;
+  max-width:760px;
+  animation:heroIn .9s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes heroIn{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+.site-hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+  border-radius:40px;padding:6px 18px;
+  font-size:.78rem;font-weight:600;color:rgba(255,255,255,.85);
+  letter-spacing:.1em;margin-bottom:22px;backdrop-filter:blur(8px);
+}
+.site-hero-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(2.4rem,6vw,4.5rem);
+  font-weight:900;color:#fff;
+  line-height:1.1;margin-bottom:18px;
+  text-shadow:0 4px 24px rgba(0,0,0,.3);
+}
+.site-hero-desc{
+  color:rgba(255,255,255,.78);
+  font-size:clamp(.95rem,2vw,1.2rem);
+  line-height:1.7;max-width:540px;
+  margin:0 auto 36px;
+}
+.site-hero-btns{display:flex;gap:13px;justify-content:center;flex-wrap:wrap}
+.site-btn-primary{
+  padding:16px 40px;background:var(--acc);color:#fff;
+  border:none;border-radius:40px;
+  font-family:var(--font);font-size:1rem;font-weight:700;
+  cursor:pointer;transition:all .22s;
+  box-shadow:0 8px 30px rgba(0,0,0,.25);
+  display:flex;align-items:center;gap:9px;
+}
+.site-btn-primary:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 16px 44px rgba(0,0,0,.3)}
+.site-btn-secondary{
+  padding:16px 32px;background:transparent;color:#fff;
+  border:2px solid rgba(255,255,255,.4);border-radius:40px;
+  font-family:var(--font);font-size:1rem;font-weight:600;
+  cursor:pointer;transition:all .22s;backdrop-filter:blur(4px);
+}
+.site-btn-secondary:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.6)}
+.site-scroll-hint{
+  position:absolute;bottom:28px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  color:rgba(255,255,255,.45);font-size:.75rem;
+  animation:bounce 2.2s infinite;
+}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
+
+/* ── PAGE SECTIONS (shown one at a time) ── */
+.site-page{display:none;animation:pgSlide .4s cubic-bezier(.22,1,.36,1) both}
+.site-page.active{display:block}
+@keyframes pgSlide{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.site-section{
+  max-width:720px;
+  margin:0 auto;
+  padding:48px 24px 60px;
+}
+.site-pg-eyebrow{
+  font-size:.72rem;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;
+  color:var(--acc);margin-bottom:10px;opacity:.9;
+}
+.site-pg-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.6rem,3vw,2.4rem);font-weight:700;
+  margin-bottom:12px;line-height:1.2;color:var(--txt);
+}
+.site-pg-divider{width:48px;height:4px;background:var(--acc);border-radius:2px;margin-bottom:28px}
+
+/* ── FIELD CARDS (website style) ── */
+.web-field{
+  background:var(--card);
+  border-radius:var(--r-xl);
+  padding:24px 28px;
+  margin-bottom:14px;
+  box-shadow:0 4px 24px rgba(0,0,0,.07);
+  border:1.5px solid rgba(0,0,0,.06);
+  transition:all .28s;
+  position:relative;
+  overflow:hidden;
+}
+.web-field::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--acc);border-radius:0 2px 2px 0;
+  transform:scaleY(0);transition:transform .28s;
+}
+.web-field:focus-within::before{transform:scaleY(1)}
+.web-field:focus-within{
+  border-color:color-mix(in srgb,var(--acc) 40%,transparent);
+  box-shadow:0 8px 36px rgba(0,0,0,.1),0 0 0 3px color-mix(in srgb,var(--acc) 8%,transparent);
+}
+.web-field-num{
+  position:absolute;top:18px;right:20px;
+  width:26px;height:26px;border-radius:50%;
+  background:color-mix(in srgb,var(--acc) 12%,transparent);
+  color:var(--acc);font-size:.73rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.web-field-label{font-weight:700;font-size:1rem;margin-bottom:6px;display:flex;align-items:center;gap:8px;padding-right:36px}
+.web-field-help{font-size:.83rem;color:color-mix(in srgb,var(--txt) 55%,transparent);margin-bottom:12px;line-height:1.55}
+.web-req{color:var(--acc);margin-left:3px;font-size:.9rem}
+.web-yt-wrap{position:relative;padding-bottom:56.25%;border-radius:12px;overflow:hidden;background:#000;margin-top:4px}
+.web-yt-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+.web-hdr-blk{padding:18px 24px;border-radius:12px;background:var(--hdr);margin-bottom:14px}
+.web-hdr-blk h3{font-family:'Playfair Display',serif;font-size:1.25rem;color:#fff;font-weight:700}
+
+/* ── BOTTOM NAV (prev / next) ── */
+.site-bottom-nav{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:28px;flex-wrap:wrap;gap:12px;
+  padding-top:18px;border-top:1px solid rgba(0,0,0,.06);
+}
+.site-btn-back{
+  padding:13px 24px;background:transparent;
+  border:2px solid rgba(0,0,0,.12);border-radius:40px;
+  font-family:var(--font);font-size:.93rem;cursor:pointer;
+  transition:all .2s;color:#888;
+}
+.site-btn-back:hover{border-color:var(--acc);color:var(--acc)}
+.site-btn-next,.site-btn-submit{
+  padding:14px 36px;background:var(--acc);color:#fff;
+  border:none;border-radius:40px;font-family:var(--font);
+  font-size:.95rem;font-weight:700;cursor:pointer;
+  transition:all .22s;
+  box-shadow:0 6px 20px color-mix(in srgb,var(--acc) 34%,transparent);
+  display:flex;align-items:center;gap:8px;
+}
+.site-btn-next:hover,.site-btn-submit:hover{transform:translateY(-2px)}
+.site-btn-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+
+/* ── SUCCESS ── */
+.site-success{
+  display:none;min-height:80vh;
+  align-items:center;justify-content:center;
+  flex-direction:column;text-align:center;padding:60px 24px;
+  background:var(--hdr);
+}
+.site-success-ring{
+  width:110px;height:110px;border-radius:50%;
+  background:rgba(255,255,255,.12);
+  border:2px solid rgba(255,255,255,.25);
+  display:flex;align-items:center;justify-content:center;
+  font-size:3rem;margin:0 auto 28px;
+  animation:ringIn .7s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes ringIn{from{transform:scale(0) rotate(-180deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
+.site-success h2{font-family:'Playfair Display',serif;font-size:2.5rem;color:#fff;font-weight:900;margin-bottom:12px}
+.site-success p{color:rgba(255,255,255,.7);font-size:1.05rem;max-width:440px}
+
+
+/* ═══════════════════════════════════════════
+   CLASSIC FORM MODE
+═══════════════════════════════════════════ */
+.fv-cover{
+  background:var(--hdr);
+  {% if form.theme.cover_image and form.theme.cover_image.startswith('http') %}
+  background-image:url('{{ form.theme.cover_image }}');
+  background-size:cover;background-position:center;
+  {% elif form.theme.cover_image and form.theme.cover_image.startswith('linear') %}
+  background:{{ form.theme.cover_image }};
+  {% endif %}
+  min-height:220px;display:flex;flex-direction:column;
+  justify-content:flex-end;position:relative;overflow:hidden;
+}
+.fv-cover::before{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.05),rgba(0,0,0,.52))}
+.fv-cover-inner{position:relative;z-index:1;padding:40px 26px 34px;max-width:700px;margin:0 auto;width:100%}
+.fv-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:30px;padding:4px 13px;font-size:.72rem;font-weight:600;color:rgba(255,255,255,.8);letter-spacing:.08em;margin-bottom:12px;backdrop-filter:blur(4px)}
+.fv-title{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,5vw,2.7rem);font-weight:900;color:#fff;line-height:1.15;margin-bottom:9px;text-shadow:0 2px 10px rgba(0,0,0,.2)}
+.fv-desc{color:rgba(255,255,255,.76);font-size:.96rem;line-height:1.65;max-width:540px}
+.fv-prog{height:4px;background:rgba(0,0,0,.08);position:sticky;top:0;z-index:50}
+.fv-prog-fill{height:100%;background:var(--acc);transition:width .5s cubic-bezier(.34,1.56,.64,1);width:0}
+.fv-wrap{max-width:700px;margin:0 auto;padding:22px 16px 80px}
+.fv-page-hdr{background:var(--card);border-radius:12px;padding:13px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;box-shadow:0 2px 10px rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.06)}
+.fv-pg-badge{font-size:.71rem;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.1em;background:color-mix(in srgb,var(--acc) 10%,transparent);padding:3px 11px;border-radius:20px;border:1px solid color-mix(in srgb,var(--acc) 28%,transparent)}
+.fv-steps{display:flex;gap:5px}
+.fv-step{width:30px;height:5px;border-radius:3px;background:rgba(0,0,0,.1);transition:all .3s}
+.fv-step.done{background:var(--acc)}.fv-step.cur{background:var(--acc);opacity:.55}
+.fv-page{animation:pgIn .38s cubic-bezier(.22,1,.36,1) both}
+@keyframes pgIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.fv-field{background:var(--card);border-radius:var(--r);padding:20px 22px;margin-bottom:11px;box-shadow:0 2px 10px rgba(0,0,0,.05);border:1.5px solid rgba(0,0,0,.06);transition:border-color .2s,box-shadow .2s;position:relative}
+.fv-field:focus-within{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 10%,transparent),0 2px 10px rgba(0,0,0,.05)}
+.fv-label{font-weight:600;font-size:.95rem;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.fv-req{color:var(--acc);font-size:.85rem}
+.fv-help{font-size:.81rem;color:color-mix(in srgb,var(--txt) 55%,transparent);margin-bottom:10px;line-height:1.55}
+.fv-field.is-header{background:transparent;border:none;box-shadow:none;padding-bottom:0}
+.fv-field.is-header:focus-within{border-color:transparent;box-shadow:none}
+.fv-field.is-header h3{font-size:1.1rem;font-weight:700;border-bottom:2px solid color-mix(in srgb,var(--acc) 38%,transparent);padding-bottom:8px}
+.fv-field.is-header p{font-size:.83rem;color:#aaa;margin-top:5px}
+.fv-nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;flex-wrap:wrap;gap:10px}
+.btn-next,.btn-submit{padding:13px 34px;background:var(--acc);color:#fff;border:none;border-radius:40px;font-family:var(--font);font-size:.94rem;font-weight:700;cursor:pointer;transition:all .22s;box-shadow:0 6px 20px color-mix(in srgb,var(--acc) 34%,transparent);display:flex;align-items:center;gap:8px}
+.btn-next:hover,.btn-submit:hover{transform:translateY(-2px)}
+.btn-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn-back{padding:12px 22px;background:transparent;border:1.5px solid rgba(0,0,0,.14);border-radius:40px;font-family:var(--font);font-size:.9rem;cursor:pointer;transition:all .2s;color:#888}
+.btn-back:hover{border-color:var(--acc);color:var(--acc)}
+.fv-success{display:none;text-align:center;padding:70px 24px;animation:pgIn .5s ease}
+.fv-success-ring{width:90px;height:90px;border-radius:50%;background:color-mix(in srgb,var(--acc) 12%,transparent);display:flex;align-items:center;justify-content:center;margin:0 auto 22px;font-size:2.5rem;animation:ringIn .6s cubic-bezier(.34,1.56,.64,1);border:2px solid color-mix(in srgb,var(--acc) 30%,transparent)}
+.fv-success h2{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;margin-bottom:9px}
+.fv-success p{color:#aaa;font-size:.9rem;line-height:1.65}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .site-nav-pages{display:none}
+  .site-nav-burger{display:block}
+  .site-btn-primary,.site-btn-secondary{padding:13px 24px;font-size:.9rem}
+  .site-hero-title{font-size:2rem}
+  .web-field{padding:18px 16px}
+}
+</style>
+</head>
+<body>
+
+{% set is_website = form.settings.get('presentation_style','form') == 'web' %}
+{% set total_pages = form.pages|length %}
+
+<!-- ═══════════════════════════════════════════════════
+     WEBSITE MODE
+═══════════════════════════════════════════════════ -->
+{% if is_website %}
+
+<!-- TOP NAVBAR with pages -->
+<nav class="site-nav" id="siteNav">
+  <div class="site-nav-inner">
+    <div class="site-nav-brand">{{ form.title }}</div>
+
+    {% if total_pages > 1 %}
+    <!-- Desktop page tabs -->
+    <div class="site-nav-pages" id="siteNavPages">
+      {% for page in form.pages %}
+      <button class="site-nav-tab {{ 'active' if loop.first }}"
+              id="navTab{{ loop.index0 }}"
+              onclick="siteGoPage({{ loop.index0 }})">
+        {{ page.title if page.title and page.title != 'Page '+loop.index|string else 'Step '+loop.index|string }}
+      </button>
+      {% endfor %}
+    </div>
+    <!-- Mobile hamburger -->
+    <button class="site-nav-burger" id="navBurger" onclick="toggleMobileNav()">☰</button>
+    {% endif %}
+
+    <button class="site-nav-cta" onclick="scrollToForm()">Start Now</button>
+  </div>
+  <!-- Mobile dropdown -->
+  {% if total_pages > 1 %}
+  <div class="site-nav-mobile" id="mobileNav">
+    {% for page in form.pages %}
+    <button class="site-nav-tab {{ 'active' if loop.first }}"
+            id="mNavTab{{ loop.index0 }}"
+            onclick="siteGoPage({{ loop.index0 }});toggleMobileNav()">
+      {{ page.title if page.title and page.title != 'Page '+loop.index|string else 'Step '+loop.index|string }}
+    </button>
+    {% endfor %}
+  </div>
+  {% endif %}
+</nav>
+
+<!-- HERO -->
+<div class="site-hero" id="siteHero">
+  <div class="site-hero-content">
+    <div class="site-hero-badge">◈ Draftspace · Interactive Form</div>
+    <h1 class="site-hero-title">{{ form.title }}</h1>
+    {% if form.description %}
+    <p class="site-hero-desc">{{ form.description }}</p>
+    {% endif %}
+    <div class="site-hero-btns">
+      <button class="site-btn-primary" onclick="scrollToForm()">
+        <span>Get Started</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </button>
+      <button class="site-btn-secondary" onclick="scrollToForm()">View Questions</button>
+    </div>
+  </div>
+  <div class="site-scroll-hint">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M6 13l6 6 6-6" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-linecap="round"/></svg>
+    <span>Scroll to explore</span>
+  </div>
+</div>
+
+<!-- SUCCESS SCREEN -->
+<div class="site-success" id="siteSuccess">
+  <div class="site-success-ring">🎉</div>
+  <h2>{{ form.settings.confirmation_message or 'Thank you!' }}</h2>
+  <p>Your response has been recorded. We appreciate your time.</p>
+</div>
+
+<!-- FORM SECTIONS — one per page, shown via navbar -->
+<div id="siteFormArea" style="background:var(--bg)">
+  {% for page in form.pages %}
+  <div class="site-page {{ 'active' if loop.first }}" id="sitePg{{ loop.index0 }}" data-page="{{ loop.index0 }}">
+    <div class="site-section" id="formAnchor">
+
+      {% if total_pages > 1 %}
+      <div class="site-pg-eyebrow">Step {{ loop.index }} of {{ total_pages }}</div>
+      {% endif %}
+
+      {% if page.title and page.title != 'Page '+loop.index|string %}
+      <h2 class="site-pg-title">{{ page.title }}</h2>
+      {% else %}
+      <h2 class="site-pg-title">{{ form.title }}</h2>
+      {% endif %}
+      <div class="site-pg-divider"></div>
+
+      <!-- Fields -->
+      {% set field_num = namespace(n=0) %}
+      {% for field in page.fields %}
+
+        {% if field.type == 'header' %}
+        <div class="web-hdr-blk">
+          <h3>{{ field.label }}</h3>
+          {% if field.help %}<p style="color:rgba(255,255,255,.65);font-size:.85rem;margin-top:6px">{{ field.help }}</p>{% endif %}
+        </div>
+
+        {% elif field.type == 'divider' %}
+        <div style="height:1px;background:rgba(0,0,0,.08);margin:20px 0"></div>
+
+        {% elif field.type == 'youtube' %}
+        <div class="web-field">
+          <div class="web-field-label">{{ field.label }}</div>
+          {% if field.help %}<div class="web-field-help">{{ field.help }}</div>{% endif %}
+          {% if field.youtube_id %}
+          <div class="web-yt-wrap"><iframe src="https://www.youtube.com/embed/{{ field.youtube_id }}" allowfullscreen></iframe></div>
+          {% endif %}
+        </div>
+
+        {% elif field.type == 'image_upload' %}
+        {% set field_num.n = field_num.n + 1 %}
+        <div class="web-field" data-fid="{{ field.id }}" data-type="{{ field.type }}" data-req="{{ field.required|lower }}">
+          <div class="web-field-num">{{ field_num.n }}</div>
+          <div class="web-field-label">{{ field.label }}{% if field.required %}<span class="web-req">*</span>{% endif %}</div>
+          {% if field.help %}<div class="web-field-help">{{ field.help }}</div>{% endif %}
+          {% if field.image_url %}<img src="{{ field.image_url }}" style="max-width:100%;border-radius:9px;margin-bottom:12px;display:block">{% endif %}
+          <div class="img-dz" id="wdz_{{ field.id }}" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="imgDrop(event,'{{ field.id }}')" onclick="document.getElementById('wfi_{{ field.id }}').click()">
+            <span class="img-dz-icon">🖼</span>
+            <div style="font-weight:600;font-size:.93rem">Click or drag image here</div>
+            <div style="font-size:.78rem;margin-top:4px">JPG, PNG, GIF, WebP</div>
+            <img class="img-preview-el" id="wiprev_{{ field.id }}" alt="">
+          </div>
+          <input type="file" id="wfi_{{ field.id }}" accept="image/*" style="display:none" onchange="imgSelect(event,'{{ field.id }}')">
+          <input type="hidden" id="widata_{{ field.id }}" name="{{ field.id }}">
+          <div class="fv-err" id="werr_{{ field.id }}">This field is required.</div>
+        </div>
+
+        {% elif field.type in ['radio_grid','checkbox_grid'] %}
+        {% set field_num.n = field_num.n + 1 %}
+        <div class="web-field" data-fid="{{ field.id }}" data-type="{{ field.type }}" data-req="{{ field.required|lower }}">
+          <div class="web-field-num">{{ field_num.n }}</div>
+          <div class="web-field-label">{{ field.label }}{% if field.required %}<span class="web-req">*</span>{% endif %}</div>
+          {% if field.help %}<div class="web-field-help">{{ field.help }}</div>{% endif %}
+          <div class="grid-wrap">
+            <table class="fv-grid">
+              <thead><tr><th></th>{% for col in field.cols or [] %}<th>{{ col }}</th>{% endfor %}</tr></thead>
+              <tbody>{% for row in field.rows or [] %}<tr><td>{{ row }}</td>{% for col in field.cols or [] %}<td>{% if field.type=='radio_grid' %}<input type="radio" class="grid-radio" name="{{ field.id }}_{{ loop.index0 }}" value="{{ col }}" data-row="{{ row }}" data-fid="{{ field.id }}" onchange="updateGrid('{{ field.id }}')">{% else %}<input type="checkbox" class="grid-cb" name="{{ field.id }}_{{ row }}" value="{{ col }}" data-row="{{ row }}" data-fid="{{ field.id }}" onchange="updateGrid('{{ field.id }}')">{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody>
+            </table>
+          </div>
+          <input type="hidden" name="{{ field.id }}" id="wgrid_{{ field.id }}">
+          <div class="fv-err" id="werr_{{ field.id }}">Please complete this grid.</div>
+        </div>
+
+        {% elif field.type in ['quiz_mc','quiz_tf'] %}
+        {% set field_num.n = field_num.n + 1 %}
+        <div class="web-field" data-fid="{{ field.id }}" data-type="{{ field.type }}" data-req="{{ field.required|lower }}">
+          <div class="web-field-num">{{ field_num.n }}</div>
+          <div class="web-field-label">
+            <span style="background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--acc);border-radius:20px;padding:2px 8px;font-size:.69rem;font-weight:700">QUIZ</span>
+            {{ field.label }}{% if field.required %}<span class="web-req">*</span>{% endif %}
+          </div>
+          {% if field.help %}<div class="web-field-help">{{ field.help }}</div>{% endif %}
+          <div class="opts">{% for opt in field.options or [] %}<label class="opt"><input type="radio" name="{{ field.id }}" value="{{ opt }}" {% if field.required %}required{% endif %} onchange="checkQuiz(this,'{{ field.correct_answer }}','{{ field.id }}')"><span class="opt-dot"></span><span>{{ opt }}</span></label>{% endfor %}</div>
+          <div class="quiz-fb" id="wqfb_{{ field.id }}"></div>
+          <div class="fv-err" id="werr_{{ field.id }}">Please select an answer.</div>
+        </div>
+
+        {% else %}
+        {% if field.type not in ['header','divider'] %}
+        {% set field_num.n = field_num.n + 1 %}
+        <div class="web-field" data-fid="{{ field.id }}" data-type="{{ field.type }}" data-req="{{ field.required|lower }}">
+          <div class="web-field-num">{{ field_num.n }}</div>
+          {% if field.type not in ['rating','scale'] %}
+          <div class="web-field-label">{{ field.label }}{% if field.required %}<span class="web-req">*</span>{% endif %}</div>
+          {% endif %}
+          {% if field.help %}<div class="web-field-help">{{ field.help }}</div>{% endif %}
+
+          {% if field.type == 'short_text' %}<input type="text" class="fv-inp" name="{{ field.id }}" placeholder="{{ field.placeholder or 'Your answer…' }}" {% if field.required %}required{% endif %}>
+          {% elif field.type == 'long_text' %}<textarea class="fv-inp fv-textarea" name="{{ field.id }}" placeholder="{{ field.placeholder or 'Type your response here…' }}" {% if field.required %}required{% endif %}></textarea>
+          {% elif field.type == 'number' %}<input type="number" class="fv-inp" name="{{ field.id }}" placeholder="{{ field.placeholder or '0' }}" {% if field.required %}required{% endif %}>
+          {% elif field.type == 'email' %}<input type="email" class="fv-inp" name="{{ field.id }}" placeholder="{{ field.placeholder or 'email@example.com' }}" {% if field.required %}required{% endif %}>
+          {% elif field.type == 'phone' %}<input type="tel" class="fv-inp" name="{{ field.id }}" placeholder="{{ field.placeholder or '+91 XXXXX XXXXX' }}" {% if field.required %}required{% endif %}>
+          {% elif field.type == 'date' %}<input type="date" class="fv-inp" name="{{ field.id }}" {% if field.required %}required{% endif %}>
+          {% elif field.type == 'time' %}<input type="time" class="fv-inp" name="{{ field.id }}" {% if field.required %}required{% endif %}>
+          {% elif field.type == 'file' %}<input type="file" class="fv-inp" name="{{ field.id }}" {% if field.required %}required{% endif %}>
+          {% elif field.type == 'dropdown' %}<select class="fv-inp fv-select" name="{{ field.id }}" {% if field.required %}required{% endif %}><option value="">Choose an option…</option>{% for opt in field.options or [] %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}</select>
+          {% elif field.type == 'radio' %}<div class="opts">{% for opt in field.options or [] %}<label class="opt"><input type="radio" name="{{ field.id }}" value="{{ opt }}" {% if field.required %}required{% endif %}><span class="opt-dot"></span><span>{{ opt }}</span></label>{% endfor %}</div>
+          {% elif field.type == 'checkbox' %}<div class="opts">{% for opt in field.options or [] %}<label class="opt"><input type="checkbox" name="{{ field.id }}" value="{{ opt }}"><span class="opt-box"></span><span>{{ opt }}</span></label>{% endfor %}</div>
+          {% elif field.type == 'rating' %}
+          <div class="web-field-label">{{ field.label }}{% if field.required %}<span class="web-req">*</span>{% endif %}</div>
+          <div class="stars">{% for i in range(1,(field.max_rating or 5)+1) %}<button type="button" class="star" data-v="{{ i }}" onclick="setStar(this,'{{ field.id }}')">★</button>{% endfor %}</div>
+          <input type="hidden" name="{{ field.id }}" id="wr_{{ field.id }}">
+          {% elif field.type == 'scale' %}
+          <div class="web-field-label">{{ field.label }}{% if field.required %}<span class="web-req">*</span>{% endif %}</div>
+          <div class="scale-row">{% for i in range(1,(field.scale_max or 10)+1) %}<button type="button" class="sc-btn" data-v="{{ i }}" onclick="setScale(this,'{{ field.id }}')">{{ i }}</button>{% endfor %}</div>
+          <div class="scale-lbls"><span>Not at all</span><span>Extremely</span></div>
+          <input type="hidden" name="{{ field.id }}" id="ws_{{ field.id }}">
+          {% endif %}
+          <div class="fv-err" id="werr_{{ field.id }}">This field is required.</div>
+        </div>
+        {% endif %}
+        {% endif %}
+      {% endfor %}
+
+      <!-- Page Navigation -->
+      <div class="site-bottom-nav">
+        {% if loop.first %}<div></div>
+        {% else %}<button class="site-btn-back" onclick="siteGoPage({{ loop.index0 - 1 }})">← Back</button>{% endif %}
+
+        {% if loop.last %}
+        <button class="site-btn-submit" id="siteSubmitBtn" onclick="submitForm()">
+          <span>{{ form.theme.button_text or 'Submit' }}</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        </button>
+        {% else %}
+        <button class="site-btn-next" onclick="siteGoPage({{ loop.index0 + 1 }}, {{ loop.index0 }})">
+          <span>Continue</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        </button>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+  {% endfor %}
+</div><!-- /siteFormArea -->
+
+<div class="fv-brand" style="background:var(--hdr);color:rgba(255,255,255,.35)">Powered by <strong style="color:rgba(255,255,255,.6)">◈ Draftspace</strong></div>
+
+
+{% else %}
+<!-- ═══════════════════════════════════════════════════
+     CLASSIC FORM MODE
+═══════════════════════════════════════════════════ -->
+
+<div class="fv-cover">
+  <div class="fv-cover-inner">
+    <div class="fv-badge">◈ Draftspace</div>
+    <h1 class="fv-title">{{ form.title }}</h1>
+    {% if form.description %}<p class="fv-desc">{{ form.description }}</p>{% endif %}
+  </div>
+</div>
+
+{% if form.settings.show_progress %}
+<div class="fv-prog"><div class="fv-prog-fill" id="fProgressFill"></div></div>
+{% endif %}
+
+<div class="fv-wrap">
+  <div class="fv-success" id="fSuccessScreen">
+    <div class="fv-success-ring">🎉</div>
+    <h2>{{ form.settings.confirmation_message or 'Thank you!' }}</h2>
+    <p>Your response has been recorded.</p>
+  </div>
+
+  {% for page in form.pages %}
+  <div class="fv-page {{ 'hidden' if not loop.first }}" id="fpg{{ loop.index0 }}" data-page="{{ loop.index0 }}">
+    {% if form.pages|length > 1 %}
+    <div class="fv-page-hdr">
+      <div>
+        <div class="fv-pg-badge">Page {{ loop.index }} of {{ form.pages|length }}</div>
+        {% if page.title and page.title != 'Page '+loop.index|string %}<div style="font-size:.85rem;margin-top:4px;font-weight:500">{{ page.title }}</div>{% endif %}
+      </div>
+      <div class="fv-steps">{% for p in form.pages %}<div class="fv-step" id="fstep{{ loop.index0 }}"></div>{% endfor %}</div>
+    </div>
+    {% endif %}
+
+    {% for field in page.fields %}
+    {% if field.type == 'header' %}
+    <div class="fv-field is-header"><h3>{{ field.label }}</h3>{% if field.help %}<p>{{ field.help }}</p>{% endif %}</div>
+    {% elif field.type == 'divider' %}
+    <div class="fv-field" style="padding:6px 0;background:transparent;border:none;box-shadow:none"><hr class="fv-divider-line"></div>
+    {% elif field.type == 'youtube' %}
+    <div class="fv-field">
+      <div class="fv-label">{{ field.label }}</div>
+      {% if field.help %}<div class="fv-help">{{ field.help }}</div>{% endif %}
+      {% if field.youtube_id %}<div class="yt-wrap"><iframe src="https://www.youtube.com/embed/{{ field.youtube_id }}" allowfullscreen></iframe></div>{% endif %}
+    </div>
+    {% elif field.type == 'image_upload' %}
+    <div class="fv-field" data-fid="{{ field.id }}" data-type="{{ field.type }}" data-req="{{ field.required|lower }}">
+      <div class="fv-label">{{ field.label }}{% if field.required %}<span class="fv-req">*</span>{% endif %}</div>
+      {% if field.help %}<div class="fv-help">{{ field.help }}</div>{% endif %}
+      {% if field.image_url %}<img src="{{ field.image_url }}" style="max-width:100%;border-radius:9px;margin-bottom:11px;display:block">{% endif %}
+      <div class="img-dz" id="fdz_{{ field.id }}" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="imgDrop(event,'{{ field.id }}')" onclick="document.getElementById('ffi_{{ field.id }}').click()">
+        <span class="img-dz-icon">🖼</span><div style="font-weight:600;font-size:.92rem">Click or drag image here</div>
+        <img class="img-preview-el" id="fiprev_{{ field.id }}" alt="">
+      </div>
+      <input type="file" id="ffi_{{ field.id }}" accept="image/*" style="display:none" onchange="imgSelect(event,'{{ field.id }}')">
+      <input type="hidden" id="fidata_{{ field.id }}" name="{{ field.id }}">
+      <div class="fv-err" id="ferr_{{ field.id }}">This field is required.</div>
+    </div>
+    {% elif field.type in ['radio_grid','checkbox_grid'] %}
+    <div class="fv-field" data-fid="{{ field.id }}" data-type="{{ field.type }}" data-req="{{ field.required|lower }}">
+      <div class="fv-label">{{ field.label }}{% if field.required %}<span class="fv-req">*</span>{% endif %}</div>
+      {% if field.help %}<div class="fv-help">{{ field.help }}</div>{% endif %}
+      <div class="grid-wrap"><table class="fv-grid"><thead><tr><th></th>{% for col in field.cols or [] %}<th>{{ col }}</th>{% endfor %}</tr></thead><tbody>{% for row in field.rows or [] %}<tr><td>{{ row }}</td>{% for col in field.cols or [] %}<td>{% if field.type=='radio_grid' %}<input type="radio" class="grid-radio" name="{{ field.id }}_{{ loop.index0 }}" value="{{ col }}" data-row="{{ row }}" data-fid="{{ field.id }}" onchange="updateGrid('{{ field.id }}')">{% else %}<input type="checkbox" class="grid-cb" name="{{ field.id }}_{{ row }}" value="{{ col }}" data-row="{{ row }}" data-fid="{{ field.id }}" onchange="updateGrid('{{ field.id }}')">{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>
+      <input type="hidden" name="{{ field.id }}" id="fgrid_{{ field.id }}">
+      <div class="fv-err" id="ferr_{{ field.id }}">Please complete this grid.</div>
+    </div>
+    {% elif field.type in ['quiz_mc','quiz_tf'] %}
+    <div class="fv-field" data-fid="{{ field.id }}" data-type="{{ field.type }}" data-req="{{ field.required|lower }}">
+      <div class="fv-label"><span style="background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--acc);border-radius:20px;padding:2px 8px;font-size:.69rem;font-weight:700">QUIZ</span>{{ field.label }}{% if field.required %}<span class="fv-req">*</span>{% endif %}</div>
+      {% if field.help %}<div class="fv-help">{{ field.help }}</div>{% endif %}
+      <div class="opts">{% for opt in field.options or [] %}<label class="opt"><input type="radio" name="{{ field.id }}" value="{{ opt }}" {% if field.required %}required{% endif %} onchange="checkQuiz(this,'{{ field.correct_answer }}','{{ field.id }}')"><span class="opt-dot"></span><span>{{ opt }}</span></label>{% endfor %}</div>
+      <div class="quiz-fb" id="fqfb_{{ field.id }}"></div>
+      <div class="fv-err" id="ferr_{{ field.id }}">Please select an answer.</div>
+    </div>
+    {% else %}
+    <div class="fv-field" data-fid="{{ field.id }}" data-type="{{ field.type }}" data-req="{{ field.required|lower }}">
+      {% if field.type not in ['rating','scale'] %}
+      <div class="fv-label">{{ field.label }}{% if field.required %}<span class="fv-req">*</span>{% endif %}</div>
+      {% endif %}
+      {% if field.help %}<div class="fv-help">{{ field.help }}</div>{% endif %}
+      {% if field.type == 'short_text' %}<input type="text" class="fv-inp" name="{{ field.id }}" placeholder="{{ field.placeholder or '' }}" {% if field.required %}required{% endif %}>
+      {% elif field.type == 'long_text' %}<textarea class="fv-inp fv-textarea" name="{{ field.id }}" placeholder="{{ field.placeholder or '' }}" {% if field.required %}required{% endif %}></textarea>
+      {% elif field.type == 'number' %}<input type="number" class="fv-inp" name="{{ field.id }}" placeholder="{{ field.placeholder or '0' }}" {% if field.required %}required{% endif %}>
+      {% elif field.type == 'email' %}<input type="email" class="fv-inp" name="{{ field.id }}" placeholder="{{ field.placeholder or 'email@example.com' }}" {% if field.required %}required{% endif %}>
+      {% elif field.type == 'phone' %}<input type="tel" class="fv-inp" name="{{ field.id }}" placeholder="{{ field.placeholder or '+91 XXXXX XXXXX' }}" {% if field.required %}required{% endif %}>
+      {% elif field.type == 'date' %}<input type="date" class="fv-inp" name="{{ field.id }}" {% if field.required %}required{% endif %}>
+      {% elif field.type == 'time' %}<input type="time" class="fv-inp" name="{{ field.id }}" {% if field.required %}required{% endif %}>
+      {% elif field.type == 'file' %}<input type="file" class="fv-inp" name="{{ field.id }}" {% if field.required %}required{% endif %}>
+      {% elif field.type == 'dropdown' %}<select class="fv-inp fv-select" name="{{ field.id }}" {% if field.required %}required{% endif %}><option value="">Choose…</option>{% for opt in field.options or [] %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}</select>
+      {% elif field.type == 'radio' %}<div class="opts">{% for opt in field.options or [] %}<label class="opt"><input type="radio" name="{{ field.id }}" value="{{ opt }}" {% if field.required %}required{% endif %}><span class="opt-dot"></span><span>{{ opt }}</span></label>{% endfor %}</div>
+      {% elif field.type == 'checkbox' %}<div class="opts">{% for opt in field.options or [] %}<label class="opt"><input type="checkbox" name="{{ field.id }}" value="{{ opt }}"><span class="opt-box"></span><span>{{ opt }}</span></label>{% endfor %}</div>
+      {% elif field.type == 'rating' %}<div class="fv-label">{{ field.label }}{% if field.required %}<span class="fv-req">*</span>{% endif %}</div><div class="stars">{% for i in range(1,(field.max_rating or 5)+1) %}<button type="button" class="star" data-v="{{ i }}" onclick="setStar(this,'{{ field.id }}')">★</button>{% endfor %}</div><input type="hidden" name="{{ field.id }}" id="fr_{{ field.id }}">
+      {% elif field.type == 'scale' %}<div class="fv-label">{{ field.label }}{% if field.required %}<span class="fv-req">*</span>{% endif %}</div><div class="scale-row">{% for i in range(1,(field.scale_max or 10)+1) %}<button type="button" class="sc-btn" data-v="{{ i }}" onclick="setScale(this,'{{ field.id }}')">{{ i }}</button>{% endfor %}</div><div class="scale-lbls"><span>Not at all</span><span>Extremely</span></div><input type="hidden" name="{{ field.id }}" id="fs_{{ field.id }}">
+      {% endif %}
+      <div class="fv-err" id="ferr_{{ field.id }}">This field is required.</div>
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    <div class="fv-nav">
+      {% if loop.first %}<div></div>
+      {% else %}<button class="btn-back" onclick="fGoPage({{ loop.index0-1 }})">← Back</button>{% endif %}
+      {% if loop.last %}
+      <button class="btn-submit" id="fSubmitBtn" onclick="submitFormClassic()">
+        <span>{{ form.theme.button_text or 'Submit' }}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </button>
+      {% else %}
+      <button class="btn-next" onclick="fGoPage({{ loop.index0+1 }}, {{ loop.index0 }})">
+        <span>Continue</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </button>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="fv-brand">Powered by <strong>◈ Draftspace</strong></div>
+{% endif %}
+
+<script>
+const IS_WEBSITE = {{ 'true' if is_website else 'false' }};
+const TOTAL      = {{ total_pages }};
+const SUBMIT_URL = {{ url_for('forms.submit', slug=form.slug)|tojson }};
+const REDIR      = {{ (form.settings.redirect_url or '')|tojson }};
+
+let siteCur = 0;  // website mode current page
+let fCur    = 0;  // classic form current page
+
+/* ════════════════════════════════════
+   WEBSITE MODE FUNCTIONS
+════════════════════════════════════ */
+function scrollToForm() {
+  document.getElementById('siteFormArea').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function toggleMobileNav() {
+  const mn = document.getElementById('mobileNav');
+  if(mn) mn.classList.toggle('open');
+}
+
+function siteGoPage(next, validateIdx) {
+  if(validateIdx !== undefined && !validateSite(validateIdx)) return;
+
+  // Hide current page
+  const cur = document.getElementById('sitePg'+siteCur);
+  if(cur) cur.classList.remove('active');
+
+  // Update nav tabs
+  ['navTab','mNavTab'].forEach(prefix => {
+    const oldTab = document.getElementById(prefix+siteCur);
+    const newTab = document.getElementById(prefix+next);
+    if(oldTab) oldTab.classList.remove('active');
+    if(newTab) newTab.classList.add('active');
+  });
+
+  siteCur = next;
+
+  // Show new page
+  const nxt = document.getElementById('sitePg'+siteCur);
+  if(nxt) {
+    nxt.classList.add('active');
+    nxt.style.animation = 'none';
+    requestAnimationFrame(() => { nxt.style.animation = ''; });
+  }
+
+  // Scroll to form area smoothly
+  document.getElementById('siteFormArea').scrollIntoView({behavior:'smooth',block:'start'});
+
+  // Close mobile nav
+  const mn = document.getElementById('mobileNav');
+  if(mn) mn.classList.remove('open');
+}
+
+function validateSite(pi) {
+  const page = document.getElementById('sitePg'+pi);
+  if(!page) return true;
+  let ok = true;
+
+  page.querySelectorAll('[data-fid]').forEach(fw => {
+    const fid = fw.dataset.fid;
+    const req = fw.dataset.req === 'true';
+    if(!req) { setErr('werr_'+fid, false); return; }
+
+    const type = fw.dataset.type;
+    if(type === 'checkbox') { setErr('werr_'+fid, false); return; } // optional multi
+
+    const radios = fw.querySelectorAll('input[type=radio]');
+    if(radios.length) {
+      const checked = !!fw.querySelector('input[type=radio]:checked');
+      setErr('werr_'+fid, !checked);
+      if(!checked) ok = false;
+      return;
+    }
+    const inp = fw.querySelector('input[required],select[required],textarea[required]');
+    if(inp && !inp.value.trim()) { setErr('werr_'+fid, true); ok = false; }
+    else if(inp) setErr('werr_'+fid, false);
+  });
+  return ok;
+}
+
+async function submitForm() {
+  if(!validateSite(siteCur)) return;
+  const btn = document.getElementById('siteSubmitBtn');
+  btn.disabled = true;
+  btn.querySelector('span').textContent = 'Submitting…';
+
+  const data = collectAll();
+  const res = await fetch(SUBMIT_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  const r = await res.json();
+  if(r.success) {
+    document.getElementById('siteFormArea').style.display = 'none';
+    const ss = document.getElementById('siteSuccess');
+    ss.style.display = 'flex';
+    ss.style.flexDirection = 'column';
+    ss.style.alignItems = 'center';
+    ss.style.justifyContent = 'center';
+    ss.scrollIntoView({behavior:'smooth'});
+    if(REDIR) setTimeout(() => location.href = REDIR, 2000);
+  } else {
+    btn.disabled = false;
+    btn.querySelector('span').textContent = '{{ form.theme.button_text or "Submit" }}';
+  }
+}
+
+/* ════════════════════════════════════
+   CLASSIC FORM MODE FUNCTIONS
+════════════════════════════════════ */
+function fGoPage(next, validateIdx) {
+  if(validateIdx !== undefined && !validateClassic(validateIdx)) return;
+  document.getElementById('fpg'+fCur).classList.add('hidden');
+  fCur = next;
+  const pg = document.getElementById('fpg'+fCur);
+  pg.classList.remove('hidden');
+  pg.style.animation = 'none';
+  requestAnimationFrame(() => { pg.style.animation = ''; });
+  updateFProgress(); updateFSteps();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function updateFProgress() {
+  const f = document.getElementById('fProgressFill');
+  if(f) f.style.width = ((fCur+1)/TOTAL*100)+'%';
+}
+function updateFSteps() {
+  document.querySelectorAll('.fv-step').forEach((s,i) => {
+    s.className = 'fv-step'+(i<fCur?' done':i===fCur?' cur':'');
+  });
+}
+function validateClassic(pi) {
+  const page = document.getElementById('fpg'+pi);
+  if(!page) return true;
+  let ok = true;
+  page.querySelectorAll('[data-fid]').forEach(fw => {
+    const fid = fw.dataset.fid;
+    const req = fw.dataset.req === 'true';
+    if(!req) { setErr('ferr_'+fid, false); return; }
+    const radios = fw.querySelectorAll('input[type=radio]');
+    if(radios.length) {
+      const checked = !!fw.querySelector('input[type=radio]:checked');
+      setErr('ferr_'+fid, !checked);
+      if(!checked) ok = false;
+      return;
+    }
+    const inp = fw.querySelector('input[required],select[required],textarea[required]');
+    if(inp && !inp.value.trim()) { setErr('ferr_'+fid, true); ok = false; }
+    else if(inp) setErr('ferr_'+fid, false);
+  });
+  return ok;
+}
+async function submitFormClassic() {
+  if(!validateClassic(fCur)) return;
+  const btn = document.getElementById('fSubmitBtn');
+  btn.disabled = true;
+  btn.querySelector('span').textContent = 'Submitting…';
+  const data = collectAll();
+  const res = await fetch(SUBMIT_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  const r = await res.json();
+  if(r.success) {
+    document.querySelectorAll('.fv-page').forEach(p => p.classList.add('hidden'));
+    document.getElementById('fSuccessScreen').style.display = 'block';
+    window.scrollTo({top:0,behavior:'smooth'});
+    if(REDIR) setTimeout(() => location.href = REDIR, 2000);
+  } else {
+    btn.disabled = false;
+    btn.querySelector('span').textContent = '{{ form.theme.button_text or "Submit" }}';
+  }
+}
+
+/* ════════════════════════════════════
+   SHARED COLLECT + INTERACTIONS
+════════════════════════════════════ */
+function collectAll() {
+  const d = {};
+  const prefix = IS_WEBSITE ? '[data-fid]' : '[data-fid]';
+  document.querySelectorAll('[data-fid]').forEach(fw => {
+    const fid = fw.dataset.fid, type = fw.dataset.type;
+    if(!fid) return;
+    const imgPre = IS_WEBSITE ? 'wi' : 'fi';
+    const gridPre = IS_WEBSITE ? 'wgrid_' : 'fgrid_';
+    const rPre = IS_WEBSITE ? 'wr_' : 'fr_';
+    const sPre = IS_WEBSITE ? 'ws_' : 'fs_';
+    if(type==='checkbox') d[fid]=[...fw.querySelectorAll(`[name="${fid}"]:checked`)].map(i=>i.value);
+    else if(['radio','quiz_mc','quiz_tf'].includes(type)){const c=fw.querySelector(`[name="${fid}"]:checked`);d[fid]=c?c.value:'';}
+    else if(['radio_grid','checkbox_grid'].includes(type)){const h=document.getElementById(gridPre+fid);d[fid]=h?h.value:'';}
+    else if(type==='image_upload'){const h=document.getElementById(imgPre+'data_'+fid);d[fid]=h&&h.value?'[image uploaded]':'';}
+    else if(type==='rating'){const h=document.getElementById(rPre+fid);d[fid]=h?h.value:'';}
+    else if(type==='scale'){const h=document.getElementById(sPre+fid);d[fid]=h?h.value:'';}
+    else if(['youtube','header','divider'].includes(type)){}
+    else{const inp=fw.querySelector(`[name="${fid}"]`);if(inp)d[fid]=inp.value;}
+  });
+  return d;
+}
+
+function setErr(id, show) {
+  const el = document.getElementById(id);
+  if(el) el.classList.toggle('show', show);
+}
+
+function setStar(btn, fid) {
+  const v = +btn.dataset.v;
+  btn.closest('.stars').querySelectorAll('.star').forEach((s,i) => s.classList.toggle('on', i<v));
+  ['wr_','fr_'].forEach(p => { const el=document.getElementById(p+fid); if(el) el.value=v; });
+}
+
+function setScale(btn, fid) {
+  btn.closest('.scale-row').querySelectorAll('.sc-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  ['ws_','fs_'].forEach(p => { const el=document.getElementById(p+fid); if(el) el.value=btn.dataset.v; });
+}
+
+function checkQuiz(inp, correct, fid) {
+  ['wqfb_','fqfb_'].forEach(p => {
+    const fb = document.getElementById(p+fid); if(!fb) return;
+    fb.style.display = 'block';
+    if(inp.value === correct) { fb.textContent = 'Correct! Well done.'; fb.className = 'quiz-fb correct'; }
+    else { fb.textContent = 'Incorrect. Correct answer: '+correct; fb.className = 'quiz-fb wrong'; }
+  });
+}
+
+function updateGrid(fid) {
+  const result = {};
+  document.querySelectorAll(`[data-fid="${fid}"]:checked`).forEach(inp => {
+    const row = inp.dataset.row;
+    if(!result[row]) result[row] = [];
+    result[row].push(inp.value);
+  });
+  ['wgrid_','fgrid_'].forEach(p => { const h=document.getElementById(p+fid); if(h) h.value=JSON.stringify(result); });
+}
+
+function imgDrop(e, fid) {
+  e.preventDefault();
+  ['wdz_','fdz_'].forEach(p => { const el=document.getElementById(p+fid); if(el) el.classList.remove('over'); });
+  const f = e.dataTransfer.files[0];
+  if(f && f.type.startsWith('image/')) processImg(f, fid);
+}
+function imgSelect(e, fid) { const f=e.target.files[0]; if(f) processImg(f, fid); }
+function processImg(file, fid) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const url = e.target.result;
+    ['wiprev_','fiprev_'].forEach(p => { const el=document.getElementById(p+fid); if(el){el.src=url;el.classList.add('show');} });
+    ['widata_','fidata_'].forEach(p => { const el=document.getElementById(p+fid); if(el) el.value=url; });
+    ['wdz_','fdz_'].forEach(p => { const el=document.getElementById(p+fid); if(el){const ico=el.querySelector('.img-dz-icon');if(ico)ico.textContent='✅';} });
+  };
+  reader.readAsDataURL(file);
+}
+
+// Init
+updateFProgress();
+updateFSteps();
+</script>
+</body>
+</html>

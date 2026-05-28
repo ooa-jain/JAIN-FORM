@@ -1,0 +1,1154 @@
+{% extends 'base.html' %}
+{% block title %}Deploy — Draftspace{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
+{% block body %}
+<!-- Background Shapes -->
+<div class="auth-floating-shapes">
+  <div class="shape s1"></div>
+  <div class="shape s2"></div>
+  <div class="shape s3"></div>
+</div>
+
+{% include 'components/sidebar.html' %}
+
+<style>
+/* ── Page layout ─────────────────────────────────────────── */
+.dp{max-width:1160px;margin:0 auto;padding:26px 22px}
+.ph{margin-bottom:24px}
+.ph h1{font-size:1.55rem;font-weight:800;color:#1A1A2E;margin-bottom:4px}
+.ph p{color:#aaa;font-size:.86rem}
+
+/* ── Two-column main layout ──────────────────────────────── */
+.dp-cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+
+/* ── Cards ───────────────────────────────────────────────── */
+.dc{background:#fff;border:1px solid #E8E4DE;border-radius:16px;overflow:hidden}
+.dc-hdr{background:#1A1A2E;padding:15px 20px}
+.dc-ey{font-size:.6rem;font-weight:700;letter-spacing:.14em;color:rgba(255,255,255,.28);text-transform:uppercase;margin-bottom:4px}
+.dc-ttl{font-size:.98rem;font-weight:700;color:#fff;margin-bottom:2px}
+.dc-sub{font-size:.74rem;color:rgba(255,255,255,.38)}
+.dc-body{padding:18px 20px}
+
+/* ── Source tabs ─────────────────────────────────────────── */
+.src-tabs{display:flex;gap:0;background:#F0EEE8;border-radius:10px;padding:3px;margin-bottom:16px}
+.src-tab{flex:1;padding:7px 8px;border:none;background:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:600;color:#888;cursor:pointer;transition:all .18s;text-align:center}
+.src-tab.active{background:#fff;color:#1A1A2E;box-shadow:0 1px 6px rgba(0,0,0,.1)}
+.src-panel{display:none}
+.src-panel.active{display:block}
+
+/* ── Drop zone ───────────────────────────────────────────── */
+.dz{border:2.5px dashed #E2DDD8;border-radius:12px;padding:28px 18px;text-align:center;cursor:pointer;transition:all .2s}
+.dz:hover,.dz.over{border-color:#FF8C00;background:#FFF9F0}
+.dz.ok{border-color:#2D6A4F;background:#F0FFF4;border-style:solid}
+.dz-icon{font-size:2rem;display:block;margin-bottom:8px;line-height:1}
+.dz-ttl{font-weight:700;font-size:.86rem;margin-bottom:3px}
+.dz-sub{font-size:.72rem;color:#aaa}
+
+/* ── Git input ───────────────────────────────────────────── */
+.git-wrap{display:flex;gap:8px}
+.git-wrap input{flex:1;padding:9px 12px;border:1.5px solid #E2DDD8;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.84rem;outline:none}
+.git-wrap input:focus{border-color:#FF8C00}
+
+/* ── Analysis box ────────────────────────────────────────── */
+.abox{background:#F8F7F4;border:1px solid #E8E4DE;border-radius:10px;padding:13px 15px;margin:12px 0;display:none}
+.arow{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.8rem}
+.arow:last-child{margin-bottom:0}
+.albl{font-size:.68rem;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em}
+.aval{font-weight:600;color:#1A1A2E;font-size:.8rem}
+.pills{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.pill{padding:2px 7px;border-radius:20px;font-size:.66rem;font-weight:600;background:#ECEAE6;color:#666;border:1px solid #E2DDD8}
+
+/* ── Framework badge ─────────────────────────────────────── */
+.fw{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700}
+.fw-html  {background:#FFF5E8;color:#CC7000;border:1px solid rgba(255,140,0,.3)}
+.fw-flask {background:#F0FFF4;color:#2D6A4F;border:1px solid #C8E6C9}
+.fw-react {background:#E8F4FD;color:#1565C0;border:1px solid #B3D9F0}
+.fw-django{background:#F3F0FF;color:#5e35b1;border:1px solid #CEC8F0}
+
+/* ── Convert toggle ──────────────────────────────────────── */
+.convert-box{display:none;background:#F0FFF4;border:1px solid #C8E6C9;border-radius:10px;padding:13px 15px;margin:10px 0}
+.convert-box.show{display:block}
+.sw-row{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none}
+.sw-track{width:34px;height:18px;background:#D0CEC9;border-radius:20px;position:relative;transition:background .2s;flex-shrink:0}
+.sw-thumb{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.sw-on .sw-track{background:#2D6A4F}
+.sw-on .sw-thumb{transform:translateX(16px)}
+.sw-lbl{font-size:.82rem;color:#2D6A4F;font-weight:700}
+.sw-sub{font-size:.72rem;color:#aaa;margin-top:4px;line-height:1.5}
+
+/* ── Homepage picker ─────────────────────────────────────── */
+.hp-row{display:none;margin:10px 0}
+.hp-row.show{display:block}
+.hp-row label{font-size:.68rem;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px}
+.hp-row select{width:100%;padding:8px 10px;border:1.5px solid #E2DDD8;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;outline:none;background:#fff;cursor:pointer}
+.hp-row select:focus{border-color:#FF8C00}
+
+/* ── Mongo URI ───────────────────────────────────────────── */
+.mu-row{margin:10px 0}
+.mu-row label{font-size:.68rem;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px}
+.mu-row input{width:100%;padding:9px 12px;border:1.5px solid #E2DDD8;border-radius:8px;font-family:monospace;font-size:.78rem;outline:none}
+.mu-row input:focus{border-color:#FF8C00}
+.mu-hint{font-size:.66rem;color:#bbb;margin-top:4px}
+
+/* ── Title field ─────────────────────────────────────────── */
+.tf-row{margin:10px 0}
+.tf-row label{font-size:.68rem;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px}
+.tf-row input{width:100%;padding:9px 12px;border:1.5px solid #E2DDD8;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none}
+.tf-row input:focus{border-color:#FF8C00}
+
+/* ── Progress ────────────────────────────────────────────── */
+.prog{height:3px;background:#F0EEE8;border-radius:2px;overflow:hidden;margin:10px 0;display:none}
+.prog-fill{height:100%;background:#FF8C00;border-radius:2px;width:0;transition:width .5s ease}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn-mango{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;background:linear-gradient(135deg,#FF8C00,#CC7000);color:#fff;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.86rem;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-mango:hover{transform:translateY(-1px)}
+.btn-mango:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-ghost{display:inline-flex;align-items:center;gap:6px;padding:9px 17px;background:#fff;color:#555;border:1.5px solid #E2DDD8;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-ghost:hover{border-color:#FF8C00;color:#FF8C00}
+.btn-upload{width:100%;padding:11px;background:#E8E8E8;color:#aaa;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:700;cursor:not-allowed;transition:all .2s;margin-top:10px;display:block}
+.btn-upload.on{background:linear-gradient(135deg,#FF8C00,#CC7000);color:#fff;cursor:pointer}
+.btn-upload.on:hover{transform:translateY(-1px)}
+
+/* ── Alerts ──────────────────────────────────────────────── */
+.al{padding:9px 13px;border-radius:8px;font-size:.78rem;margin:8px 0;display:none}
+.al-err{background:#FFF0F0;color:#E63946;border:1px solid rgba(230,57,70,.2)}
+.al-ok {background:#F0FFF4;color:#2D6A4F;border:1px solid rgba(45,106,79,.2)}
+.al-info{background:#E8F4FD;color:#1565C0;border:1px solid #B3D9F0}
+
+/* ── Preview strip ───────────────────────────────────────── */
+#previewStrip{display:none;background:#fff;border:1px solid #E8E4DE;border-radius:16px;overflow:hidden;margin-bottom:24px}
+.prev-bar{background:#F8F7F4;border-bottom:1px solid #E8E4DE;padding:10px 16px;display:flex;align-items:center;gap:10px}
+.prev-dots{display:flex;gap:5px}
+.prev-dots span{width:10px;height:10px;border-radius:50%}
+.prev-dots span:nth-child(1){background:#FF5F57}
+.prev-dots span:nth-child(2){background:#FFBD2E}
+.prev-dots span:nth-child(3){background:#28C840}
+.prev-url{font-size:.72rem;color:#aaa;font-family:monospace;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prev-acts{display:flex;gap:7px;flex-shrink:0}
+#previewFrame{width:100%;height:580px;border:none;display:block;background:#fff}
+
+/* ── Option 1 (auto-gen) ─────────────────────────────────── */
+.color-swatches{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.swatch{width:22px;height:22px;border-radius:5px;cursor:pointer;border:2px solid transparent;transition:transform .15s}
+.swatch:hover{transform:scale(1.2)}
+
+/* ── Sites grid ──────────────────────────────────────────── */
+.sites-hdr{font-size:.95rem;font-weight:700;color:#1A1A2E;margin-bottom:14px;display:flex;align-items:center;gap:9px}
+.sites-cnt{font-size:.72rem;font-weight:400;color:#ccc}
+.sites-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.sc{background:#fff;border:1px solid #E8E4DE;border-radius:14px;overflow:hidden;transition:box-shadow .2s}
+.sc:hover{box-shadow:0 5px 20px rgba(0,0,0,.08)}
+.sc-thumb{height:136px;background:#1A1A2E;position:relative;overflow:hidden;cursor:pointer}
+.sc-thumb iframe{width:200%;height:200%;transform:scale(.5);transform-origin:top left;pointer-events:none;border:none}
+.sc-ov{position:absolute;inset:0;background:rgba(26,26,46,.35);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .18s}
+.sc:hover .sc-ov{opacity:1}
+.sc-ov span{background:#fff;color:#1A1A2E;padding:6px 16px;border-radius:20px;font-size:.76rem;font-weight:700}
+.sc-body{padding:13px 15px}
+.sc-name{font-weight:700;font-size:.88rem;margin-bottom:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-meta{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.tag{padding:2px 8px;border-radius:20px;font-size:.65rem;font-weight:700}
+.tag-live{background:#E8F5E9;color:#2D6A4F;border:1px solid #C8E6C9}
+.tag-draft{background:#F5F5F5;color:#999;border:1px solid #E0E0E0}
+.sc-url{font-size:.7rem;color:#FF8C00;font-family:monospace;margin-bottom:9px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-acts{display:flex;gap:5px;flex-wrap:wrap}
+.sab{padding:5px 11px;border-radius:7px;font-size:.72rem;font-weight:600;cursor:pointer;border:1.5px solid #E2DDD8;background:#fff;color:#555;font-family:'DM Sans',sans-serif;transition:all .18s;display:inline-flex;align-items:center;gap:3px}
+.sab:hover{border-color:#FF8C00;color:#FF8C00}
+.sab.primary{background:linear-gradient(135deg,#FF8C00,#CC7000);color:#fff;border-color:transparent}
+.sab.primary:hover{transform:translateY(-1px);color:#fff}
+.sab.danger{color:#E63946;border-color:rgba(230,57,70,.25)}
+.sab.danger:hover{background:#FFF0F0}
+.empty{text-align:center;padding:40px;color:#bbb;background:#FAFAF8;border-radius:12px;border:1px dashed #E8E4DE}
+
+/* ── Publish modal ───────────────────────────────────────── */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.mbg.open{display:flex}
+.modal{background:#fff;border-radius:18px;padding:26px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal h2{font-size:1.05rem;font-weight:800;margin-bottom:4px}
+.modal p{font-size:.8rem;color:#aaa;margin-bottom:18px}
+.mf{margin-bottom:12px}
+.mf label{display:block;font-size:.67rem;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.mf input{width:100%;padding:9px 12px;border:1.5px solid #E2DDD8;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .18s}
+.mf input:focus{border-color:#FF8C00}
+.slug-prev{font-size:.72rem;color:#FF8C00;font-family:monospace;margin-top:4px}
+.macts{display:flex;gap:10px;margin-top:18px}
+.macts button{flex:1}
+
+/* ── Toast ───────────────────────────────────────────────── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1A1A2E;color:#fff;padding:10px 22px;border-radius:40px;font-size:.82rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:all .3s;pointer-events:none;z-index:9999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{background:#2D6A4F}
+.toast.err{background:#E63946}
+
+/* ── Editor overlay ──────────────────────────────────────── */
+#edOverlay{position:fixed;inset:0;z-index:2000;background:#1A1A2E;display:none;flex-direction:column}
+#edOverlay.open{display:flex}
+.ed-top{height:48px;background:#0E0E20;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:0;flex-shrink:0}
+.ed-brand{padding:0 16px;font-size:.86rem;font-weight:700;color:#fff;white-space:nowrap;border-right:1px solid rgba(255,255,255,.07)}
+.ed-title{padding:0 14px;font-size:.78rem;color:rgba(255,255,255,.4);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ed-acts{display:flex;gap:7px;padding:0 14px;flex-shrink:0}
+.eb{padding:5px 13px;border-radius:7px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:.18s}
+.eb-dim{background:rgba(255,255,255,.07);color:rgba(255,255,255,.6)}
+.eb-dim:hover{background:rgba(255,255,255,.14);color:#fff}
+.eb-grn{background:#2D6A4F;color:#fff}.eb-grn:hover{background:#246040}
+.eb-ora{background:#FF8C00;color:#fff}.eb-ora:hover{background:#CC7000}
+.ed-body{flex:1;display:grid;grid-template-columns:200px 1fr 1fr;overflow:hidden;min-height:0}
+.ed-files{background:#12122A;border-right:1px solid rgba(255,255,255,.07);overflow-y:auto;padding:6px 0}
+.ed-ft{padding:9px 13px 5px;font-size:.62rem;font-weight:700;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:.1em}
+.ed-fi{padding:6px 13px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.45);transition:.14s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px}
+.ed-fi:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.8)}
+.ed-fi.cur{background:rgba(255,140,0,.14);color:#FF8C00;font-weight:600}
+.ed-code{background:#1E1E30;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid rgba(255,255,255,.07)}
+.ed-cbar{height:34px;background:#0E0E20;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;padding:0 13px;gap:8px;flex-shrink:0}
+.ed-cbar span{font-size:.7rem;color:rgba(255,255,255,.35)}
+.ed-saved{font-size:.66rem;color:#2D6A4F;margin-left:auto}
+.ed-ta{flex:1;background:#1E1E30;color:#E8E6E3;border:none;outline:none;padding:14px;font-family:'Fira Code','Cascadia Code',monospace;font-size:.8rem;line-height:1.7;resize:none;tab-size:2;overflow:auto}
+.ed-prev{background:#F8F7F4;overflow:hidden;display:flex;flex-direction:column}
+.ed-pbar{height:34px;background:#F0EEE8;border-bottom:1px solid #E8E4DE;display:flex;align-items:center;padding:0 13px;gap:7px;flex-shrink:0}
+.ed-pbar span{font-size:.7rem;color:#aaa}
+#edFrame{flex:1;border:none;background:#fff}
+
+@media(max-width:960px){
+  .dp-cols{grid-template-columns:1fr}
+  .ed-body{grid-template-columns:170px 1fr}
+  #edFrame{display:none}
+}
+</style>
+
+<div class="dp">
+  <div class="ph">
+    <h1>🌐 Deploy Website</h1>
+    <p>Upload files, pull from GitHub, or auto-generate — then publish live with a custom URL</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       MAIN TWO COLUMNS
+  ═══════════════════════════════════════════ -->
+  <div class="dp-cols">
+
+    <!-- ── Col 1: Upload / Source ── -->
+    <div class="dc">
+      <div class="dc-hdr">
+        <div class="dc-ey">Step 1 — Add your project</div>
+        <div class="dc-ttl">📁 Upload or Pull Source</div>
+        <div class="dc-sub">ZIP · HTML files · GitHub repo</div>
+      </div>
+      <div class="dc-body">
+
+        <!-- Source tabs -->
+        <div class="src-tabs">
+          <button class="src-tab active" onclick="switchTab('zip',this)">📦 ZIP</button>
+          <button class="src-tab" onclick="switchTab('html',this)">🌐 HTML Files</button>
+          <button class="src-tab" onclick="switchTab('git',this)">🐱 GitHub</button>
+        </div>
+
+        <!-- ZIP panel -->
+        <div class="src-panel active" id="panel-zip">
+          <div class="dz" id="dz-zip"
+               ondragover="event.preventDefault();this.classList.add('over')"
+               ondragleave="this.classList.remove('over')"
+               ondrop="onDrop(event,'zip')"
+               onclick="document.getElementById('zipInput').click()">
+            <span class="dz-icon" id="dz-zip-icon">📦</span>
+            <div class="dz-ttl" id="dz-zip-title">Drop your project ZIP here</div>
+            <div class="dz-sub" id="dz-zip-sub">or click to browse · .zip only</div>
+            <input type="file" id="zipInput" accept=".zip" style="display:none" onchange="onZipSelect(event)">
+          </div>
+        </div>
+
+        <!-- HTML files panel -->
+        <div class="src-panel" id="panel-html">
+          <div class="dz" id="dz-html"
+               ondragover="event.preventDefault();this.classList.add('over')"
+               ondragleave="this.classList.remove('over')"
+               ondrop="onDrop(event,'html')"
+               onclick="document.getElementById('htmlInput').click()">
+            <span class="dz-icon" id="dz-html-icon">🌐</span>
+            <div class="dz-ttl" id="dz-html-title">Drop HTML / CSS / JS files here</div>
+            <div class="dz-sub" id="dz-html-sub">or click to browse · multiple files allowed</div>
+            <input type="file" id="htmlInput" accept=".html,.htm,.css,.js,.json,.svg,.png,.jpg" multiple style="display:none" onchange="onHtmlSelect(event)">
+          </div>
+        </div>
+
+        <!-- GitHub panel -->
+        <div class="src-panel" id="panel-git">
+          <div style="margin-bottom:10px;font-size:.8rem;color:#888;line-height:1.6">
+            Paste any <strong>public</strong> GitHub repo URL. We'll download and inject MongoDB.
+          </div>
+          <div class="git-wrap">
+            <input type="text" id="gitUrl" placeholder="https://github.com/user/repo"
+              oninput="clearAnalysis()">
+            <button class="btn-mango" onclick="analyzeGit()" id="gitFetchBtn">Fetch →</button>
+          </div>
+          <div style="font-size:.67rem;color:#bbb;margin-top:5px">
+            Works with main or master branch. Private repos require a token (not yet supported).
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="prog" id="prog1"><div class="prog-fill" id="prog1-fill"></div></div>
+
+        <!-- Analysis result -->
+        <div class="abox" id="abox">
+          <div class="arow">
+            <span class="albl">Framework</span>
+            <span id="fw-badge" class="fw fw-html">📄 HTML</span>
+          </div>
+          <div class="arow">
+            <span class="albl">Files</span>
+            <span class="aval" id="a-files">—</span>
+          </div>
+          <div class="arow">
+            <span class="albl">DB code</span>
+            <span class="aval" id="a-db">—</span>
+          </div>
+          <div style="margin-top:7px">
+            <span class="albl">Types</span>
+            <div class="pills" id="a-exts"></div>
+          </div>
+        </div>
+
+        <!-- Convert to Flask toggle -->
+        <div class="convert-box" id="convertBox">
+          <div class="sw-row" onclick="toggleConvert()">
+            <div id="convertSw" class="sw-track"><div class="sw-thumb"></div></div>
+            <div>
+              <div class="sw-lbl">🐍 Convert to Flask app</div>
+              <div class="sw-sub">Wraps your HTML in a Flask server with MongoDB, routes, and Jinja2 templates. Ready to deploy on Railway/Render.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Homepage picker -->
+        <div class="hp-row" id="hpRow">
+          <label>🏠 Homepage (served as index.html)</label>
+          <select id="hpSelect"></select>
+          <div style="font-size:.66rem;color:#bbb;margin-top:4px">This page will open at your site root URL</div>
+        </div>
+
+        <!-- Site title -->
+        <div class="tf-row" id="titleRow" style="display:none">
+          <label>Site Name</label>
+          <input type="text" id="siteTitle" placeholder="My Awesome Site">
+        </div>
+
+        <!-- MongoDB URI -->
+        <div class="mu-row" id="muRow" style="display:none">
+          <label>MongoDB URI <span style="font-weight:400;color:#ddd">(optional — defaults to Draftspace DB)</span></label>
+          <input type="text" id="mongoUri" placeholder="mongodb+srv://user:pass@cluster.mongodb.net/db" value="{{ default_mongo_uri }}">
+          <div class="mu-hint">Your forms &amp; newsletters data will be available in the deployed site automatically.</div>
+        </div>
+
+        <div id="uploadErr" class="al al-err"></div>
+        <div id="uploadOk"  class="al al-ok"></div>
+
+        <button id="deployBtn" class="btn-upload" onclick="doUpload()">
+          <span id="deployTxt">⬆ Deploy Project</span>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- ── Col 2: Auto-generate ── -->
+    <div class="dc">
+      <div class="dc-hdr">
+        <div class="dc-ey">Option 2 — Instant</div>
+        <div class="dc-ttl">✦ Auto-Generate Site</div>
+        <div class="dc-sub">Builds from your Draftspace data in seconds</div>
+      </div>
+      <div class="dc-body">
+        <div class="tf-row">
+          <label>Site Title</label>
+          <input type="text" id="genTitle" value="{{ current_user.name }}'s Site"
+            style="width:100%;padding:9px 12px;border:1.5px solid #E2DDD8;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none"
+            onfocus="this.style.borderColor='#FF8C00'" onblur="this.style.borderColor='#E2DDD8'">
+        </div>
+        <div style="margin:10px 0 16px">
+          <div style="font-size:.68rem;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px">Accent Color</div>
+          <div class="color-swatches">
+            <input type="color" id="accColor" value="#FF8C00"
+              style="width:36px;height:32px;border-radius:7px;border:1.5px solid #E2DDD8;cursor:pointer;padding:2px"
+              oninput="document.getElementById('accHex').textContent=this.value">
+            <span id="accHex" style="font-size:.7rem;color:#aaa;font-family:monospace">#FF8C00</span>
+            {% for c in ['#FF8C00','#0066CC','#2D6A4F','#8e2de2','#C94B4B','#434343'] %}
+            <div class="swatch" style="background:{{c}}" onclick="setAcc('{{c}}')"></div>
+            {% endfor %}
+          </div>
+        </div>
+        <div id="genErr" class="al al-err"></div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button class="btn-ghost" style="flex:1" onclick="previewGen()" id="prevGenBtn">👁 Preview</button>
+          <button class="btn-mango" style="flex:1" onclick="pubGen()" id="pubGenBtn">🚀 Publish</button>
+        </div>
+        <button class="btn-ghost" style="width:100%;margin-bottom:14px" onclick="dlGen()">⬇ Download ZIP</button>
+        <div style="padding:10px 13px;background:#F8F7F4;border-radius:9px;font-size:.72rem;color:#aaa;line-height:1.8">
+          Generates:
+          <code style="background:#eee;padding:1px 5px;border-radius:3px">index.html</code>
+          <code style="background:#eee;padding:1px 5px;border-radius:3px">forms.html</code>
+          <code style="background:#eee;padding:1px 5px;border-radius:3px">newsletters.html</code>
+          <code style="background:#eee;padding:1px 5px;border-radius:3px">data.json</code>
+          <br>Drop on Netlify / Vercel for instant hosting.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /dp-cols -->
+
+
+  <!-- ═══════════════════════════════════════════
+       PREVIEW STRIP
+  ═══════════════════════════════════════════ -->
+  <div id="previewStrip">
+    <div class="prev-bar">
+      <div class="prev-dots"><span></span><span></span><span></span></div>
+      <span class="prev-url" id="prevUrlLbl">preview</span>
+      <div class="prev-acts">
+        <button id="editBtn"  class="btn-ghost"  style="font-size:.76rem;padding:5px 13px" onclick="openEditor()">✏️ Edit</button>
+        <button id="pubBtn"   class="btn-mango"  style="font-size:.76rem;padding:5px 13px" onclick="openPubModal()">🚀 Publish Live</button>
+        <button id="dlBtn"    class="btn-ghost"  style="font-size:.76rem;padding:5px 13px" onclick="dlCurrent()">⬇ ZIP</button>
+        <button onclick="closePreview()" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:1.1rem;padding:0 4px">✕</button>
+      </div>
+    </div>
+    <iframe id="previewFrame" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       PUBLISHED SITES
+  ═══════════════════════════════════════════ -->
+  <div>
+    <div class="sites-hdr">
+      🌐 Your Sites
+      <span class="sites-cnt">{{ sites|length }} site{{ 's' if sites|length != 1 else '' }}</span>
+    </div>
+
+    {% if sites %}
+    <div class="sites-grid" id="sitesGrid">
+      {% for s in sites %}
+      <div class="sc" id="card-{{ s._id }}">
+        <div class="sc-thumb" onclick="viewSite('{{ s.slug }}','{{ s._id }}','{{ s.is_published }}')">
+          {% if s.is_published %}
+          <iframe src="/sites/{{ s.slug }}/" scrolling="no" tabindex="-1" loading="lazy"></iframe>
+          {% else %}
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.25)">
+            <span style="font-size:1.8rem">📄</span>
+            <span style="font-size:.7rem;margin-top:5px">Draft</span>
+          </div>
+          {% endif %}
+          <div class="sc-ov"><span>👁 View</span></div>
+        </div>
+        <div class="sc-body">
+          <div class="sc-name">{{ s.title or 'Untitled' }}</div>
+          <div class="sc-meta">
+            <span class="tag {{ 'tag-live' if s.is_published else 'tag-draft' }}">
+              {{ '🟢 Live' if s.is_published else '⚫ Draft' }}
+            </span>
+            <span class="fw fw-{{ s.framework or 'html' }}" style="font-size:.62rem;padding:2px 8px">
+              {{ s.framework|upper if s.framework else 'HTML' }}
+            </span>
+            {% if s.converted_to_flask %}<span style="font-size:.62rem;color:#2D6A4F;background:#F0FFF4;padding:2px 7px;border-radius:20px;border:1px solid #C8E6C9">⚗ Flask</span>{% endif %}
+          </div>
+          {% if s.is_published %}
+          <div class="sc-url" onclick="copyUrl('/sites/{{ s.slug }}/')" title="Click to copy">/sites/{{ s.slug }}/</div>
+          {% endif %}
+          <div class="sc-acts">
+            {% if s.is_published %}<a href="/sites/{{ s.slug }}/" target="_blank" class="sab primary">🔗 Open</a>{% endif %}
+            {% if s.is_published %}<button class="sab" onclick="copyUrl('/sites/{{ s.slug }}/')">📋 Copy</button>{% endif %}
+            <button class="sab" onclick="openEdById('{{ s._id }}','{{ s.title or '' }}')">✏️ Edit</button>
+            {% if s.is_published %}
+            <button class="sab" style="color:var(--mango);border-color:rgba(255,140,0,.25);"
+                    onclick="openPublishModal('{{ s._id }}', 'site', `{{ (s.title or 'My Site') | replace('`','') }}`)">🌐 Community</button>
+            <button class="sab" onclick="unpublish('{{ s._id }}')">⏸</button>
+            {% else %}
+            <button class="sab primary" onclick="republish('{{ s._id }}','{{ s.slug }}','{{ s.title or '' }}')">🚀 Publish</button>
+            {% endif %}
+            <button class="sab danger" onclick="delSite('{{ s._id }}')">🗑</button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty" id="sitesGrid">
+      <div style="font-size:1.8rem;margin-bottom:8px">🌐</div>
+      Upload a project or auto-generate one above, then publish it live.
+    </div>
+    {% endif %}
+  </div>
+
+</div><!-- /dp -->
+
+
+<!-- ═══════════════════════════════════════════
+     PUBLISH MODAL
+═══════════════════════════════════════════ -->
+<div class="mbg" id="pubModal">
+  <div class="modal">
+    <h2>🚀 Publish Website</h2>
+    <p>Your site goes live instantly at the URL you choose.</p>
+    <div class="mf">
+      <label>Site Name</label>
+      <input type="text" id="pubTitle" oninput="syncSlug()" placeholder="My Site">
+    </div>
+    <div class="mf">
+      <label>URL Slug</label>
+      <input type="text" id="pubSlug" oninput="onSlugInput()" style="font-family:monospace" placeholder="my-site">
+      <div class="slug-prev" id="slugPrev"></div>
+    </div>
+    <div id="pubErr" class="al al-err"></div>
+    <div class="macts">
+      <button class="btn-ghost" onclick="closePubModal()">Cancel</button>
+      <button class="btn-mango" onclick="doPublish()">🚀 Go Live</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     EDITOR OVERLAY
+═══════════════════════════════════════════ -->
+<div id="edOverlay">
+  <div class="ed-top">
+    <div class="ed-brand">◈ Editor</div>
+    <div class="ed-title" id="edTitle">—</div>
+    <div class="ed-acts">
+      <button class="eb eb-dim" onclick="closeEd()">✕ Close</button>
+      <button class="eb eb-dim" onclick="refreshEdPrev()">🔄</button>
+      <button class="eb eb-grn" onclick="saveFile()">💾 Save</button>
+      <button class="eb eb-ora" onclick="openPubModal()">🚀 Publish</button>
+    </div>
+  </div>
+  <div class="ed-body">
+    <div class="ed-files">
+      <div class="ed-ft">Files</div>
+      <div id="edFileList"></div>
+    </div>
+    <div class="ed-code">
+      <div class="ed-cbar">
+        <span id="edFname">—</span>
+        <span class="ed-saved" id="edSaved"></span>
+      </div>
+      <textarea class="ed-ta" id="edTa" oninput="onTaChange()" onkeydown="tabKey(event)" placeholder="Select a file…"></textarea>
+    </div>
+    <div class="ed-prev">
+      <div class="ed-pbar">
+        <span>Preview</span>
+        <span id="edPrevLbl" style="margin-left:auto;font-family:monospace;font-size:.68rem;color:#FF8C00"></span>
+      </div>
+      <iframe id="edFrame"></iframe>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════ */
+let curSource    = 'zip';
+let selectedZip  = null;
+let selectedHtml = [];      // File objects
+let analyzedData = null;    // last analyze response
+let curSiteId    = null;
+let pubFor       = null;    // siteId or 'current'
+let convertFlask = false;
+let edSiteId     = null;
+let edFiles      = {};      // path → content
+let edActive     = null;
+let edTimer      = null;
+const HOST = window.location.origin;
+
+
+/* ═══════════════════════════════════════════════════════
+   SOURCE TABS
+═══════════════════════════════════════════════════════ */
+function switchTab(src, btn) {
+  curSource = src;
+  document.querySelectorAll('.src-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.src-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + src).classList.add('active');
+  clearAnalysis();
+}
+
+function clearAnalysis() {
+  analyzedData = null;
+  document.getElementById('abox').style.display = 'none';
+  document.getElementById('convertBox').classList.remove('show');
+  document.getElementById('hpRow').classList.remove('show');
+  document.getElementById('titleRow').style.display = 'none';
+  document.getElementById('muRow').style.display = 'none';
+  const btn = document.getElementById('deployBtn');
+  btn.classList.remove('on'); btn.disabled = true;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   FILE SELECTION
+═══════════════════════════════════════════════════════ */
+function onDrop(e, type) {
+  e.preventDefault();
+  document.getElementById('dz-'+type).classList.remove('over');
+  if (type === 'zip') {
+    const f = e.dataTransfer.files[0];
+    if (f) handleZip(f);
+  } else {
+    const files = [...e.dataTransfer.files];
+    if (files.length) handleHtmlFiles(files);
+  }
+}
+function onZipSelect(e)  { const f = e.target.files[0]; if (f) handleZip(f); }
+function onHtmlSelect(e) { handleHtmlFiles([...e.target.files]); }
+
+function handleZip(file) {
+  if (!file.name.toLowerCase().endsWith('.zip')) { toast('Please select a .zip file','err'); return; }
+  selectedZip = file;
+  const dz = document.getElementById('dz-zip');
+  dz.classList.add('ok');
+  document.getElementById('dz-zip-icon').textContent  = '✅';
+  document.getElementById('dz-zip-title').textContent = file.name;
+  document.getElementById('dz-zip-sub').textContent   = `${(file.size/1024).toFixed(0)} KB`;
+  analyze();
+}
+
+function handleHtmlFiles(files) {
+  selectedHtml = files;
+  const dz = document.getElementById('dz-html');
+  dz.classList.add('ok');
+  document.getElementById('dz-html-icon').textContent  = '✅';
+  document.getElementById('dz-html-title').textContent = `${files.length} file${files.length>1?'s':''} selected`;
+  document.getElementById('dz-html-sub').textContent   = files.map(f=>f.name).join(', ').slice(0,80);
+  analyze();
+}
+
+async function analyzeGit() {
+  const url = document.getElementById('gitUrl').value.trim();
+  if (!url) { toast('Enter a GitHub URL','err'); return; }
+  analyze();
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   ANALYZE
+═══════════════════════════════════════════════════════ */
+async function analyze() {
+  clearAnalysis();
+  progress('prog1', 0, 40, 600);
+
+  const fd = new FormData();
+  fd.append('source', curSource);
+
+  if (curSource === 'zip')  fd.append('folder', selectedZip);
+  else if (curSource === 'html') selectedHtml.forEach(f => fd.append('files', f));
+  else fd.append('git_url', document.getElementById('gitUrl').value.trim());
+
+  try {
+    const r = await fetch('/deploy/analyze', {method:'POST', body:fd});
+    const d = await r.json();
+    progress('prog1', 40, 100, 400);
+    setTimeout(() => document.getElementById('prog1').style.display='none', 700);
+    if (!d.success) { toast('⚠ ' + d.error, 'err'); return; }
+    analyzedData = d;
+    showAnalysis(d);
+  } catch(e) {
+    progress('prog1', 40, 100, 300);
+    setTimeout(() => document.getElementById('prog1').style.display='none', 500);
+    toast('⚠ ' + e.message, 'err');
+  }
+}
+
+function showAnalysis(d) {
+  // Framework badge
+  const FW = {
+    html:   ['📄 HTML',  'fw-html'],
+    flask:  ['🐍 Flask', 'fw-flask'],
+    react:  ['⚛ React',  'fw-react'],
+    django: ['🎸 Django','fw-django'],
+  };
+  const [lbl,cls] = FW[d.framework] || FW.html;
+  const b = document.getElementById('fw-badge');
+  b.textContent = lbl; b.className = 'fw ' + cls;
+
+  document.getElementById('a-files').textContent = d.file_count + ' files';
+  document.getElementById('a-db').textContent    = d.has_db
+    ? '✅ Yes (found existing DB code)'
+    : '➕ No — Draftspace will add MongoDB';
+
+  const ep = document.getElementById('a-exts');
+  ep.innerHTML = '';
+  Object.entries(d.extensions||{}).sort((a,b)=>b[1]-a[1]).slice(0,12).forEach(([ext,cnt])=>{
+    const p = document.createElement('span');
+    p.className = 'pill'; p.textContent = `.${ext} ×${cnt}`;
+    ep.appendChild(p);
+  });
+  document.getElementById('abox').style.display = 'block';
+
+  // Convert to Flask toggle (only for HTML sites)
+  if (d.can_convert) document.getElementById('convertBox').classList.add('show');
+
+  // Homepage picker
+  const hp = d.html_files || [];
+  const hpRow = document.getElementById('hpRow');
+  const hpSel = document.getElementById('hpSelect');
+  hpSel.innerHTML = '';
+  if (hp.length > 0) {
+    hpRow.classList.add('show');
+    const sorted = [...hp].sort((a,b)=>{
+      const s = f => { const n=f.toLowerCase().split('/').pop(); return n==='index.html'?0:n==='home.html'?1:10; };
+      return s(a)-s(b) || a.localeCompare(b);
+    });
+    sorted.forEach(f => {
+      const o = document.createElement('option');
+      o.value = f; o.textContent = f;
+      if (f.toLowerCase().endsWith('index.html')) o.selected = true;
+      hpSel.appendChild(o);
+    });
+  } else {
+    hpRow.classList.remove('show');
+  }
+
+  // Show title + mongo fields
+  document.getElementById('titleRow').style.display = 'block';
+  document.getElementById('muRow').style.display    = 'block';
+
+  // Fill site title from file name
+  const name = curSource==='git'
+    ? (document.getElementById('gitUrl').value.trim().split('/').pop())
+    : curSource==='zip'
+      ? (selectedZip?.name.replace('.zip','') || 'My Site')
+      : (selectedHtml[0]?.name.replace(/\.[^.]+$/,'') || 'My Site');
+  document.getElementById('siteTitle').value = name;
+
+  // Enable deploy button
+  const btn = document.getElementById('deployBtn');
+  btn.classList.add('on'); btn.disabled = false;
+
+  // Show preview of index.html
+  if (d.index_preview) {
+    showPreview(d.index_preview, `Preview — ${d.framework.toUpperCase()}`);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   CONVERT FLASK TOGGLE
+═══════════════════════════════════════════════════════ */
+function toggleConvert() {
+  convertFlask = !convertFlask;
+  const sw = document.getElementById('convertSw');
+  sw.parentElement.classList.toggle('sw-on', convertFlask);
+  document.getElementById('deployTxt').textContent = convertFlask
+    ? '⚗ Convert to Flask & Deploy'
+    : '⬆ Deploy Project';
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   UPLOAD & PROCESS
+═══════════════════════════════════════════════════════ */
+async function doUpload() {
+  if (!analyzedData) { toast('Analyze a project first','err'); return; }
+
+  const btn = document.getElementById('deployBtn');
+  const txt = document.getElementById('deployTxt');
+  hideEl('uploadErr'); hideEl('uploadOk');
+  btn.disabled = true; btn.style.cursor = 'wait';
+
+  const FW = analyzedData.framework;
+  const steps = {
+    react:  ['Extracting…','Detecting React…','Injecting db.js…','Patching package.json…','Writing to disk…'],
+    flask:  ['Extracting…','Patching Flask…','Adding Draftspace_db.py…','Patching requirements…','Writing to disk…'],
+    html:   convertFlask
+            ? ['Extracting…','Converting to Flask…','Building routes…','Wiring Jinja templates…','Writing to disk…']
+            : ['Extracting…','Fixing asset paths…','Injecting MongoDB data…','Writing index.html…','Writing to disk…'],
+  }[FW] || ['Processing…','Writing to disk…'];
+
+  let si = 0;
+  document.getElementById('prog1').style.display = 'block';
+  const timer = setInterval(()=>{
+    if(si < steps.length){ txt.textContent = steps[si++]; document.getElementById('prog1-fill').style.width=(si/steps.length*85)+'%'; }
+  }, 700);
+
+  try {
+    const fd = new FormData();
+    fd.append('source', curSource);
+    fd.append('convert_flask', convertFlask ? '1' : '0');
+    fd.append('mongo_uri',  document.getElementById('mongoUri').value.trim());
+    fd.append('homepage',   document.getElementById('hpSelect').value || 'index.html');
+    fd.append('site_title', document.getElementById('siteTitle').value.trim() || 'My Site');
+
+    if (curSource === 'zip')       fd.append('folder', selectedZip);
+    else if (curSource === 'html') selectedHtml.forEach(f => fd.append('files', f));
+    else fd.append('git_url', document.getElementById('gitUrl').value.trim());
+
+    const r = await fetch('/deploy/upload', {method:'POST', body:fd});
+    clearInterval(timer);
+    document.getElementById('prog1-fill').style.width = '100%';
+
+    if (!r.ok) { const e=await r.json(); throw new Error(e.error||'Upload failed'); }
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error);
+
+    curSiteId = d.site_id;
+    pubFor    = 'current';
+
+    const msg = d.converted
+      ? `✅ Converted to Flask! ${d.file_count} files ready — you can edit &amp; publish below.`
+      : `✅ ${d.framework.toUpperCase()} project processed — ${d.file_count} files on disk.`;
+    showAl('uploadOk', msg);
+    txt.textContent = '✅ Ready — preview or publish below';
+
+    if (d.index_preview) {
+      showPreview(d.index_preview, `${d.framework.toUpperCase()} · ${d.file_count} files`);
+    } else {
+      // Load from the live draft URL
+      showPreviewUrl(`/sites/${d.draft_slug}/`, d.draft_slug);
+    }
+
+    // Add draft card
+    addCard({_id:d.site_id, slug:d.draft_slug, title:document.getElementById('siteTitle').value.trim(),
+             framework:d.framework, is_published:false, converted_to_flask:d.converted});
+
+    toast(`✅ ${d.framework.toUpperCase()} deployed!`, 'ok');
+
+  } catch(e) {
+    clearInterval(timer);
+    showAl('uploadErr', '⚠ '+e.message);
+    txt.textContent = '⬆ Deploy Project';
+  }
+  btn.disabled = false; btn.style.cursor = 'pointer';
+  setTimeout(()=>{ document.getElementById('prog1').style.display='none';
+                   document.getElementById('prog1-fill').style.width='0'; }, 1000);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   AUTO-GENERATE
+═══════════════════════════════════════════════════════ */
+function _gp() {
+  return {site_title: document.getElementById('genTitle').value.trim()||'My Site',
+          accent_color: document.getElementById('accColor').value||'#FF8C00'};
+}
+function setAcc(c){ document.getElementById('accColor').value=c; document.getElementById('accHex').textContent=c; }
+
+async function previewGen() {
+  const btn = document.getElementById('prevGenBtn');
+  btn.textContent='⏳…'; btn.disabled=true; hideEl('genErr');
+  try {
+    const r = await fetch('/deploy/preview-generated',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(_gp())});
+    const d = await r.json(); if (!d.success) throw new Error(d.error);
+    showPreview(d.html, 'Auto-generated preview');
+  } catch(e) { showAl('genErr','⚠ '+e.message); }
+  btn.textContent='👁 Preview'; btn.disabled=false;
+}
+
+async function dlGen() {
+  const btn = document.getElementById('prevGenBtn');
+  hideEl('genErr');
+  try {
+    const r = await fetch('/deploy/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(_gp())});
+    if(!r.ok){ const e=await r.json(); throw new Error(e.error); }
+    dlBlob(await r.blob(), r.headers.get('Content-Disposition'));
+    toast('✅ ZIP downloaded!','ok');
+  } catch(e) { showAl('genErr','⚠ '+e.message); }
+}
+
+async function pubGen() {
+  const btn = document.getElementById('pubGenBtn');
+  btn.innerHTML='⏳…'; btn.disabled=true; hideEl('genErr');
+  try {
+    const r = await fetch('/deploy/publish-generated',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(_gp())});
+    const d = await r.json(); if(!d.success) throw new Error(d.error);
+    curSiteId = d.site_id; pubFor = 'current';
+    document.getElementById('pubTitle').value = _gp().site_title;
+    syncSlug();
+    openPubModal();
+  } catch(e) { showAl('genErr','⚠ '+e.message); }
+  btn.innerHTML='🚀 Publish'; btn.disabled=false;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   PREVIEW STRIP
+═══════════════════════════════════════════════════════ */
+function showPreview(html, label) {
+  const frame = document.getElementById('previewFrame');
+  frame.srcdoc = html; frame.src = '';
+  document.getElementById('prevUrlLbl').textContent = label;
+  document.getElementById('previewStrip').style.display = 'block';
+  document.getElementById('previewStrip').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function showPreviewUrl(url, label) {
+  const frame = document.getElementById('previewFrame');
+  frame.src = url; frame.srcdoc = '';
+  document.getElementById('prevUrlLbl').textContent = HOST + url;
+  document.getElementById('previewStrip').style.display = 'block';
+  document.getElementById('previewStrip').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function closePreview() { document.getElementById('previewStrip').style.display='none'; }
+function viewSite(slug, siteId, isPub) {
+  curSiteId = siteId; pubFor = siteId;
+  showPreviewUrl(`/sites/${slug}/`, slug);
+}
+function dlCurrent() { if(curSiteId) window.location.href=`/deploy/download/${curSiteId}`; }
+
+
+/* ═══════════════════════════════════════════════════════
+   PUBLISH MODAL
+═══════════════════════════════════════════════════════ */
+function openPubModal() {
+  hideEl('pubErr');
+  if (!document.getElementById('pubTitle').value) {
+    document.getElementById('pubTitle').value = document.getElementById('siteTitle')?.value ||
+                                                document.getElementById('genTitle')?.value || 'My Site';
+    syncSlug();
+  }
+  document.getElementById('pubModal').classList.add('open');
+}
+function closePubModal() { document.getElementById('pubModal').classList.remove('open'); }
+
+function _slug(s){ return s.toLowerCase().trim().replace(/[^\w\s-]/g,'').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,50); }
+function syncSlug() {
+  const s = _slug(document.getElementById('pubTitle').value);
+  document.getElementById('pubSlug').value = s;
+  document.getElementById('slugPrev').textContent = s ? HOST+'/sites/'+s+'/' : '';
+}
+function onSlugInput() {
+  const s = _slug(document.getElementById('pubSlug').value);
+  document.getElementById('pubSlug').value = s;
+  document.getElementById('slugPrev').textContent = s ? HOST+'/sites/'+s+'/' : '';
+}
+
+async function doPublish() {
+  hideEl('pubErr');
+  const slug  = document.getElementById('pubSlug').value.trim();
+  const title = document.getElementById('pubTitle').value.trim();
+  const sid   = pubFor === 'current' ? curSiteId : pubFor;
+  if (!slug)  { showAl('pubErr','Enter a URL slug'); return; }
+  if (!sid)   { showAl('pubErr','No site to publish — deploy first'); return; }
+
+  const btn = document.querySelector('#pubModal .btn-mango');
+  btn.textContent = '⏳ Publishing…'; btn.disabled = true;
+  try {
+    const r = await fetch('/deploy/publish',{method:'POST',headers:{'Content-Type':'application/json'},
+                          body:JSON.stringify({site_id:sid,slug,title})});
+    const d = await r.json(); if(!d.success) throw new Error(d.error);
+    closePubModal();
+    toast(`🌐 Live at ${HOST}/sites/${d.slug}/`,'ok');
+    showPreviewUrl(`/sites/${d.slug}/`, HOST+'/sites/'+d.slug+'/');
+    // Update the card
+    const card = document.getElementById('card-'+sid);
+    if(card) setTimeout(()=>location.reload(),1500);
+    else addCard({_id:sid,slug:d.slug,title,framework:analyzedData?.framework||'html',is_published:true,converted_to_flask:convertFlask});
+  } catch(e){ showAl('pubErr','⚠ '+e.message); }
+  btn.textContent='🚀 Go Live'; btn.disabled=false;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   SITE CARD ACTIONS
+═══════════════════════════════════════════════════════ */
+function copyUrl(path){
+  navigator.clipboard.writeText(HOST+path).then(()=>toast('📋 Copied!','ok'));
+}
+
+async function unpublish(id){
+  if(!confirm('Unpublish this site?')) return;
+  const r=await fetch('/deploy/unpublish',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({site_id:id})});
+  const d=await r.json();
+  if(d.success){toast('⏸ Unpublished','ok');setTimeout(()=>location.reload(),800);}
+  else toast('⚠ '+d.error,'err');
+}
+
+function republish(id,slug,title){
+  pubFor=id;
+  document.getElementById('pubTitle').value=title;
+  document.getElementById('pubSlug').value=slug;
+  document.getElementById('slugPrev').textContent=slug?HOST+'/sites/'+slug+'/':'';
+  openPubModal();
+}
+
+async function delSite(id){
+  if(!confirm('Delete this site permanently?')) return;
+  const r=await fetch('/deploy/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({site_id:id})});
+  const d=await r.json();
+  if(d.success){
+    const c=document.getElementById('card-'+id);
+    if(c){c.style.opacity='0';c.style.transform='scale(.95)';setTimeout(()=>c.remove(),300);}
+    toast('🗑 Deleted','ok');
+  } else toast('⚠ '+d.error,'err');
+}
+
+function addCard(s){
+  const grid=document.getElementById('sitesGrid');
+  if(grid.classList.contains('empty')){grid.innerHTML='';grid.className='sites-grid';}
+  const ex=document.getElementById('card-'+s._id); if(ex) ex.remove();
+  const url='/sites/'+s.slug+'/';
+  const FWI={react:'⚛',flask:'🐍',django:'🎸',html:'📄'};
+  const c=document.createElement('div');
+  c.className='sc'; c.id='card-'+s._id;
+  c.innerHTML=`
+    <div class="sc-thumb" onclick="viewSite('${s.slug}','${s._id}','${s.is_published}')">
+      ${s.is_published?`<iframe src="${url}" scrolling="no" tabindex="-1" loading="lazy"></iframe>`
+       :'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.25)"><span style="font-size:1.8rem">📄</span><span style="font-size:.7rem;margin-top:5px">Draft</span></div>'}
+      <div class="sc-ov"><span>👁 View</span></div>
+    </div>
+    <div class="sc-body">
+      <div class="sc-name">${s.title||'Untitled'}</div>
+      <div class="sc-meta">
+        <span class="tag ${s.is_published?'tag-live':'tag-draft'}">${s.is_published?'🟢 Live':'⚫ Draft'}</span>
+        <span class="fw fw-${s.framework||'html'}" style="font-size:.62rem;padding:2px 8px">${FWI[s.framework]||'📄'} ${(s.framework||'html').toUpperCase()}</span>
+        ${s.converted_to_flask?'<span style="font-size:.62rem;color:#2D6A4F;background:#F0FFF4;padding:2px 7px;border-radius:20px;border:1px solid #C8E6C9">⚗ Flask</span>':''}
+      </div>
+      ${s.is_published?`<div class="sc-url" onclick="copyUrl('${url}')">${url}</div>`:''}
+      <div class="sc-acts">
+        ${s.is_published?`<a href="${url}" target="_blank" class="sab primary">🔗 Open</a>`:''}
+        ${s.is_published?`<button class="sab" onclick="copyUrl('${url}')">📋 Copy</button>`:''}
+        <button class="sab" onclick="openEdById('${s._id}','${s.title||''}')">✏️ Edit</button>
+        ${s.is_published
+          ?`<button class="sab" onclick="unpublish('${s._id}')">⏸</button>`
+          :`<button class="sab primary" onclick="republish('${s._id}','${s.slug}','${s.title||''}')">🚀 Publish</button>`}
+        <button class="sab danger" onclick="delSite('${s._id}')">🗑</button>
+      </div>
+    </div>`;
+  grid.prepend(c);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   EDITOR
+═══════════════════════════════════════════════════════ */
+function openEditor(){ if(curSiteId) openEdById(curSiteId,''); else toast('Deploy a project first','err'); }
+
+async function openEdById(id, title){
+  edSiteId = id;
+  document.getElementById('edTitle').textContent = title||'Editing';
+  document.getElementById('edOverlay').classList.add('open');
+  document.getElementById('edFileList').innerHTML='<div style="padding:12px;color:rgba(255,255,255,.3);font-size:.76rem">Loading…</div>';
+  document.getElementById('edTa').value='';
+  try {
+    const r=await fetch(`/deploy/site/${id}/files`);
+    const d=await r.json(); if(!d.success) throw new Error(d.error);
+    edFiles=d.files; renderEdFiles();
+    const first=Object.keys(edFiles).find(k=>k.toLowerCase().endsWith('index.html'))
+               ||Object.keys(edFiles).find(k=>k.toLowerCase().endsWith('.html'))
+               ||Object.keys(edFiles)[0];
+    if(first) openEdFile(first);
+  } catch(e){
+    document.getElementById('edFileList').innerHTML=`<div style="padding:12px;color:#E63946;font-size:.76rem">Error: ${e.message}</div>`;
+  }
+}
+
+const ED_ICONS={html:'🌐',htm:'🌐',css:'🎨',js:'⚡',json:'📋',md:'📝',py:'🐍',txt:'📄',env:'🔧'};
+function renderEdFiles(){
+  const list=document.getElementById('edFileList'); list.innerHTML='';
+  const ORDER=['html','htm','css','js','py','json','md','txt'];
+  const keys=Object.keys(edFiles).sort((a,b)=>{
+    const ea=a.split('.').pop().toLowerCase(), eb=b.split('.').pop().toLowerCase();
+    return (ORDER.indexOf(ea)+99)%99-(ORDER.indexOf(eb)+99)%99||a.localeCompare(b);
+  });
+  keys.forEach(k=>{
+    const ext=k.split('.').pop().toLowerCase();
+    const icon=ED_ICONS[ext]||'📄';
+    const d=document.createElement('div');
+    d.className='ed-fi'+(k===edActive?' cur':'');
+    d.textContent=icon+' '+k.split('/').pop();
+    d.title=k; d.onclick=()=>openEdFile(k);
+    list.appendChild(d);
+  });
+}
+
+function openEdFile(k){
+  if(edActive && edFiles[edActive]!==undefined)
+    edFiles[edActive]=document.getElementById('edTa').value;
+  edActive=k;
+  document.getElementById('edFname').textContent=k;
+  document.getElementById('edTa').value=edFiles[k]||'';
+  document.getElementById('edSaved').textContent='';
+  renderEdFiles(); refreshEdPrev();
+}
+
+function onTaChange(){
+  if(!edActive) return;
+  edFiles[edActive]=document.getElementById('edTa').value;
+  document.getElementById('edSaved').textContent='● unsaved';
+  if(edActive.toLowerCase().endsWith('.html')){
+    clearTimeout(edTimer); edTimer=setTimeout(refreshEdPrev,700);
+  }
+}
+
+function tabKey(e){
+  if(e.key!=='Tab') return; e.preventDefault();
+  const ta=e.target, s=ta.selectionStart, en=ta.selectionEnd;
+  ta.value=ta.value.substring(0,s)+'  '+ta.value.substring(en);
+  ta.selectionStart=ta.selectionEnd=s+2; onTaChange();
+}
+
+function refreshEdPrev(){
+  if(!edActive) return;
+  const f=document.getElementById('edFrame');
+  if(edActive.toLowerCase().endsWith('.html')){
+    f.srcdoc=document.getElementById('edTa').value;
+    document.getElementById('edPrevLbl').textContent=edActive;
+  } else {
+    const idx=Object.keys(edFiles).find(k=>k.toLowerCase().endsWith('index.html'));
+    if(idx){ f.srcdoc=edFiles[idx]; document.getElementById('edPrevLbl').textContent='index.html'; }
+  }
+}
+
+async function saveFile(){
+  if(!edActive||!edSiteId) return;
+  const content=document.getElementById('edTa').value;
+  edFiles[edActive]=content;
+  const btn=document.querySelector('.eb-grn'); btn.textContent='⏳…'; btn.disabled=true;
+  document.getElementById('edSaved').textContent='Saving…';
+  try{
+    const r=await fetch(`/deploy/site/${edSiteId}/save-file`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:edActive,content})});
+    const d=await r.json(); if(!d.success) throw new Error(d.error);
+    document.getElementById('edSaved').textContent='✓ Saved';
+    setTimeout(()=>document.getElementById('edSaved').textContent='',2000);
+    toast('💾 Saved','ok');
+  }catch(e){ document.getElementById('edSaved').textContent='✗ Error'; toast('⚠ '+e.message,'err'); }
+  btn.textContent='💾 Save'; btn.disabled=false;
+}
+
+function closeEd(){ document.getElementById('edOverlay').classList.remove('open'); }
+
+
+/* ═══════════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════════ */
+function progress(id, from, to, ms){
+  const pb=document.getElementById(id), fill=document.getElementById(id+'-fill');
+  pb.style.display='block'; fill.style.transition=`width ${ms}ms ease`;
+  fill.style.width=from+'%'; setTimeout(()=>fill.style.width=to+'%',30);
+}
+function showAl(id,msg){ const el=document.getElementById(id); el.innerHTML=msg; el.style.display='block'; }
+function hideEl(id){ const el=document.getElementById(id); if(el) el.style.display='none'; }
+function toast(msg,type='info'){
+  const t=document.getElementById('toast'); t.textContent=msg;
+  t.className='toast show '+(type==='ok'?'ok':type==='err'?'err':'');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),4500);
+}
+function dlBlob(blob,cd){
+  const url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download=cd?.match(/filename="(.+)"/)?.[1]||'site.zip';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+// Close modal on backdrop click
+document.getElementById('pubModal').addEventListener('click', e=>{ if(e.target===e.currentTarget) closePubModal(); });
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e=>{
+  if(document.getElementById('edOverlay').classList.contains('open')){
+    if((e.ctrlKey||e.metaKey)&&e.key==='s'){ e.preventDefault(); saveFile(); }
+    if(e.key==='Escape') closeEd();
+  }
+  if(document.getElementById('pubModal').classList.contains('open') && e.key==='Escape') closePubModal();
+});
+</script>
+{% include 'components/publish_modal.html' %}
+{% endblock %}

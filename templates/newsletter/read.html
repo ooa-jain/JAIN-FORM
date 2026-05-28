@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>{{ nl.title }} — Draftspace Newsletter</title>
+<meta name="description" content="{{ nl.subtitle or nl.title }}">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#F4F2EF;color:#222}
+.rd-nav{background:#1A1A2E;padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+.rd-nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:#fff;font-weight:800;font-size:1rem}
+.rd-nav-logo span{background:#FF8C00;border-radius:7px;padding:2px 7px;font-size:.8rem}
+.rd-nav-right{display:flex;align-items:center;gap:10px}
+.rd-back{color:rgba(255,255,255,.6);text-decoration:none;font-size:.82rem;display:flex;align-items:center;gap:4px;transition:.15s}
+.rd-back:hover{color:#FF8C00}
+.rd-signup{padding:7px 16px;background:#FF8C00;color:#fff;border-radius:8px;text-decoration:none;font-size:.82rem;font-weight:700;transition:.15s}
+.rd-signup:hover{background:#CC7000}
+
+.rd-wrap{max-width:700px;margin:36px auto;padding:0 20px 60px}
+.rd-meta{background:#fff;border-radius:16px;padding:28px 32px;margin-bottom:24px;border:1px solid #E8E4DE;box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.rd-meta-cat{display:inline-block;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:3px 10px;border-radius:12px;background:#FFF3E0;color:#CC7000;margin-bottom:12px}
+.rd-meta h1{font-family:'Playfair Display',serif;font-size:1.75rem;font-weight:900;color:#1A1A2E;line-height:1.3;margin-bottom:8px}
+.rd-meta .sub{font-size:.95rem;color:#777;line-height:1.6;margin-bottom:18px}
+.rd-meta-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.rd-creator{display:flex;align-items:center;gap:10px}
+.rd-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#FF8C00,#CC7000);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.9rem}
+.rd-creator-info .name{font-weight:700;font-size:.88rem;color:#1A1A2E}
+.rd-creator-info .date{font-size:.72rem;color:#aaa;margin-top:1px}
+.rd-actions{display:flex;gap:8px}
+.rd-act{padding:8px 14px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;border:1.5px solid #E2DDD8;background:#fff;color:#555;transition:.15s;display:flex;align-items:center;gap:5px}
+.rd-act:hover{border-color:#FF8C00;color:#FF8C00}
+.rd-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:14px}
+.rd-tag{padding:3px 10px;border-radius:14px;font-size:.68rem;font-weight:600;background:#F4F2EF;color:#888;border:1px solid #E8E4DE}
+
+.rd-content{background:#fff;border-radius:16px;overflow:hidden;border:1px solid #E8E4DE;box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.rd-iframe{width:100%;border:none;display:block;min-height:500px}
+
+.rd-cta{background:linear-gradient(135deg,#1A1A2E,#2D1B6B);border-radius:16px;padding:32px;text-align:center;margin-top:24px;color:#fff}
+.rd-cta h3{font-size:1.2rem;font-weight:800;margin-bottom:8px}
+.rd-cta p{color:rgba(255,255,255,.65);font-size:.88rem;margin-bottom:20px}
+.rd-cta a{display:inline-block;padding:12px 28px;background:#FF8C00;color:#fff;border-radius:11px;font-weight:700;text-decoration:none;font-size:.9rem;transition:.2s}
+.rd-cta a:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,140,0,.4)}
+
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#1A1A2E;color:#fff;padding:11px 24px;border-radius:40px;font-size:.83rem;font-weight:600;box-shadow:0 8px 28px rgba(0,0,0,.3);opacity:0;transition:all .3s;pointer-events:none;z-index:9999}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{background:#2D6A4F}
+</style>
+</head>
+<body>
+<nav class="rd-nav">
+  <a href="/" class="rd-nav-logo"><span>◈</span> Draftspace</a>
+  <div class="rd-nav-right">
+    <a href="/newsletter/community" class="rd-back">← Community Feed</a>
+    <a href="/login" class="rd-signup">Create Free →</a>
+  </div>
+</nav>
+
+<div class="rd-wrap">
+  <!-- Meta card -->
+  <div class="rd-meta">
+    <span class="rd-meta-cat">{{ nl.get('community_category','Newsletter')|title }}</span>
+    <h1>{{ nl.title }}</h1>
+    {% if nl.subtitle %}<div class="sub">{{ nl.subtitle }}</div>{% endif %}
+    <div class="rd-meta-row">
+      <div class="rd-creator">
+        <div class="rd-avatar">{{ (creator_name or 'U')[0]|upper }}</div>
+        <div class="rd-creator-info">
+          <div class="name">{{ creator_name or 'Draftspace Creator' }}</div>
+          <div class="date">Published {{ posted_date }}</div>
+        </div>
+      </div>
+      <div class="rd-actions">
+        <button class="rd-act" onclick="shareThis()"><i class="ph ph-share-network"></i> Share</button>
+        <button class="rd-act" onclick="window.print()"><i class="ph ph-printer"></i> Print</button>
+      </div>
+    </div>
+    {% if nl.community_tags %}
+    <div class="rd-tags">
+      {% for tag in nl.community_tags %}<span class="rd-tag">#{{ tag }}</span>{% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Newsletter rendered -->
+  <div class="rd-content">
+    <iframe class="rd-iframe" id="nlIframe" src="/newsletter/{{ nl._id }}/public-preview" scrolling="yes"
+            onload="autoResize(this)"></iframe>
+  </div>
+
+  <!-- CTA -->
+  <div class="rd-cta">
+    <h3>✨ Create Your Own Newsletter</h3>
+    <p>Join thousands of creators on Draftspace. Build, send, and publish beautiful newsletters — for free.</p>
+    <a href="/login">Start for Free →</a>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+function autoResize(iframe){
+  try{
+    const h = iframe.contentWindow.document.body.scrollHeight;
+    if(h > 300) iframe.style.height = h + 'px';
+  }catch(e){}
+}
+function shareThis(){
+  const url = location.href;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(()=>toast('🔗 Link copied!','ok'));
+  } else { prompt('Copy link:', url); }
+}
+function toast(msg, type=''){
+  const t = document.getElementById('toast'); t.textContent = msg;
+  t.className = 'toast show '+(type==='ok'?'ok':'');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'), 3200);
+}
+// Auto resize on load
+window.addEventListener('load', ()=>{
+  const f = document.getElementById('nlIframe');
+  if(f) autoResize(f);
+});
+</script>
+</body>
+</html>

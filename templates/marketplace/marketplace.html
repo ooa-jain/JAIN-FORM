@@ -1,0 +1,327 @@
+{% extends 'base.html' %}
+{% block title %}Template Marketplace — Draftspace{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
+{% block body %}
+<div class="auth-floating-shapes">
+  <div class="shape s1" style="background:rgba(255,140,0,0.04)"></div>
+  <div class="shape s2" style="background:rgba(45,106,79,0.04)"></div>
+</div>
+
+{% include 'components/sidebar.html' %}
+
+<div class="app-body" style="position: relative; z-index: 1;">
+  
+  <div class="store-header">
+    <div style="flex:1">
+      <div class="store-badge"><i class="ph ph-shopping-bag"></i> Marketplace</div>
+      <h1 style="font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:900;color:#1A1A2E;margin-top:8px;">
+        Pre-built Form <span style="color:var(--mango)">Templates Store</span>
+      </h1>
+      <p style="color:#666;font-size:.92rem;margin-top:4px;max-width:600px;">
+        Kickstart your workflow. Duplicate gorgeous, community-vetted templates or contribute your own forms to earn XP rewards!
+      </p>
+    </div>
+    
+    <button class="btn-primary" onclick="openPublishModal()"><i class="ph ph-share"></i> Share Template</button>
+  </div>
+
+  <!-- CATEGORIES FILTER -->
+  <div class="store-categories" style="margin-top:28px;">
+    <a href="{{ url_for('marketplace.store') }}" class="store-cat-tab {% if not active_category %}active{% endif %}">
+      All Templates
+    </a>
+    {% for cat in categories %}
+    <a href="{{ url_for('marketplace.store', category=cat.lower()) }}" class="store-cat-tab {% if active_category == cat.lower() %}active{% endif %}">
+      {{ cat }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- TEMPLATES TIMELINE GRID -->
+  {% if not templates %}
+  <div class="empty-state glass-card" style="margin-top:24px;">
+    <div class="empty-emoji"><i class="ph ph-shopping-bag" style="color:#ddd;font-size:3rem"></i></div>
+    <h3>No templates found in this section</h3>
+    <p>Be the first! Click "Share Template" above to publish one of your draft forms to the public store.</p>
+  </div>
+  {% else %}
+  <div class="store-grid" style="margin-top:24px;">
+    {% for t in templates %}
+    <div class="store-card glass-card">
+      <div class="sc-cover" style="background:{{ t.theme.header_color }}"></div>
+      <div class="sc-body">
+        
+        <!-- Creator -->
+        <div class="sc-creator">
+          <div class="sc-avatar">{{ t.creator_name[0].upper() }}</div>
+          <div>
+            <div class="sc-username">{{ t.creator_name }}</div>
+            <div class="sc-cat">{{ t.template_category.upper() if t.template_category else 'GENERAL' }}</div>
+          </div>
+        </div>
+
+        <h3 class="sc-title">{{ t.title }}</h3>
+        <p class="sc-desc">{{ t.description or "Ready-to-use form layout template designed for speed and reliability." }}</p>
+        
+        <div class="sc-meta">
+          <span><i class="ph ph-clock"></i> {{ t.estimated_completion_time }} min fill</span>
+          <span><i class="ph ph-heart"></i> {{ t.likes_count }} likes</span>
+        </div>
+      </div>
+
+      <div class="sc-footer">
+        <button class="sc-btn primary" onclick="duplicateTemplate('{{ t._id }}', this)">
+          <i class="ph ph-copy"></i> Use Template
+        </button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- PUBLISH MODAL OVERLAY -->
+<div class="modal-overlay" id="publishModal" style="display:none">
+  <div class="modal-card glass-card">
+    <div class="modal-header">
+      <h3 style="font-weight:800;color:#1A1A2E;"><i class="ph ph-share"></i> Share Draft as Template</h3>
+      <button class="modal-close" onclick="closePublishModal()">×</button>
+    </div>
+    <form class="modal-body" onsubmit="submitPublishTemplate(event)">
+      <div class="form-group" style="margin-bottom:14px;">
+        <label style="font-size:0.8rem;font-weight:700;color:#555;display:block;margin-bottom:4px;">Select Draft Form</label>
+        <select id="pub-form-select" class="modal-select" required>
+          <!-- Loaded dynamically or static list will check if forms are available in current session -->
+          <option value="">-- Choose Draft --</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom:14px;">
+        <label style="font-size:0.8rem;font-weight:700;color:#555;display:block;margin-bottom:4px;">Category</label>
+        <select id="pub-category-select" class="modal-select" required>
+          <option value="startup">Startup</option>
+          <option value="hr">HR</option>
+          <option value="saas">SaaS</option>
+          <option value="education">Education</option>
+          <option value="ecommerce">Ecommerce</option>
+          <option value="marketing">Marketing</option>
+          <option value="events">Events</option>
+          <option value="creator tools">Creator Tools</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom:14px;">
+        <label style="font-size:0.8rem;font-weight:700;color:#555;display:block;margin-bottom:4px;">Tags (Comma-separated)</label>
+        <input type="text" id="pub-tags-input" class="modal-input" placeholder="e.g. feedback, survey, customer">
+      </div>
+
+      <button class="btn-primary" style="width:100%;margin-top:10px;"><i class="ph ph-check"></i> Submit to Store (+50 XP)</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg; t.className = 'toast ' + type + ' show';
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+async function duplicateTemplate(templateId, btn) {
+  btn.disabled = true;
+  const originalHTML = btn.innerHTML;
+  btn.innerHTML = '<i class="ph ph-spinner-gap" style="animation:spin .8s linear infinite"></i> Duplicating…';
+  
+  try {
+    const res = await fetch(`/marketplace/duplicate/${templateId}`, { method: 'POST' });
+    const d = await res.json();
+    if (!d.success) {
+      showToast(d.error || 'Failed to duplicate.', 'info');
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+      return;
+    }
+    
+    showToast('Template copied successfully! Opening editor (+15 XP)', 'success');
+    setTimeout(() => { window.location.href = d.redirect; }, 800);
+  } catch (err) {
+    showToast('Failed to copy template.', 'info');
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
+}
+
+async function openPublishModal() {
+  document.getElementById('publishModal').style.display = 'flex';
+  
+  // Dynamic fetch user drafts to populate dropdown
+  try {
+    const res = await fetch('/create'); // returns dashboard create page, or let's load from dashboard drafts API
+    // Let's populate the dropdown by querying user forms via fetch
+    const response = await fetch('/home'); 
+    // Fallback: fetch dynamically or populate dropdown
+    const select = document.getElementById('pub-form-select');
+    select.innerHTML = '<option value="">-- Choose Draft --</option>';
+    
+    // We will build a simple fetch helper to load drafts
+    // For now we populate from dashboard variables
+    const userForms = [];
+    // Let's iterate using simple JS
+  } catch(e){}
+  
+  // Alternate: just populate with mock values or load from local storage
+  loadDraftsDropdown();
+}
+
+async function loadDraftsDropdown() {
+  const select = document.getElementById('pub-form-select');
+  try {
+    // Dynamic query forms
+    const res = await fetch('/create'); // simple fallback
+    // We can also let user select from a text input if empty, but selecting draft is better.
+    // We'll populate dynamically via domestic forms list
+    const optionsHTML = `
+      {% if current_user.is_authenticated %}
+        {% for f in current_user._db().forms.find({'user_id': current_user.id}) %}
+          <option value="{{ f._id }}">{{ f.title }}</option>
+        {% endfor %}
+      {% endif %}
+    `;
+    select.innerHTML = '<option value="">-- Choose Draft --</option>' + optionsHTML;
+  } catch(e) {}
+}
+
+function closePublishModal() {
+  document.getElementById('publishModal').style.display = 'none';
+}
+
+async function submitPublishTemplate(e) {
+  e.preventDefault();
+  const formId = document.getElementById('pub-form-select').value;
+  const category = document.getElementById('pub-category-select').value;
+  const tags = document.getElementById('pub-tags-input').value;
+  
+  if (!formId) {
+    showToast('Please select a draft form.', 'info');
+    return;
+  }
+  
+  const fd = new FormData();
+  fd.append('category', category);
+  fd.append('tags', tags);
+  
+  try {
+    const res = await fetch(`/marketplace/publish/${formId}`, { method: 'POST', body: fd });
+    const d = await res.json();
+    if (!d.success) {
+      showToast(d.error || 'Failed to publish.', 'info');
+      return;
+    }
+    
+    showToast('Published! Template is now live on the Marketplace (+50 XP)', 'success');
+    closePublishModal();
+    setTimeout(() => window.location.reload(), 800);
+  } catch (err) {
+    showToast('Failed to publish template.', 'info');
+  }
+}
+</script>
+
+<style>
+.store-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.store-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(45,106,79,0.1); color: #2D6A4F;
+  font-size: .78rem; font-weight: 700;
+  padding: 4px 12px; border-radius: 20px;
+  letter-spacing: .04em; text-transform: uppercase;
+  border: 1px solid rgba(45,106,79,0.2);
+}
+
+/* Category lists */
+.store-categories { display: flex; gap: 6px; flex-wrap: wrap; }
+.store-cat-tab {
+  display: inline-flex; align-items: center;
+  padding: 8px 14px; border-radius: 20px;
+  color: #555; text-decoration: none; font-size: .8rem; font-weight: 600;
+  background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.03);
+  transition: all .2s;
+}
+.store-cat-tab:hover { background: rgba(0,0,0,0.02); color: #1A1A2E; }
+.store-cat-tab.active {
+  background: var(--mango); color: white !important; border: none;
+}
+
+/* Grids */
+.store-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.store-card {
+  display: flex; flex-direction: column; overflow: hidden;
+  border-radius: 20px; border: 1px solid rgba(255,255,255,0.8);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.02);
+}
+.sc-cover { height: 8px; }
+.sc-body { padding: 20px; flex: 1; }
+.sc-creator { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+.sc-avatar {
+  width: 32px; height: 32px;
+  background: #1A1A2E; color: white; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .8rem;
+}
+.sc-username { font-weight: 700; font-size: .78rem; color: #1A1A2E; }
+.sc-cat { font-size: .65rem; font-weight: 700; color: #aaa; margin-top: 1px; }
+.sc-title { font-size: 1.15rem; font-weight: 800; color: #1A1A2E; }
+.sc-desc { font-size: .82rem; color: #666; line-height: 1.45; margin-top: 6px; }
+.sc-meta { display: flex; gap: 12px; font-size: .72rem; color: #aaa; font-weight: 500; margin-top: 14px; }
+
+/* Footers */
+.sc-footer {
+  padding: 14px 20px; background: rgba(0,0,0,0.01);
+  border-top: 1px solid rgba(0,0,0,0.03);
+}
+.sc-btn {
+  width: 100%; text-align: center;
+  padding: 10px; border-radius: 8px; font-size: .78rem; font-weight: 600;
+  text-decoration: none; color: #555; background: white; border: 1px solid rgba(0,0,0,0.06);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all .2s; cursor: pointer;
+}
+.sc-btn:hover { background: rgba(0,0,0,0.02); }
+.sc-btn.primary { background: #1A1A2E; color: white; border: none; }
+.sc-btn.primary:hover { background: #0c0c16; }
+
+/* Publish overlay modal */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(26,26,46,0.4); backdrop-filter: blur(10px);
+  z-index: 1000; display: flex; align-items: center; justify-content: center;
+}
+.modal-card {
+  width: 100%; max-width: 440px; padding: 24px; border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.9);
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.modal-close { background: none; border: none; font-size: 1.5rem; color: #aaa; cursor: pointer; }
+.modal-select, .modal-input {
+  width: 100%; padding: 10px 14px; border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.08); background: white; font-size: .85rem;
+}
+
+@media(max-width:992px) {
+  .store-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media(max-width:768px) {
+  .store-grid { grid-template-columns: 1fr; }
+  .store-header { flex-direction: column; align-items: flex-start; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+{% endblock %}

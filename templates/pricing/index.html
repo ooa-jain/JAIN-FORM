@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Draftspace - Pricing{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
+
+{% block body %}
+<!-- Background Shapes -->
+<div class="auth-floating-shapes">
+  <div class="shape s1"></div>
+  <div class="shape s2"></div>
+  <div class="shape s3"></div>
+</div>
+
+{% include 'components/sidebar.html' %}
+
+<div class="pricing-container">
+    <div class="pricing-header">
+        <h1 class="page-title">Upgrade Your Plan</h1>
+        <p class="page-sub">Choose the plan that fits your needs.</p>
+    </div>
+
+    <div class="pricing-grid">
+        <!-- Free Plan -->
+        <div class="pricing-card glass-card {% if current_plan == 'free' %}active{% endif %}">
+            <h2>Free</h2>
+            <div class="price">₹0<span>/month</span></div>
+            <ul class="features">
+                <li><i class="fas fa-check"></i> 3 Forms</li>
+                <li><i class="fas fa-check"></i> 10 Newsletters</li>
+                <li><i class="fas fa-check"></i> 10 Deployments</li>
+            </ul>
+            {% if current_plan == 'free' %}
+                <button class="btn btn-secondary" disabled>Current Plan</button>
+            {% else %}
+                <button class="btn btn-secondary" disabled>Basic Plan Available</button>
+            {% endif %}
+        </div>
+
+        <!-- Basic Plan -->
+        <div class="pricing-card glass-card {% if current_plan == 'basic' %}active{% endif %}">
+            <h2>Basic</h2>
+            <div class="price">₹299<span>/month</span></div>
+            <ul class="features">
+                <li><i class="fas fa-check"></i> 30 Forms with AI</li>
+                <li><i class="fas fa-check"></i> 30 Newsletters</li>
+                <li><i class="fas fa-check"></i> 15 Deployments</li>
+            </ul>
+            {% if current_plan == 'basic' %}
+                <button class="btn btn-secondary" disabled>Current Plan</button>
+            {% elif current_plan == 'pro' %}
+                <button class="btn btn-secondary" disabled>Included in Pro</button>
+            {% else %}
+                <a href="mailto:admin@draftspace.ai?subject=Upgrade%20Request%20-%20Basic" class="btn btn-primary" style="display:block; text-align:center; text-decoration:none;">Contact Admin to Upgrade</a>
+            {% endif %}
+        </div>
+
+        <!-- Pro Plan -->
+        <div class="pricing-card glass-card {% if current_plan == 'pro' %}active{% endif %}">
+            <div class="badge">Most Popular</div>
+            <h2>Pro</h2>
+            <div class="price">₹499<span>/month</span></div>
+            <ul class="features">
+                <li><i class="fas fa-check"></i> Unlimited Forms with AI</li>
+                <li><i class="fas fa-check"></i> Unlimited Newsletters</li>
+                <li><i class="fas fa-check"></i> Unlimited Deployments</li>
+            </ul>
+            {% if current_plan == 'pro' %}
+                <button class="btn btn-secondary" disabled>Current Plan</button>
+            {% else %}
+                <a href="mailto:admin@draftspace.ai?subject=Upgrade%20Request%20-%20Pro" class="btn btn-primary" style="display:block; text-align:center; text-decoration:none;">Contact Admin to Upgrade</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.pricing-container { max-width: 1000px; margin: 60px auto; padding: 20px; text-align: center; font-family: 'Inter', sans-serif; position: relative; z-index: 10; }
+.pricing-header { margin-bottom: 50px; }
+.pricing-header h1 { font-size: 3rem; font-weight: 800; color: #1A1A2E; margin-bottom: 10px; }
+.pricing-header p { color: #666; font-size: 1.1rem; }
+.pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+.pricing-card { padding: 40px 30px; position: relative; display: flex; flex-direction: column; }
+.pricing-card.active { border: 2px solid var(--mango); box-shadow: 0 0 0 2px rgba(255,140,0,0.1); }
+.badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--mango); color: #000; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; }
+.pricing-card h2 { font-size: 1.5rem; font-weight: 700; color: #1A1A2E; margin-bottom: 15px; }
+.price { font-size: 3.5rem; font-weight: 800; color: #1A1A2E; margin-bottom: 30px; }
+.price span { font-size: 1rem; color: #666; font-weight: 500; }
+.features { list-style: none; padding: 0; margin: 0 0 30px 0; text-align: left; flex: 1; }
+.features li { padding: 10px 0; color: #444; display: flex; align-items: center; }
+.features li i { color: var(--mango); margin-right: 10px; }
+.btn { width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s; border: none; }
+.btn-primary { background: linear-gradient(135deg, var(--mango), var(--mango-d)); color: #fff; box-shadow: 0 4px 14px rgba(255,140,0,0.3); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(255,140,0,0.4); }
+.btn-secondary { background: rgba(0,0,0,0.03); color: #555; border: 1px solid rgba(0,0,0,0.08); }
+</style>
+{% endblock %}

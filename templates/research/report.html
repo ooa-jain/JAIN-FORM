@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+{% block title %}AI Analytics Report — {{ form.title }} — Draftspace{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
+{% block body %}
+<div class="auth-floating-shapes">
+  <div class="shape s1" style="background:rgba(0,119,182,0.04)"></div>
+  <div class="shape s2" style="background:rgba(255,140,0,0.04)"></div>
+</div>
+
+{% include 'components/sidebar.html' %}
+
+<div class="app-body" style="position: relative; z-index: 1;">
+  
+  <!-- HEADER -->
+  <div class="report-header glass-card">
+    <div>
+      <a href="{{ url_for('research.hub') }}" class="back-link"><i class="ph ph-arrow-left"></i> Back to Research Hub</a>
+      <h1 style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:#1A1A2E;margin-top:8px;">
+        {{ form.title }}
+      </h1>
+      <p style="color:#666;font-size:.88rem;margin-top:4px;">AI-Powered Comprehensive Research & Response Report</p>
+    </div>
+    
+    <div class="total-badge">
+      <div class="tb-val">{{ response_count }}</div>
+      <div class="tb-lbl"><i class="ph ph-chat-centered-dots"></i> Submissions</div>
+    </div>
+  </div>
+
+  <div class="report-layout" style="margin-top:24px;">
+    
+    <!-- LEFT COLUMN: AI SUMMARY INSIGHTS -->
+    <div class="report-left">
+      
+      <!-- Sentiment Gauge Card -->
+      <div class="report-card glass-card">
+        <h3 class="rc-title"><i class="ph ph-smiley-wink" style="color:var(--mango)"></i> Mistral AI Sentiment Analysis</h3>
+        
+        <div class="sentiment-box" style="margin-top:16px;">
+          {% set label = ai_summary.sentiment.label | lower %}
+          <div class="sentiment-badge {{ label }}">
+            {% if label == 'positive' %}
+            <i class="ph ph-smiley-emoji" style="font-size:2rem"></i>
+            {% elif label == 'negative' %}
+            <i class="ph ph-smiley-sad" style="font-size:2rem"></i>
+            {% else %}
+            <i class="ph ph-smiley-blank" style="font-size:2rem"></i>
+            {% endif %}
+            <div class="sentiment-badge-txt">{{ ai_summary.sentiment.label.upper() }}</div>
+          </div>
+          
+          <div style="flex:1">
+            <div style="display:flex;justify-content:between;font-size:0.78rem;font-weight:700;color:#555;">
+              <span>Engagement Score</span>
+              <span>{{ ai_summary.sentiment.score }}%</span>
+            </div>
+            <div class="gauge-bar" style="margin-top:4px;">
+              <div class="gauge-bar-fill {{ label }}" style="width: {{ ai_summary.sentiment.score }}%"></div>
+            </div>
+            <p class="sentiment-explanation" style="font-size:0.8rem;color:#666;margin-top:6px;line-height:1.45;">
+              {{ ai_summary.sentiment.explanation }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Key Insights Lists -->
+      <div class="report-card glass-card" style="margin-top:20px;">
+        <h3 class="rc-title"><i class="ph ph-lightbulb" style="color:#FFB347"></i> AI Key Insights</h3>
+        <ul class="insights-list" style="margin-top:14px;">
+          {% for ins in ai_summary.insights %}
+          <li><i class="ph ph-check-circle" style="color:#2D6A4F;margin-top:3px;"></i> <span>{{ ins }}</span></li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="report-card glass-card" style="margin-top:20px;">
+        <h3 class="rc-title"><i class="ph ph-list-checks" style="color:#0077B6"></i> Strategic Recommendations</h3>
+        <ul class="insights-list" style="margin-top:14px;">
+          {% for rec in ai_summary.recommendations %}
+          <li><i class="ph ph-sparkle" style="color:var(--mango);margin-top:3px;"></i> <span>{{ rec }}</span></li>
+          {% endfor %}
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: CHARTS & PROMOTION ASSETS GENERATOR -->
+    <div class="report-right">
+      
+      <!-- AI Content Campaign Generator -->
+      <div class="report-card glass-card bg-dark-pane" style="background:#1A1A2E;color:white;border:none;">
+        <h3 class="rc-title" style="color:white;"><i class="ph ph-magic-wand" style="color:var(--mango)"></i> AI Campaign Creator</h3>
+        <p style="font-size:0.8rem;color:#aaa;margin-top:2px;">Convert response feedback into high-impact marketing copy immediately.</p>
+        
+        <div class="campaign-buttons" style="margin-top:16px;">
+          <button class="camp-btn" onclick="generateAsset('blog_post')"><i class="ph ph-article"></i> Blog Post</button>
+          <button class="camp-btn" onclick="generateAsset('newsletter')"><i class="ph ph-envelope"></i> Newsletter</button>
+          <button class="camp-btn" onclick="generateAsset('social_thread')"><i class="ph ph-chat-teardrop-text"></i> X Thread</button>
+          <button class="camp-btn" onclick="generateAsset('insight_report')"><i class="ph ph-file-text"></i> Insight Report</button>
+        </div>
+
+        <!-- Dynamic Asset Display Box -->
+        <div id="asset-display-container" style="display:none;margin-top:20px;border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;">
+          <div style="display:flex;justify-content:between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:0.8rem;font-weight:700;color:var(--mango);" id="asset-display-type">BLOG POST DRAFT</span>
+            <button class="btn-xs-copy" onclick="copyAssetContent()"><i class="ph ph-copy"></i> Copy Copy</button>
+          </div>
+          <textarea id="asset-textarea" readonly></textarea>
+        </div>
+        
+        <div id="asset-loading" style="display:none;margin-top:20px;text-align:center;color:#aaa;font-size:0.85rem;">
+          <i class="ph ph-spinner-gap" style="animation:spin .8s linear infinite;font-size:1.5rem;color:var(--mango);display:block;margin:0 auto 6px;"></i>
+          Mistral is reading submissions and drafting marketing copy...
+        </div>
+      </div>
+
+      <!-- Chart.js Response Graphs -->
+      <div class="page-head" style="margin-top:30px;margin-bottom:14px;">
+        <h2 class="page-title" style="font-size:1.3rem;">Response Distributions</h2>
+      </div>
+
+      {% if not charts_data %}
+      <div class="empty-state glass-card">
+        <div class="empty-emoji"><i class="ph ph-chart-pie" style="color:#ddd;font-size:2.8rem"></i></div>
+        <h3>No quantitative charts to render</h3>
+        <p>Quantitative fields (multiple choices, ratings, sliders) will show charts here once filled.</p>
+      </div>
+      {% else %}
+      <div class="charts-grid">
+        {% for c_id, c_val in charts_data.items() %}
+        <div class="chart-container-card glass-card">
+          <h4 class="chart-title">{{ c_val.label }}</h4>
+          <div class="chart-wrapper">
+            <canvas id="chart-canvas-{{ c_id }}"></canvas>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+    </div>
+
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Chart JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg; t.className = 'toast ' + type + ' show';
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Render dynamic charts on load
+document.addEventListener("DOMContentLoaded", () => {
+  const chartsData = {{ charts_data | tojson | safe }};
+  
+  for (const c_id in chartsData) {
+    const dataObj = chartsData[c_id];
+    const canvas = document.getElementById(`chart-canvas-${c_id}`);
+    if (!canvas) continue;
+    
+    // Choose clean colors
+    const colors = [
+      'rgba(255, 140, 0, 0.75)',  // mango
+      'rgba(0, 119, 182, 0.75)',  // blue
+      'rgba(45, 106, 79, 0.75)',  // green
+      'rgba(255, 179, 71, 0.75)',  // yellow
+      'rgba(230, 57, 70, 0.75)',   // red
+      'rgba(142, 68, 173, 0.75)'   // purple
+    ];
+    const borderColors = colors.map(c => c.replace('0.75', '1'));
+
+    new Chart(canvas.getContext('2d'), {
+      type: dataObj.type,
+      data: {
+        labels: dataObj.labels,
+        datasets: [{
+          data: dataObj.values,
+          backgroundColor: colors.slice(0, dataObj.labels.length),
+          borderColor: borderColors.slice(0, dataObj.labels.length),
+          borderWidth: 1.5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { boxWidth: 12, font: { family: 'DM Sans', size: 10 } }
+          }
+        }
+      }
+    });
+  }
+});
+
+async function generateAsset(assetType) {
+  const container = document.getElementById('asset-display-container');
+  const loader = document.getElementById('asset-loading');
+  const textarea = document.getElementById('asset-textarea');
+  const typeLabel = document.getElementById('asset-display-type');
+  
+  container.style.display = 'none';
+  loader.style.display = 'block';
+  
+  const labels = {
+    'blog_post': 'MISTRAL BLOG DRAFT (MARKDOWN)',
+    'newsletter': 'MISTRAL EMAIL CAMPAIGN DRAFT',
+    'social_thread': 'MISTRAL TWITTER/X THREAD',
+    'insight_report': 'MISTRAL FORMAL INSIGHTS REPORT'
+  };
+  
+  const fd = new FormData();
+  fd.append('type', assetType);
+  
+  try {
+    const res = await fetch(`/research/{{ form._id }}/generate-assets`, { method: 'POST', body: fd });
+    const d = await res.json();
+    loader.style.display = 'none';
+    
+    if (!d.success) {
+      showToast(d.error || 'Failed to generate asset.', 'info');
+      return;
+    }
+    
+    typeLabel.textContent = labels[assetType] || 'AI GENERATED COPY';
+    textarea.value = d.content;
+    container.style.display = 'block';
+    showToast('Asset drafted! Gained community levels.', 'success');
+  } catch (err) {
+    loader.style.display = 'none';
+    showToast('Network error during generation.', 'info');
+  }
+}
+
+function copyAssetContent() {
+  const text = document.getElementById('asset-textarea').value;
+  navigator.clipboard.writeText(text).then(() => showToast('Markdown copied to clipboard!', 'success'));
+}
+</script>
+
+<style>
+.back-link {
+  font-size: .8rem; font-weight: 600; color: #888; text-decoration: none; display: flex; align-items: center; gap: 4px;
+}
+.back-link:hover { color: var(--mango); }
+.report-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 30px; border-radius: 20px;
+}
+.total-badge {
+  background: rgba(0,119,182,0.06); border: 1.5px solid rgba(0,119,182,0.15);
+  border-radius: 14px; padding: 12px 24px; text-align: center;
+}
+.tb-val { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: #0077B6; line-height: 1; }
+.tb-lbl { font-size: .68rem; color: #888; font-weight: 700; text-transform: uppercase; margin-top: 3px; display: flex; align-items: center; gap: 2px; }
+
+/* Columns */
+.report-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+}
+.report-card { padding: 24px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.8); }
+.rc-title { font-size: .9rem; font-weight: 700; color: #1A1A2E; display: flex; align-items: center; gap: 6px; }
+
+/* Sentiment Gauge */
+.sentiment-box { display: flex; gap: 16px; align-items: center; }
+.sentiment-badge {
+  width: 72px; height: 72px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+}
+.sentiment-badge.positive { background: rgba(45,106,79,0.1); color: #2D6A4F; }
+.sentiment-badge.negative { background: rgba(230,57,70,0.1); color: #E63946; }
+.sentiment-badge.neutral  { background: rgba(0,119,182,0.08); color: #0077B6; }
+.sentiment-badge-txt { font-size: .6rem; font-weight: 800; letter-spacing: .02em; }
+.gauge-bar { background: rgba(0,0,0,0.05); height: 6px; border-radius: 4px; overflow: hidden; }
+.gauge-bar-fill { height: 100%; border-radius: 4px; }
+.gauge-bar-fill.positive { background: #2D6A4F; }
+.gauge-bar-fill.negative { background: #E63946; }
+.gauge-bar-fill.neutral  { background: #0077B6; }
+
+/* Key Insights */
+.insights-list { display: flex; flex-direction: column; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.insights-list li { display: flex; gap: 8px; align-items: flex-start; font-size: .8rem; color: #555; line-height: 1.45; }
+
+/* Campaign Pane */
+.campaign-buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.camp-btn {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+  color: white; border-radius: 10px; padding: 12px; font-size: .8rem; font-weight: 600;
+  display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; transition: all .2s;
+}
+.camp-btn:hover { background: var(--mango); border-color: var(--mango); }
+.camp-btn i { font-size: 1.5rem; }
+.btn-xs-copy {
+  background: var(--mango); border: none; color: white; padding: 4px 10px; border-radius: 6px; font-size: .7rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;
+}
+.btn-xs-copy:hover { background: var(--mango-d); }
+#asset-textarea {
+  width: 100%; height: 200px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
+  color: #ccc; font-family: monospace; font-size: .78rem; padding: 12px; resize: none; line-height: 1.5;
+}
+
+/* Charts Grid */
+.charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.chart-container-card { display: flex; flex-direction: column; padding: 20px; }
+.chart-title { font-size: .88rem; font-weight: 700; color: #1A1A2E; margin-bottom: 12px; }
+.chart-wrapper { height: 180px; position: relative; }
+
+@media(max-width:992px) {
+  .report-layout { grid-template-columns: 1fr; }
+  .charts-grid { grid-template-columns: 1fr; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+{% endblock %}

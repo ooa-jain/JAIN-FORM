@@ -1,0 +1,199 @@
+<!--
+  Reusable "Publish to Community" slide-up modal.
+  Usage: call openPublishModal(itemId, itemType, itemTitle)
+  itemType = 'form' | 'newsletter' | 'site'
+  Include this partial once in base.html or any page that needs it.
+-->
+
+<div id="publishModal" style="display:none;position:fixed;inset:0;z-index:9000;align-items:flex-end;justify-content:center;" onclick="if(event.target===this)closePublishModal()">
+  <div style="width:100%;max-width:560px;background:white;border-radius:24px 24px 0 0;padding:32px 28px;box-shadow:0 -12px 60px rgba(0,0,0,0.15);animation:slideUp .3s cubic-bezier(0.4,0,0.2,1);" id="publishModalInner">
+
+    <!-- Handle bar -->
+    <div style="width:40px;height:4px;background:rgba(0,0,0,.1);border-radius:4px;margin:0 auto 20px;"></div>
+
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(255,140,0,.15),rgba(255,180,0,.1));display:flex;align-items:center;justify-content:center;font-size:1.3rem;" id="pmIcon">🚀</div>
+      <div>
+        <div style="font-weight:800;font-size:1.1rem;color:#1A1A2E;">Publish to Community</div>
+        <div style="font-size:.8rem;color:#aaa;" id="pmSubtitle">Share with the Draftspace community</div>
+      </div>
+    </div>
+
+    <!-- Item preview -->
+    <div style="padding:12px 14px;background:rgba(0,0,0,.03);border-radius:12px;margin-bottom:18px;border-left:3px solid var(--mango);">
+      <div style="font-size:.75rem;color:#aaa;text-transform:uppercase;letter-spacing:.05em;font-weight:700;" id="pmItemLabel">FORM</div>
+      <div style="font-weight:700;color:#1A1A2E;margin-top:2px;" id="pmItemTitle">—</div>
+    </div>
+
+    <form id="publishForm" enctype="multipart/form-data">
+      <!-- Category -->
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:.8rem;font-weight:700;color:#555;margin-bottom:6px;">Community Category</label>
+        <select name="category" id="pmCategory" style="width:100%;padding:10px 12px;border:1.5px solid rgba(0,0,0,.08);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;">
+          <option value="general">General</option>
+          <option value="startup">Startup</option>
+          <option value="research">Research</option>
+          <option value="education">Education</option>
+          <option value="saas">SaaS / Product</option>
+          <option value="ai">AI / Tech</option>
+          <option value="hr">HR / Recruiting</option>
+          <option value="marketing">Marketing</option>
+          <option value="ecommerce">eCommerce</option>
+          <option value="design">Design</option>
+          <option value="productivity">Productivity</option>
+          <option value="fun">Fun / Community</option>
+        </select>
+      </div>
+
+      <!-- Tags -->
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:.8rem;font-weight:700;color:#555;margin-bottom:6px;">Tags <span style="font-weight:400;color:#aaa;">(comma-separated)</span></label>
+        <input type="text" name="tags" id="pmTags" placeholder="e.g. survey, feedback, ai" style="width:100%;padding:10px 12px;border:1.5px solid rgba(0,0,0,.08);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;">
+      </div>
+
+      <!-- Description (sites only) -->
+      <div id="pmDescRow" style="display:none;margin-bottom:14px;">
+        <label style="display:block;font-size:.8rem;font-weight:700;color:#555;margin-bottom:6px;">Description</label>
+        <textarea name="description" id="pmDesc" rows="2" placeholder="What does your deployed site do?" style="width:100%;padding:10px 12px;border:1.5px solid rgba(0,0,0,.08);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;resize:none;outline:none;box-sizing:border-box;"></textarea>
+      </div>
+
+      <!-- .env file upload (sites only) -->
+      <div id="pmEnvRow" style="display:none;margin-bottom:14px;">
+        <label style="display:block;font-size:.8rem;font-weight:700;color:#555;margin-bottom:6px;">
+          <i class="ph ph-file-code" style="color:var(--mango)"></i> Upload .env File <span style="font-weight:400;color:#aaa;">(optional — keys are saved, values hidden)</span>
+        </label>
+        <div style="border:2px dashed rgba(255,140,0,.25);border-radius:10px;padding:16px;text-align:center;position:relative;cursor:pointer;" onclick="document.getElementById('pmEnvFile').click()">
+          <input type="file" name="env_file" id="pmEnvFile" accept=".env" style="display:none" onchange="showEnvPreview(this)">
+          <i class="ph ph-upload-simple" style="font-size:1.5rem;color:var(--mango);display:block;margin-bottom:6px;"></i>
+          <div id="pmEnvLabel" style="font-size:.8rem;color:#aaa;">Click to upload <code>.env</code> file</div>
+        </div>
+        <div id="pmEnvKeys" style="display:none;margin-top:8px;padding:10px;background:rgba(45,106,79,.05);border-radius:8px;font-size:.75rem;color:#2D6A4F;font-family:monospace;"></div>
+      </div>
+
+      <!-- Highlight checkbox -->
+      <div id="pmHighlightRow" style="display:none;margin-bottom:18px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" name="highlight" value="1" id="pmHighlight" style="width:16px;height:16px;accent-color:var(--mango);">
+          <span style="font-size:.85rem;font-weight:600;color:#555;">Request featured highlight <span style="color:#aaa;font-weight:400;">(Pro plan)</span></span>
+        </label>
+      </div>
+
+      <!-- XP reward note -->
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,140,0,.06);border-radius:10px;margin-bottom:18px;border:1px solid rgba(255,140,0,.15);">
+        <i class="ph ph-lightning" style="color:var(--mango);font-size:1rem;"></i>
+        <span style="font-size:.8rem;color:#555;">You'll earn <strong style="color:var(--mango);" id="pmXpReward">+30 XP</strong> for publishing to the community!</span>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button type="button" onclick="submitPublish()" class="btn-primary" style="flex:1;justify-content:center;padding:13px;" id="pmSubmitBtn">
+          <i class="ph ph-paper-plane-right"></i> Publish Now
+        </button>
+        <button type="button" onclick="closePublishModal()" class="btn-ghost" style="padding:13px 20px;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+@keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
+
+<script>
+let _pmItemId   = '';
+let _pmItemType = 'form';
+
+function openPublishModal(itemId, itemType, itemTitle) {
+  _pmItemId   = itemId;
+  _pmItemType = itemType;
+
+  // Configure UI for item type
+  const icons  = { form: '📋', newsletter: '📧', site: '🌐' };
+  const labels = { form: 'FORM', newsletter: 'NEWSLETTER', site: 'DEPLOYED SITE' };
+  const xpMap  = { form: '+30 XP', newsletter: '+20 XP', site: '+50 XP' };
+  const subs   = { form: 'Share this form with the community', newsletter: 'Post this newsletter edition publicly', site: 'Showcase your live deployment' };
+
+  document.getElementById('pmIcon').textContent        = icons[itemType] || '🚀';
+  document.getElementById('pmSubtitle').textContent    = subs[itemType] || '';
+  document.getElementById('pmItemLabel').textContent   = labels[itemType] || itemType.toUpperCase();
+  document.getElementById('pmItemTitle').textContent   = itemTitle || '—';
+  document.getElementById('pmXpReward').textContent    = xpMap[itemType] || '+30 XP';
+
+  // Show/hide site-specific fields
+  const isSite = itemType === 'site';
+  document.getElementById('pmDescRow').style.display      = isSite ? 'block' : 'none';
+  document.getElementById('pmEnvRow').style.display       = isSite ? 'block' : 'none';
+  document.getElementById('pmHighlightRow').style.display = 'block';
+
+  // Reset
+  document.getElementById('publishForm').reset();
+  document.getElementById('pmEnvKeys').style.display = 'none';
+
+  const modal = document.getElementById('publishModal');
+  modal.style.display = 'flex';
+  setTimeout(() => modal.style.backdropFilter = 'blur(4px)', 10);
+}
+
+function closePublishModal() {
+  const modal = document.getElementById('publishModal');
+  modal.style.backdropFilter = '';
+  modal.style.display = 'none';
+}
+
+function showEnvPreview(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const keys = e.target.result.split('\n')
+      .map(l => l.trim())
+      .filter(l => l && !l.startsWith('#') && l.includes('='))
+      .map(l => l.split('=')[0].trim());
+    if (keys.length > 0) {
+      document.getElementById('pmEnvLabel').textContent = `${file.name} — ${keys.length} variable(s) detected`;
+      const keysDiv = document.getElementById('pmEnvKeys');
+      keysDiv.style.display = 'block';
+      keysDiv.innerHTML = '<strong>Keys detected:</strong> ' + keys.map(k => `<span style="background:rgba(45,106,79,.1);padding:1px 5px;border-radius:4px;">${k}</span>`).join(' ');
+    }
+  };
+  reader.readAsText(file);
+}
+
+async function submitPublish() {
+  const btn = document.getElementById('pmSubmitBtn');
+  btn.innerHTML = '<i class="ph ph-spinner-gap" style="animation:spin .7s linear infinite"></i> Publishing…';
+  btn.disabled = true;
+
+  const fd = new FormData(document.getElementById('publishForm'));
+  const url = `/publish/${_pmItemType}/${_pmItemId}`;
+
+  try {
+    const res = await fetch(url, { method: 'POST', body: fd });
+    const d   = await res.json();
+    if (d.success) {
+      closePublishModal();
+      showToast(d.message || 'Published!', 'success');
+      // If env keys were found, show them
+      if (d.env_keys && d.env_keys.length > 0) {
+        setTimeout(() => showToast(`Env vars registered: ${d.env_keys.join(', ')}`, 'info'), 1500);
+      }
+    } else {
+      showToast(d.error || 'Failed to publish', 'info');
+    }
+  } catch(e) {
+    showToast('Network error', 'info');
+  }
+
+  btn.innerHTML = '<i class="ph ph-paper-plane-right"></i> Publish Now';
+  btn.disabled = false;
+}
+
+// Fallback toast if not already defined
+if (typeof showToast === 'undefined') {
+  window.showToast = function(msg, type='info') {
+    const t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg; t.className = 'toast ' + type + ' show';
+    clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3500);
+  };
+}
+</script>

@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% block title %}Research Hub — Draftspace{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
+{% block body %}
+<div class="auth-floating-shapes">
+  <div class="shape s1" style="background:rgba(0,119,182,0.05)"></div>
+  <div class="shape s2" style="background:rgba(255,140,0,0.03)"></div>
+</div>
+
+{% include 'components/sidebar.html' %}
+
+<div class="app-body" style="position: relative; z-index: 1;">
+  
+  <div class="hub-header">
+    <div style="flex:1">
+      <div class="hub-badge"><i class="ph ph-microscope"></i> Research Hub</div>
+      <h1 style="font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:900;color:#1A1A2E;margin-top:8px;">
+        Conduct Surveys & <span style="color:var(--mango)">Validate Ideas</span>
+      </h1>
+      <p style="color:#666;font-size:.92rem;margin-top:4px;max-width:600px;">
+        Perform public research, extract user opinions, validate startup hooks, and leverage Mistral AI to draft comprehensive insights and reports.
+      </p>
+    </div>
+    
+    <div class="mascot-box glass-card">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" class="duck-mini-logo" alt="duck">
+      <div style="font-size:0.75rem;color:#555;line-height:1.35;">
+        <strong>Research Buddy:</strong> Did you know? Public surveys shared here receive up to <strong>3x more answers</strong> than draft links!
+      </div>
+    </div>
+  </div>
+
+  <!-- RESEARCH NAV CATEGORIES -->
+  <div class="hub-nav-row" style="margin-top:28px;">
+    <div class="hub-nav-tabs">
+      <a href="{{ url_for('research.hub', category='startup') }}" class="hub-tab {% if active_category == 'startup' %}active{% endif %}">
+        <i class="ph ph-rocket-launch"></i> Startup Validation
+      </a>
+      <a href="{{ url_for('research.hub', category='market') }}" class="hub-tab {% if active_category == 'market' %}active{% endif %}">
+        <i class="ph ph-chart-line-up"></i> Market Research
+      </a>
+      <a href="{{ url_for('research.hub', category='academic') }}" class="hub-tab {% if active_category == 'academic' %}active{% endif %}">
+        <i class="ph ph-student"></i> Academic Feedback
+      </a>
+      <a href="{{ url_for('research.hub', category='poll') }}" class="hub-tab {% if active_category == 'poll' %}active{% endif %}">
+        <i class="ph ph-check-square-offset"></i> Public Opinion Polls
+      </a>
+    </div>
+
+    <a href="{{ url_for('dashboard.create') }}" class="btn-primary" style="text-decoration:none"><i class="ph ph-plus-circle"></i> Launch Research</a>
+  </div>
+
+  <!-- TIMELINE GRID -->
+  {% if not forms %}
+  <div class="empty-state glass-card" style="margin-top:24px;">
+    <div class="empty-emoji"><i class="ph ph-microscope" style="color:#ddd;font-size:3rem"></i></div>
+    <h3>No active research project here</h3>
+    <p>Launch your startup poll, academic survey, or market research today. It's free and powered by AI.</p>
+    <a href="{{ url_for('dashboard.create') }}" class="btn-primary" style="text-decoration:none;margin-top:10px;"><i class="ph ph-plus-circle"></i> Create Research Form</a>
+  </div>
+  {% else %}
+  <div class="hub-grid" style="margin-top:24px;">
+    {% for f in forms %}
+    <div class="hub-card glass-card">
+      <div class="hc-cover" style="background: {{ f.theme.header_color }}"></div>
+      
+      <div class="hc-body">
+        <!-- Creator info -->
+        <div class="hc-creator">
+          <div class="hc-avatar">{{ f.creator_name[0].upper() }}</div>
+          <div>
+            <div class="hc-name">{{ f.creator_name }}</div>
+            <div class="hc-date">{{ f.created_at.strftime('%d %B %Y') }}</div>
+          </div>
+        </div>
+
+        <h3 class="hc-title">{{ f.title }}</h3>
+        <p class="hc-desc">{{ f.description or "No description provided for this research entry." }}</p>
+        
+        <div class="hc-tags">
+          {% if f.template_category %}
+          <span class="hc-cat-badge">#{{ f.template_category }}</span>
+          {% endif %}
+          {% for t in f.tags %}
+          <span class="hc-tag-badge">#{{ t }}</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="hc-footer">
+        <div class="hc-stats">
+          <span><i class="ph ph-clock"></i> {{ f.estimated_completion_time }} min</span>
+          <span><i class="ph ph-chat-centered-dots"></i> {{ f.response_count }} answers</span>
+          <span><i class="ph ph-heart"></i> {{ f.likes_count }}</span>
+        </div>
+        
+        <div class="hc-actions">
+          <a href="/f/{{ f.slug }}" target="_blank" class="hc-btn accent"><i class="ph ph-link"></i> Fill</a>
+          <a href="/research/{{ f._id }}/report" class="hc-btn"><i class="ph ph-chart-bar"></i> Report Insights</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+
+<style>
+.hub-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.hub-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(0,119,182,0.1); color: #0077B6;
+  font-size: .78rem; font-weight: 700;
+  padding: 4px 12px; border-radius: 20px;
+  letter-spacing: .04em; text-transform: uppercase;
+  border: 1px solid rgba(0,119,182,0.2);
+}
+.mascot-box {
+  display: flex; align-items: center; gap: 12px; max-width: 320px;
+  padding: 16px; border-radius: 14px;
+}
+.duck-mini-logo { width: 42px; height: 42px; object-fit: contain; }
+
+/* Navigation Categories tabs */
+.hub-nav-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
+.hub-nav-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.hub-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 16px; border-radius: 10px;
+  color: #555; text-decoration: none; font-size: .88rem; font-weight: 600;
+  background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.03);
+  transition: all .2s;
+}
+.hub-tab:hover { background: rgba(0,0,0,0.03); color: #1A1A2E; }
+.hub-tab.active {
+  background: #1A1A2E; color: white !important; border: none;
+  box-shadow: 0 4px 14px rgba(26,26,46,0.25);
+}
+
+/* Grids layout */
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.hub-card {
+  display: flex; flex-direction: column; overflow: hidden;
+  border-radius: 20px; border: 1px solid rgba(255,255,255,0.8);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.02);
+  transition: transform .2s, box-shadow .2s;
+}
+.hub-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.05); }
+.hc-cover { height: 8px; }
+.hc-body { padding: 20px; flex: 1; }
+.hc-creator { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
+.hc-avatar {
+  width: 32px; height: 32px;
+  background: #1A1A2E; color: white; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .8rem;
+}
+.hc-name { font-weight: 700; font-size: .78rem; color: #1A1A2E; }
+.hc-date { font-size: .68rem; color: #aaa; margin-top: 1px; }
+.hc-title { font-size: 1.15rem; font-weight: 800; color: #1A1A2E; }
+.hc-desc { font-size: .82rem; color: #666; line-height: 1.45; margin-top: 6px; }
+.hc-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
+.hc-cat-badge { font-size: .65rem; font-weight: 700; background: rgba(0,119,182,0.06); color: #0077B6; padding: 2px 8px; border-radius: 8px; text-transform: uppercase; }
+.hc-tag-badge { font-size: .65rem; font-weight: 700; background: rgba(0,0,0,0.04); color: #666; padding: 2px 8px; border-radius: 8px; }
+
+/* Footers action buttons */
+.hc-footer {
+  padding: 14px 20px; background: rgba(0,0,0,0.01);
+  border-top: 1px solid rgba(0,0,0,0.03);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.hc-stats { display: flex; gap: 10px; font-size: .72rem; color: #999; font-weight: 500; }
+.hc-stats span { display: flex; align-items: center; gap: 3px; }
+.hc-actions { display: flex; gap: 6px; }
+.hc-btn {
+  padding: 6px 12px; border-radius: 6px; font-size: .75rem; font-weight: 600;
+  text-decoration: none; color: #555; background: white; border: 1px solid rgba(0,0,0,0.06);
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.hc-btn:hover { background: rgba(0,0,0,0.02); }
+.hc-btn.accent { background: var(--mango); color: white; border: none; }
+.hc-btn.accent:hover { background: var(--mango-d); }
+
+@media(max-width:992px) {
+  .hub-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media(max-width:768px) {
+  .hub-grid { grid-template-columns: 1fr; }
+  .hub-header { flex-direction: column; align-items: flex-start; }
+}
+</style>
+{% endblock %}

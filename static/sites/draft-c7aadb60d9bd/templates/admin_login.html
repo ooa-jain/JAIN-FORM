@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login — INTERN STAR</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Comic Neue',cursive;background:#f0ece0;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+    .card{background:#fffef7;border:3px solid #1a1a2e;border-radius:8px;padding:40px;width:100%;max-width:420px;box-shadow:6px 6px 0 #1a1a2e;}
+    h1{font-family:'Bangers',cursive;font-size:32px;color:#1a1a2e;text-shadow:2px 2px 0 #FF4757;letter-spacing:2px;margin-bottom:4px;}
+    p.sub{font-size:13px;color:#555;margin-bottom:28px;font-style:italic;}
+    label{font-family:'Bangers',cursive;font-size:14px;letter-spacing:1px;color:#1a1a2e;display:block;margin-bottom:4px;}
+    input{width:100%;padding:10px 12px;border:2.5px solid #1a1a2e;border-radius:4px;font-family:'Comic Neue',cursive;font-size:14px;background:#fffef7;margin-bottom:16px;box-shadow:3px 3px 0 #1a1a2e;}
+    input:focus{outline:none;border-color:#7B2FBE;box-shadow:3px 3px 0 #7B2FBE;}
+    button{width:100%;padding:12px;background:#FFE066;border:3px solid #1a1a2e;border-radius:4px;font-family:'Bangers',cursive;font-size:20px;letter-spacing:2px;cursor:pointer;box-shadow:4px 4px 0 #1a1a2e;transition:transform .1s;}
+    button:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #1a1a2e;}
+    .error{background:#FF4757;color:#fff;padding:10px 14px;border-radius:4px;border:2px solid #1a1a2e;margin-bottom:16px;font-weight:700;font-size:13px;}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔐 ADMIN ACCESS</h1>
+    <p class="sub">INTERN STAR — Office of Academics</p>
+    {% if error %}<div class="error">⚠️ {{ error }}</div>{% endif %}
+    <form method="POST">
+      <label>USERNAME</label>
+      <input type="text" name="username" placeholder="admin" required/>
+      <label>PASSWORD</label>
+      <input type="password" name="password" placeholder="••••••••" required/>
+      <button type="submit">LOGIN →</button>
+    </form>
+  </div>
+</body>
+</html>

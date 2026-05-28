@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% block title %}Draftspace — The AI-Powered Form & Newsletter Builder{% endblock %}
+{% block body_class %}landing-page{% endblock %}
+{% block body %}
+<div class="landing-wrap">
+  <nav class="landing-nav">
+    <div class="landing-brand">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Draftspace Logo" class="brand-logo-img">
+      <span class="brand-text">Draftspace</span>
+    </div>
+    <div class="landing-nav-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+    </div>
+  </nav>
+
+  <main class="landing-hero">
+    <div class="hero-content">
+      <div class="hero-badge">✨ Now with AI Generation</div>
+      <h1 class="hero-headline">Build forms that<br><span class="highlight">convert instantly.</span></h1>
+      <p class="hero-sub">Beautiful multi-page forms, AI-powered newsletters, real-time analytics — all in one intelligent platform.</p>
+      
+      <div class="hero-auth-card">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for cat,msg in messages %}<div class="alert alert-{{cat}}">{{msg}}</div>{% endfor %}
+        {% endwith %}
+        <form method="POST" action="{{ url_for('auth.login') }}" class="hero-form">
+          <div class="input-wrap">
+            <span class="input-icon">✉</span>
+            <input type="email" name="email" placeholder="Enter your email to get started" required autofocus>
+          </div>
+          <button class="btn-primary" type="submit">Continue →</button>
+        </form>
+        <div class="hero-auth-footer">Free forever for basic use. No credit card required.</div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="auth-floating-shapes">
+        <div class="shape s1"></div>
+        <div class="shape s2"></div>
+        <div class="shape s3"></div>
+      </div>
+      <div class="dashboard-mockup">
+        <div class="mockup-header"><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>
+        <div class="mockup-body">
+          <div class="mockup-sidebar"></div>
+          <div class="mockup-content" style="display: flex; flex-direction: column; gap: 16px; align-items: center; justify-content: center; position: relative;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" style="width: 320px; height: 320px; max-width: 100%; object-fit: contain; margin-bottom: 10px; filter: drop-shadow(0 15px 30px rgba(255,140,0,0.25));">
+            <div style="width: 100%; display: flex; flex-direction: column; gap: 16px;">
+              <div class="mockup-card"></div>
+              <div class="mockup-card" style="width:70%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<section id="pricing" class="landing-pricing-section">
+  <div class="landing-wrap">
+    <div class="pricing-header">
+      <h2>Simple, transparent pricing</h2>
+      <p>Start for free, upgrade when you need more power.</p>
+    </div>
+    
+    <div class="pricing-grid">
+      <!-- Free Plan -->
+      <div class="pricing-card glass-card">
+          <h3>Free</h3>
+          <div class="price">₹0<span>/month</span></div>
+          <ul class="features">
+              <li><i class="fas fa-check"></i> 3 Forms</li>
+              <li><i class="fas fa-check"></i> 10 Newsletters</li>
+              <li><i class="fas fa-check"></i> 10 Deployments</li>
+          </ul>
+          <a href="#top" class="btn btn-secondary">Get Started</a>
+      </div>
+
+      <!-- Basic Plan -->
+      <div class="pricing-card glass-card">
+          <h3>Basic</h3>
+          <div class="price">₹299<span>/month</span></div>
+          <ul class="features">
+              <li><i class="fas fa-check"></i> 30 Forms with AI</li>
+              <li><i class="fas fa-check"></i> 30 Newsletters</li>
+              <li><i class="fas fa-check"></i> 15 Deployments</li>
+          </ul>
+          <a href="#top" class="btn btn-primary" style="display:block; text-align:center; text-decoration:none;">Get Started</a>
+      </div>
+
+      <!-- Pro Plan -->
+      <div class="pricing-card glass-card">
+          <div class="badge">Most Popular</div>
+          <h3>Pro</h3>
+          <div class="price">₹499<span>/month</span></div>
+          <ul class="features">
+              <li><i class="fas fa-check"></i> Unlimited Forms with AI</li>
+              <li><i class="fas fa-check"></i> Unlimited Newsletters</li>
+              <li><i class="fas fa-check"></i> Unlimited Deployments</li>
+          </ul>
+          <a href="#top" class="btn btn-primary" style="display:block; text-align:center; text-decoration:none;">Get Started</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.landing-page { background: #0f0f13; color: #fff; min-height: 100vh; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+.landing-wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.landing-nav { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; }
+.landing-brand { display: flex; align-items: center; gap: 12px; }
+.brand-logo-img { height: 64px; width: auto; object-fit: contain; border-radius: 12px; }
+.brand-text { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.03em; }
+.landing-nav-links a { color: rgba(255,255,255,0.7); text-decoration: none; margin-left: 24px; font-size: 0.95rem; font-weight: 500; transition: color 0.2s; }
+.landing-nav-links a:hover { color: #fff; }
+
+.landing-hero { display: flex; align-items: center; justify-content: space-between; padding: 80px 0 120px; gap: 60px; min-height: calc(100vh - 90px); }
+.hero-content { flex: 1; max-width: 540px; z-index: 10; }
+.hero-badge { display: inline-block; background: rgba(255,140,0,0.1); color: var(--mango); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-bottom: 24px; border: 1px solid rgba(255,140,0,0.2); }
+.hero-headline { font-size: 4.5rem; font-weight: 800; line-height: 1.05; margin: 0 0 24px; letter-spacing: -0.04em; }
+.highlight { background: linear-gradient(135deg, #FF8C00, #ff4e50); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero-sub { font-size: 1.2rem; color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 48px; font-weight: 400; }
+
+.hero-auth-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 32px; border-radius: 24px; backdrop-filter: blur(20px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+.hero-form { display: flex; gap: 12px; }
+.hero-form .input-wrap { flex: 1; position: relative; }
+.hero-form .input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4); }
+.hero-form input { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 16px 16px 16px 44px; border-radius: 12px; font-size: 1rem; outline: none; transition: all 0.2s; }
+.hero-form input:focus { border-color: var(--mango); background: rgba(0,0,0,0.6); box-shadow: 0 0 0 4px rgba(255,140,0,0.1); }
+.hero-form button { padding: 0 32px; font-size: 1rem; border-radius: 12px; white-space: nowrap; }
+.hero-auth-footer { margin-top: 16px; font-size: 0.8rem; color: rgba(255,255,255,0.4); text-align: center; }
+
+.hero-visual { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; }
+.dashboard-mockup { width: 100%; max-width: 600px; background: #16161a; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 30px 60px rgba(0,0,0,0.5); overflow: hidden; position: relative; z-index: 2; transform: perspective(1000px) rotateY(-10deg) rotateX(5deg); transition: transform 0.5s ease; }
+.dashboard-mockup:hover { transform: perspective(1000px) rotateY(-5deg) rotateX(2deg); }
+.mockup-header { height: 40px; background: #1f1f23; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 16px; }
+.dots { display: flex; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.2); }
+.dot:nth-child(1) { background: #ff5f56; } .dot:nth-child(2) { background: #ffbd2e; } .dot:nth-child(3) { background: #27c93f; }
+.mockup-body { display: flex; height: 360px; }
+.mockup-sidebar { width: 80px; border-right: 1px solid rgba(255,255,255,0.05); padding: 16px; background: rgba(0,0,0,0.2); }
+.mockup-content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px; background: #16161a; }
+.mockup-card { height: 60px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
+
+.auth-floating-shapes { position: absolute; inset: -100px; overflow: hidden; pointer-events: none; z-index: 1; }
+.shape { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.4; animation: float 10s infinite ease-in-out alternate; }
+.s1 { width: 400px; height: 400px; background: var(--mango); top: 0; right: -100px; animation-delay: 0s; }
+.s2 { width: 300px; height: 300px; background: #ff4e50; bottom: 0; left: 0px; animation-delay: -5s; }
+.s3 { width: 200px; height: 200px; background: #8a2be2; top: 50%; left: 30%; animation-delay: -2s; }
+
+@keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(30px, -30px) scale(1.1); } }
+
+@media (max-width: 900px) {
+  .landing-hero { flex-direction: column; text-align: center; padding: 60px 0; }
+  .hero-content { max-width: 100%; }
+  .hero-form { flex-direction: column; }
+  .dashboard-mockup { transform: none; margin-top: 40px; }
+  .dashboard-mockup:hover { transform: none; }
+  .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+}
+
+/* Landing Page Pricing Styles */
+.landing-pricing-section { padding: 100px 0; background: #0f0f13; border-top: 1px solid rgba(255,255,255,0.05); }
+.pricing-header { text-align: center; margin-bottom: 60px; }
+.pricing-header h2 { font-size: 2.8rem; font-weight: 800; margin-bottom: 16px; color: #fff; }
+.pricing-header p { font-size: 1.15rem; color: rgba(255,255,255,0.6); }
+.pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+.pricing-card { padding: 40px 30px; position: relative; display: flex; flex-direction: column; background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); transition: transform 0.3s; }
+.pricing-card:hover { transform: translateY(-5px); border-color: rgba(255,140,0,0.3); }
+.badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--mango); color: #000; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; }
+.pricing-card h3 { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 15px; }
+.price { font-size: 3.5rem; font-weight: 800; color: #fff; margin-bottom: 30px; }
+.price span { font-size: 1rem; color: rgba(255,255,255,0.5); font-weight: 500; }
+.features { list-style: none; padding: 0; margin: 0 0 30px 0; flex: 1; }
+.features li { padding: 10px 0; color: rgba(255,255,255,0.8); display: flex; align-items: center; }
+.features li i { color: var(--mango); margin-right: 10px; }
+.btn { width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s; border: none; }
+.btn-primary { background: linear-gradient(135deg, var(--mango), var(--mango-d)); color: #fff; box-shadow: 0 4px 14px rgba(255,140,0,0.3); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(255,140,0,0.4); }
+.btn-secondary { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); text-align: center; display: block; text-decoration: none; }
+.btn-secondary:hover { background: rgba(255,255,255,0.1); }
+</style>
+{% endblock %}

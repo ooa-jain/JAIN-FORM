@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>{% block title %}Draftspace{% endblock %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/main.css') }}">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+{% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<script>
+  if(localStorage.getItem('sidebar-collapsed') === 'true') {
+    document.body.classList.add('sidebar-collapsed');
+  }
+</script>
+{% block body %}{% endblock %}
+<script src="{{ url_for('static',filename='js/main.js') }}"></script>
+<script>
+function toggleSidebar() {
+  const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
+  localStorage.setItem('sidebar-collapsed', isCollapsed);
+  const icon = document.getElementById('toggleIcon');
+  if(icon) {
+    icon.innerHTML = isCollapsed ? '<i class="ph ph-caret-right"></i>' : '<i class="ph ph-caret-left"></i>';
+  }
+}
+function toggleMobileNav() {
+  document.body.classList.toggle('mob-nav-open');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+  const icon = document.getElementById('toggleIcon');
+  if(icon) {
+    icon.innerHTML = isCollapsed ? '<i class="ph ph-caret-right"></i>' : '<i class="ph ph-caret-left"></i>';
+  }
+});
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

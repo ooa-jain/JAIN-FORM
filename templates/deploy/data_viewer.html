@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Data Viewer — Draftspace{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
+{% block body %}
+{% include 'components/sidebar.html' %}
+
+<style>
+.dv-wrap{max-width:1100px;margin:0 auto;padding:28px 22px}
+.dv-head{margin-bottom:26px}
+.dv-head h1{font-size:1.5rem;font-weight:800;color:#1A1A2E;margin-bottom:4px}
+.dv-head p{color:#aaa;font-size:.86rem}
+.dv-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:28px}
+.dv-stat{background:#fff;border:1px solid #E8E4DE;border-radius:12px;padding:18px;border-left:4px solid #FF8C00}
+.dv-stat .n{font-size:2rem;font-weight:800;color:#FF8C00;line-height:1}
+.dv-stat .l{font-size:.7rem;color:#aaa;text-transform:uppercase;letter-spacing:.07em;margin-top:4px}
+.forms-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.fc{background:#fff;border:1px solid #E8E4DE;border-radius:14px;overflow:hidden;transition:box-shadow .2s}
+.fc:hover{box-shadow:0 5px 20px rgba(0,0,0,.08)}
+.fc-hdr{height:8px;background:linear-gradient(90deg,#FF8C00,#CC7000)}
+.fc-body{padding:16px 18px}
+.fc-title{font-weight:700;font-size:.96rem;margin-bottom:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc-meta{display:flex;gap:10px;font-size:.76rem;color:#aaa;margin-bottom:12px;flex-wrap:wrap}
+.fc-meta span{display:flex;align-items:center;gap:3px}
+.fc-count{display:flex;align-items:center;gap:8px;background:#FFF5E8;border:1px solid rgba(255,140,0,.2);border-radius:10px;padding:10px 14px;margin-bottom:14px}
+.fc-count .big{font-size:1.8rem;font-weight:800;color:#FF8C00;line-height:1}
+.fc-count .lbl{font-size:.75rem;color:#aaa}
+.fc-count .lbl strong{display:block;font-size:.85rem;color:#1A1A2E}
+.fc-acts{display:flex;gap:8px}
+.btn-view{flex:1;padding:9px;background:linear-gradient(135deg,#FF8C00,#CC7000);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:700;cursor:pointer;text-decoration:none;text-align:center;display:block}
+.btn-view:hover{transform:translateY(-1px);color:#fff}
+.btn-xls{padding:9px 14px;background:#F0FFF4;color:#2D6A4F;border:1.5px solid #C8E6C9;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:5px}
+.btn-xls:hover{background:#E0F5E9;color:#2D6A4F}
+.btn-csv{padding:9px 14px;background:#E8F4FD;color:#1565C0;border:1.5px solid #B3D9F0;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:5px}
+.btn-csv:hover{background:#D5EAF8;color:#1565C0}
+.tag-live{background:#E8F5E9;color:#2D6A4F;padding:2px 8px;border-radius:20px;font-size:.65rem;font-weight:700;border:1px solid #C8E6C9}
+.tag-draft{background:#F5F5F5;color:#999;padding:2px 8px;border-radius:20px;font-size:.65rem;font-weight:700;border:1px solid #E0E0E0}
+.empty{text-align:center;padding:60px;color:#bbb;background:#FAFAF8;border-radius:14px;border:1px dashed #E8E4DE}
+</style>
+
+<div class="dv-wrap">
+  <div class="dv-head">
+    <h1>📊 Data Viewer</h1>
+    <p>View responses from your forms — export to Excel or CSV with one click</p>
+  </div>
+
+  {% set total_responses = forms | sum(attribute='response_count') %}
+  <div class="dv-stats">
+    <div class="dv-stat">
+      <div class="n">{{ forms|length }}</div>
+      <div class="l">Total Forms</div>
+    </div>
+    <div class="dv-stat">
+      <div class="n">{{ total_responses }}</div>
+      <div class="l">Total Responses</div>
+    </div>
+    <div class="dv-stat">
+      <div class="n">{{ forms | selectattr('is_published') | list | length }}</div>
+      <div class="l">Live Forms</div>
+    </div>
+    <div class="dv-stat">
+      <div class="n">{{ forms | selectattr('response_count') | list | length }}</div>
+      <div class="l">Forms with Data</div>
+    </div>
+  </div>
+
+  {% if forms %}
+  <div class="forms-grid">
+    {% for f in forms %}
+    <div class="fc">
+      <div class="fc-hdr" style="background:linear-gradient(90deg,{% if f.response_count > 0 %}#FF8C00,#CC7000{% else %}#E8E4DE,#D0CCC8{% endif %})"></div>
+      <div class="fc-body">
+        <div class="fc-title">{{ f.title }}</div>
+        <div class="fc-meta">
+          <span class="{{ 'tag-live' if f.is_published else 'tag-draft' }}">{{ '🟢 Live' if f.is_published else '⚫ Draft' }}</span>
+          <span>{{ f.pages }} page{{ 's' if f.pages != 1 else '' }}</span>
+          {% if f.created_at %}
+          <span>{{ f.created_at | string | truncate(10, True, '') }}</span>
+          {% endif %}
+        </div>
+        <div class="fc-count">
+          <div class="big">{{ f.response_count }}</div>
+          <div class="lbl">
+            <strong>Response{{ 's' if f.response_count != 1 else '' }}</strong>
+            collected
+          </div>
+        </div>
+        <div class="fc-acts">
+          {% if f.response_count > 0 %}
+          <a href="{{ url_for('deploy.form_data', form_id=f._id) }}" class="btn-view">📊 View Data</a>
+          <a href="{{ url_for('deploy.export_excel', form_id=f._id) }}" class="btn-xls" title="Export Excel">📗</a>
+          <a href="{{ url_for('deploy.export_csv', form_id=f._id) }}" class="btn-csv" title="Export CSV">📄</a>
+          {% else %}
+          <div style="width:100%;text-align:center;color:#bbb;font-size:.82rem;padding:9px;background:#F8F7F4;border-radius:8px">
+            No responses yet
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">
+    <div style="font-size:2rem;margin-bottom:10px">📋</div>
+    <div>No forms found.</div>
+    <div style="font-size:.82rem;margin-top:6px"><a href="{{ url_for('dashboard.index') }}" style="color:#FF8C00">Create your first form →</a></div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

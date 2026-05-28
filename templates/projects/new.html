@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit' if editing else 'Launch' }} Project — Draftspace{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
+{% block body %}
+<div class="auth-floating-shapes"><div class="shape s1"></div><div class="shape s2"></div></div>
+{% include 'components/sidebar.html' %}
+<div class="app-body" style="max-width:760px;">
+  <a href="{{ url_for('projects.feed') }}" class="btn-ghost" style="margin-bottom:24px;display:inline-flex;"><i class="ph ph-arrow-left"></i> Back</a>
+
+  <div class="glass-card" style="padding:36px;border-radius:24px;">
+    <div style="margin-bottom:28px;">
+      <h1 style="font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:900;color:#1A1A2E;">
+        {{ '✏️ Edit Project' if editing else '🚀 Launch a Project' }}
+      </h1>
+      <p style="color:#666;font-size:.9rem;margin-top:6px;">
+        {{ 'Update your project details.' if editing else 'Showcase your startup, tool, or side project to the Draftspace community.' }}
+      </p>
+    </div>
+
+    <form method="POST" action="{{ url_for('projects.edit', project_id=project._id) if editing else url_for('projects.new_project') }}">
+
+      <div class="fg">
+        <label>Project Name *</label>
+        <input type="text" name="title" required placeholder="e.g. SnapForms — AI Form Builder" value="{{ project.title if project else '' }}">
+      </div>
+
+      <div class="fg">
+        <label>Tagline</label>
+        <input type="text" name="tagline" placeholder="One powerful sentence describing your project" value="{{ project.tagline if project else '' }}" maxlength="120">
+      </div>
+
+      <div class="fg">
+        <label style="display:flex;align-items:center;gap:8px;">
+          Description
+          <button type="button" onclick="generateDescription()" class="btn-xs" style="font-size:.7rem;padding:3px 10px;"><i class="ph ph-magic-wand"></i> AI Generate</button>
+        </label>
+        <textarea name="description" id="descField" rows="5" placeholder="Tell the community what your project does, why you built it, and what makes it special…">{{ project.description if project else '' }}</textarea>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="fg">
+          <label>Live Demo URL</label>
+          <input type="url" name="demo_url" placeholder="https://your-demo.com" value="{{ project.demo_url if project else '' }}">
+        </div>
+        <div class="fg">
+          <label>GitHub Repository</label>
+          <input type="url" name="github_url" placeholder="https://github.com/you/repo" value="{{ project.github_url if project else '' }}">
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Website URL</label>
+        <input type="url" name="website_url" placeholder="https://yourproject.com" value="{{ project.website_url if project else '' }}">
+      </div>
+
+      <div class="fg">
+        <label>Category</label>
+        <select name="category">
+          {% for cat in categories %}
+          <option value="{{ cat }}" {% if project and project.category == cat %}selected{% endif %}>{{ cat.replace('-',' ').title() }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="fg">
+        <label>Tags (comma-separated)</label>
+        <input type="text" name="tags" placeholder="e.g. ai, productivity, saas, open-source" value="{{ (project.tags|join(', ')) if project and project.tags else '' }}">
+      </div>
+
+      <div class="fg">
+        <label>Screenshots (one URL per line)</label>
+        <textarea name="screenshots" rows="4" placeholder="https://i.imgur.com/screenshot1.png&#10;https://i.imgur.com/screenshot2.png">{{ (project.screenshots|join('\n')) if project and project.screenshots else '' }}</textarea>
+        <p style="font-size:.73rem;color:#aaa;margin-top:4px;">Upload images to Imgur/Cloudinary/GitHub and paste the URLs here.</p>
+      </div>
+
+      <div style="background:linear-gradient(135deg,rgba(255,140,0,.05),rgba(45,106,79,.05));border:1px dashed rgba(255,140,0,.3);border-radius:12px;padding:16px;margin-bottom:20px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:700;">
+          <input type="checkbox" name="publish" value="1" {% if editing and project.status=='live' %}checked{% endif %} id="publishCheck" style="width:18px;height:18px;accent-color:var(--mango);">
+          <span>{{ 'Keep project live' if editing and project.status=='live' else 'Publish to community immediately' }}</span>
+        </label>
+        <p style="font-size:.78rem;color:#888;margin-top:6px;margin-left:28px;">Published projects appear on the public showcase and earn you <strong style="color:var(--mango)">+50 XP</strong>.</p>
+      </div>
+
+      <div style="display:flex;gap:12px;">
+        <button type="submit" class="btn-primary" style="flex:1;justify-content:center;padding:13px;">
+          <i class="ph ph-rocket-launch"></i> {{ 'Save Changes' if editing else 'Launch Project' }}
+        </button>
+        <a href="{{ url_for('projects.feed') }}" class="btn-ghost" style="padding:13px 20px;">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+async function generateDescription() {
+  const title   = document.querySelector('[name=title]').value.trim();
+  const tagline = document.querySelector('[name=tagline]').value.trim();
+  if (!title) { showToast('Enter a project name first', 'info'); return; }
+  showToast('Generating with AI…', 'info');
+  try {
+    const res = await fetch('/projects/ai-describe', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({title, tagline})
+    });
+    const d = await res.json();
+    if (d.success) {
+      document.getElementById('descField').value = d.description;
+      showToast('AI description generated!', 'success');
+    } else {
+      showToast(d.error || 'AI error', 'info');
+    }
+  } catch(e) { showToast('Failed to generate', 'info'); }
+}
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className='toast '+type+' show';
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+{% endblock %}

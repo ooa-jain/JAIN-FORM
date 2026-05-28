@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% block title %}{{ form.title }} — Data Viewer{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
+{% block body %}
+{% include 'components/sidebar.html' %}
+
+<style>
+/* ── Toolbar ─────────────────────────────────────────────── */
+.tb{background:#fff;border-bottom:1px solid #E8E4DE;padding:0 22px;display:flex;align-items:center;gap:12px;height:54px;position:sticky;top:54px;z-index:50}
+.tb-title{font-weight:700;font-size:.94rem;color:#1A1A2E;margin-right:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb-meta{font-size:.75rem;color:#aaa;white-space:nowrap}
+.btn-xl{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#2D6A4F;color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;text-decoration:none;transition:.18s}
+.btn-xl:hover{background:#246040;color:#fff;transform:translateY(-1px)}
+.btn-csv{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#1565C0;color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;text-decoration:none;transition:.18s}
+.btn-csv:hover{background:#0D47A1;color:#fff;transform:translateY(-1px)}
+.btn-flt{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#F8F7F4;color:#555;border:1.5px solid #E8E4DE;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:.18s}
+.btn-flt:hover{border-color:#FF8C00;color:#FF8C00}
+.btn-flt.on{background:#FFF5E8;color:#FF8C00;border-color:rgba(255,140,0,.4)}
+.search-box{display:flex;align-items:center;gap:8px;background:#F8F7F4;border:1.5px solid #E8E4DE;border-radius:8px;padding:0 10px;height:36px}
+.search-box input{border:none;background:none;outline:none;font-family:'DM Sans',sans-serif;font-size:.83rem;width:180px;color:#1A1A2E}
+.search-box input::placeholder{color:#ccc}
+
+/* ── Stats bar ───────────────────────────────────────────── */
+.stats-bar{display:flex;gap:16px;padding:12px 22px;background:#FFFAF5;border-bottom:1px solid #F0EEE8;flex-wrap:wrap}
+.sstat{display:flex;align-items:center;gap:7px;font-size:.8rem}
+.sstat .n{font-size:1.1rem;font-weight:800;color:#FF8C00}
+.sstat .l{color:#888}
+
+/* ── Table wrap ──────────────────────────────────────────── */
+.tbl-outer{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 180px)}
+.tbl-outer::-webkit-scrollbar{height:7px;width:7px}
+.tbl-outer::-webkit-scrollbar-track{background:#F0EEE8}
+.tbl-outer::-webkit-scrollbar-thumb{background:#D0CCC8;border-radius:4px}
+.tbl-outer::-webkit-scrollbar-thumb:hover{background:#FF8C00}
+
+table{border-collapse:collapse;width:100%;min-width:700px;font-size:.82rem;font-family:'DM Sans',sans-serif}
+
+/* Sticky header */
+thead th{position:sticky;top:0;z-index:10;background:#1A1A2E;color:#fff;padding:10px 12px;text-align:left;font-weight:700;font-size:.75rem;letter-spacing:.04em;white-space:nowrap;border-right:1px solid rgba(255,255,255,.08);user-select:none;cursor:pointer}
+thead th:hover{background:#232340}
+thead th.sorted-asc::after{content:' ▲';color:#FF8C00;font-size:.6rem}
+thead th.sorted-desc::after{content:' ▼';color:#FF8C00;font-size:.6rem}
+thead th:first-child{background:#0E0E20;width:44px;text-align:center;cursor:default}
+thead th:nth-child(2){background:#12122A;width:140px}
+
+/* Rows */
+tbody tr{border-bottom:1px solid #F0EEE8;transition:background .12s}
+tbody tr:hover{background:#FFF9F3}
+tbody tr:nth-child(even){background:#FFFAF5}
+tbody tr:nth-child(even):hover{background:#FFF5E8}
+tbody tr.hidden-row{display:none}
+
+td{padding:9px 12px;vertical-align:middle;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#333;border-right:1px solid #F0EEE8}
+td:first-child{text-align:center;color:#aaa;font-size:.72rem;font-weight:700;background:#FAFAF8;border-right:1px solid #E8E4DE}
+td:nth-child(2){color:#888;font-size:.76rem;white-space:nowrap;background:#FAFAF8;border-right:1px solid #E8E4DE}
+td.expanded{white-space:normal;word-break:break-word;max-width:320px}
+td:last-child{border-right:none}
+
+/* Action cell */
+.del-btn{background:none;border:none;cursor:pointer;color:#E8E4DE;font-size:1rem;padding:2px 5px;border-radius:4px;transition:.15s}
+.del-btn:hover{color:#E63946;background:#FFF0F0}
+
+/* Column filter dropdowns */
+.col-filter{display:none;position:absolute;top:100%;left:0;background:#fff;border:1px solid #E8E4DE;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:200px;z-index:100;padding:8px}
+.col-filter.open{display:block}
+.cf-option{padding:6px 10px;cursor:pointer;font-size:.78rem;border-radius:5px}
+.cf-option:hover{background:#FFF5E8;color:#FF8C00}
+.cf-option.active{background:#FFF5E8;color:#FF8C00;font-weight:600}
+
+/* Empty state */
+.empty{text-align:center;padding:60px;color:#bbb}
+
+/* Row expand tooltip */
+td[title]{cursor:pointer}
+</style>
+
+<!-- Toolbar -->
+<div class="tb">
+  <div class="tb-title">📊 {{ form.title }}</div>
+  <div class="tb-meta" id="countLabel">{{ rows|length }} response{{ 's' if rows|length != 1 else '' }}</div>
+  <div class="search-box">
+    <span style="color:#ccc">🔍</span>
+    <input type="text" placeholder="Search responses…" oninput="filterRows(this.value)" id="searchInput">
+  </div>
+  <button class="btn-flt" id="expandBtn" onclick="toggleExpand()">⬆↕ Wrap Text</button>
+  <a href="{{ url_for('deploy.export_excel', form_id=form._id) }}" class="btn-xl">📗 Export Excel</a>
+  <a href="{{ url_for('deploy.export_csv',   form_id=form._id) }}" class="btn-csv">📄 Export CSV</a>
+</div>
+
+<!-- Stats bar -->
+<div class="stats-bar">
+  <div class="sstat"><span class="n">{{ rows|length }}</span><span class="l">Total responses</span></div>
+  <div class="sstat"><span class="n">{{ columns|length }}</span><span class="l">Questions</span></div>
+  {% if rows %}
+  <div class="sstat"><span class="n" style="font-size:.85rem">{{ rows[0].submitted_at[:10] if rows[0].submitted_at else '—' }}</span><span class="l">Latest on</span></div>
+  <div class="sstat"><span class="n" style="font-size:.85rem">{{ rows[-1].submitted_at[:10] if rows[-1].submitted_at else '—' }}</span><span class="l">First on</span></div>
+  {% endif %}
+  {% if form.is_published %}
+  <div class="sstat"><a href="/f/{{ form.slug }}" target="_blank" style="color:#FF8C00;font-size:.78rem;text-decoration:none">🔗 View live form →</a></div>
+  {% endif %}
+</div>
+
+<!-- Table -->
+<div class="tbl-outer" id="tblOuter">
+  {% if rows %}
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th onclick="sortCol(1,this)">🕐 Submitted</th>
+        {% for col in columns %}
+        <th onclick="sortCol({{ loop.index + 1 }}, this)" title="{{ col.label }}">
+          {{ col.label[:30] }}{% if col.label|length > 30 %}…{% endif %}
+        </th>
+        {% endfor %}
+        <th style="cursor:default;width:44px">🗑</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      {% for row in rows %}
+      <tr data-rid="{{ row._id }}" data-search="{{ row.submitted_at }} {% for col in columns %}{{ row.answers.get(col.key,'') }} {% endfor %}">
+        <td>{{ loop.index }}</td>
+        <td title="{{ row.submitted_at }}">{{ row.submitted_at }}</td>
+        {% for col in columns %}
+        {% set val = row.answers.get(col.key, '') %}
+        <td title="{{ val }}" onclick="this.classList.toggle('expanded')">
+          {% if val is iterable and val is not string %}
+            {{ val | join(', ') }}
+          {% else %}
+            {{ val }}
+          {% endif %}
+        </td>
+        {% endfor %}
+        <td>
+          <button class="del-btn" onclick="deleteRow('{{ row._id }}', this)" title="Delete">🗑</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">
+    <div style="font-size:2.5rem;margin-bottom:14px">📭</div>
+    <div style="font-weight:700;color:#555;margin-bottom:6px">No responses yet</div>
+    <div style="font-size:.84rem">Share your form link to start collecting data.</div>
+    {% if form.is_published %}
+    <div style="margin-top:12px"><a href="/f/{{ form.slug }}" target="_blank" style="color:#FF8C00;font-size:.84rem">🔗 /f/{{ form.slug }}</a></div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- Delete confirm toast -->
+<div id="delToast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#E63946;color:#fff;padding:10px 22px;border-radius:40px;font-size:.82rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:all .3s;pointer-events:none;z-index:9999">
+  Row deleted
+</div>
+
+<script>
+const FORM_ID = '{{ form._id }}';
+let expandAll = false;
+let sortDir   = {};
+
+/* ── Search / Filter ────────────────────────────────────── */
+function filterRows(q) {
+  q = q.toLowerCase();
+  let vis = 0;
+  document.querySelectorAll('#tbody tr').forEach(tr => {
+    const text = tr.dataset.search.toLowerCase();
+    const show  = !q || text.includes(q);
+    tr.classList.toggle('hidden-row', !show);
+    if (show) vis++;
+  });
+  document.getElementById('countLabel').textContent =
+    vis + (q ? ` of {{ rows|length }}` : '') + ` response${vis !== 1 ? 's' : ''}`;
+}
+
+/* ── Sort column ────────────────────────────────────────── */
+function sortCol(colIdx, th) {
+  const tbody = document.getElementById('tbody');
+  const rows  = [...tbody.querySelectorAll('tr')];
+  const key   = colIdx + '_' + (sortDir[colIdx] || 'asc');
+  sortDir[colIdx] = sortDir[colIdx] === 'asc' ? 'desc' : 'asc';
+
+  rows.sort((a, b) => {
+    const av = a.cells[colIdx]?.textContent.trim() || '';
+    const bv = b.cells[colIdx]?.textContent.trim() || '';
+    const cmp = av.localeCompare(bv, undefined, {numeric: true, sensitivity: 'base'});
+    return sortDir[colIdx] === 'asc' ? cmp : -cmp;
+  });
+  rows.forEach(r => tbody.appendChild(r));
+
+  // Update header indicators
+  document.querySelectorAll('thead th').forEach(t => {
+    t.classList.remove('sorted-asc','sorted-desc');
+  });
+  th.classList.add(sortDir[colIdx] === 'asc' ? 'sorted-desc' : 'sorted-asc');
+
+  // Re-number rows
+  let i = 1;
+  document.querySelectorAll('#tbody tr').forEach(tr => {
+    if (!tr.classList.contains('hidden-row')) tr.cells[0].textContent = i++;
+  });
+}
+
+/* ── Wrap text toggle ────────────────────────────────────── */
+function toggleExpand() {
+  expandAll = !expandAll;
+  document.querySelectorAll('#tbody td:not(:first-child):not(:last-child)').forEach(td => {
+    td.classList.toggle('expanded', expandAll);
+  });
+  document.getElementById('expandBtn').classList.toggle('on', expandAll);
+  document.getElementById('expandBtn').textContent = expandAll ? '↕ Collapse' : '⬆↕ Wrap Text';
+}
+
+/* ── Delete response ─────────────────────────────────────── */
+async function deleteRow(rid, btn) {
+  if (!confirm('Delete this response permanently?')) return;
+  try {
+    const r = await fetch(`/deploy/data/${FORM_ID}/delete-response`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({response_id: rid}),
+    });
+    const d = await r.json();
+    if (d.success) {
+      const row = btn.closest('tr');
+      row.style.opacity = '0';
+      row.style.transform = 'scaleY(0)';
+      row.style.transition = 'all .25s';
+      setTimeout(() => {
+        row.remove();
+        // Re-number
+        let i = 1;
+        document.querySelectorAll('#tbody tr').forEach(tr => {
+          if (!tr.classList.contains('hidden-row')) tr.cells[0].textContent = i++;
+        });
+        const cnt = document.querySelectorAll('#tbody tr:not(.hidden-row)').length;
+        document.getElementById('countLabel').textContent = cnt + ` response${cnt !== 1 ? 's' : ''}`;
+      }, 260);
+      showToast();
+    } else { alert('Error: ' + d.error); }
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+function showToast() {
+  const t = document.getElementById('delToast');
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(t._t);
+  t._t = setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(20px)';
+  }, 2500);
+}
+
+/* ── Keyboard shortcuts ──────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    e.preventDefault();
+    document.getElementById('searchInput').focus();
+  }
+});
+</script>
+
+{% endblock %}

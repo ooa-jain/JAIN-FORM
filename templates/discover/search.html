@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Search — Draftspace{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
+{% block body %}
+<div class="auth-floating-shapes"><div class="shape s1"></div><div class="shape s2"></div></div>
+{% include 'components/sidebar.html' %}
+<div class="app-body">
+  <div class="page-head">
+    <div>
+      <h1 class="page-title"><i class="ph ph-magnifying-glass" style="color:var(--mango)"></i> Search</h1>
+      <p class="page-sub">Find forms, projects, and creators across Draftspace.</p>
+    </div>
+  </div>
+  <form method="GET" action="{{ url_for('discover.search') }}" style="display:flex;gap:10px;margin-bottom:32px;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search forms, projects, creators…" style="flex:1;font-size:1rem;padding:13px 16px;">
+    <button type="submit" class="btn-primary"><i class="ph ph-magnifying-glass"></i> Search</button>
+  </form>
+
+  {% if q %}
+  <div style="margin-bottom:8px;font-size:.85rem;color:#aaa;">Results for "<strong style="color:#1A1A2E;">{{ q }}</strong>"</div>
+
+  {% if results.forms %}
+  <h2 style="font-size:1rem;font-weight:800;margin:24px 0 12px;"><i class="ph ph-note-pencil" style="color:var(--mango)"></i> Forms ({{ results.forms|length }})</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:28px;">
+    {% for f in results.forms %}
+    <div class="glass-card" style="padding:16px;border-radius:14px;">
+      <div style="font-weight:700;color:#1A1A2E;margin-bottom:6px;">{{ f.title }}</div>
+      <div style="font-size:.75rem;color:#aaa;margin-bottom:12px;"><i class="ph ph-heart"></i> {{ f.get('likes_count',0) }} · <i class="ph ph-clipboard-text"></i> {{ f.get('response_count',0) }}</div>
+      <a href="{{ url_for('forms.view', slug=f.slug) }}" class="btn-xs accent" target="_blank">Open Form</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if results.projects %}
+  <h2 style="font-size:1rem;font-weight:800;margin:24px 0 12px;"><i class="ph ph-rocket-launch" style="color:#2D6A4F"></i> Projects ({{ results.projects|length }})</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:28px;">
+    {% for p in results.projects %}
+    <div class="glass-card" style="padding:16px;border-radius:14px;">
+      <div style="font-weight:700;color:#1A1A2E;margin-bottom:4px;">{{ p.title }}</div>
+      <div style="font-size:.77rem;color:#666;margin-bottom:10px;">{{ p.tagline or '' }}</div>
+      <div style="font-size:.74rem;color:#aaa;margin-bottom:12px;"><i class="ph ph-arrow-fat-up"></i> {{ p.upvotes_count }}</div>
+      <a href="{{ url_for('projects.detail', project_id=p._id) }}" class="btn-xs">View Project</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if results.creators %}
+  <h2 style="font-size:1rem;font-weight:800;margin:24px 0 12px;"><i class="ph ph-users-three" style="color:#457B9D"></i> Creators ({{ results.creators|length }})</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">
+    {% for c in results.creators %}
+    <div class="glass-card" style="padding:16px;border-radius:14px;text-align:center;">
+      <div style="width:48px;height:48px;border-radius:50%;background:var(--dark);color:white;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:800;margin:0 auto 10px;">{{ c.name[0].upper() }}</div>
+      <div style="font-weight:700;font-size:.9rem;color:#1A1A2E;">{{ c.name }}</div>
+      <div style="font-size:.72rem;color:#aaa;">{{ c.xp }} XP · Lv{{ c.level }}</div>
+      <a href="{{ url_for('community.profile', username=c.name) }}" class="btn-xs" style="margin-top:10px;width:100%;justify-content:center;">View Profile</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if not results.forms and not results.projects and not results.creators %}
+  <div class="empty-state" style="padding:60px;text-align:center;">
+    <div style="font-size:2.5rem;margin-bottom:12px;">🔍</div>
+    <h3>No results for "{{ q }}"</h3>
+    <p>Try a different search term or browse the discover feed.</p>
+    <a href="{{ url_for('discover.feed') }}" class="btn-primary" style="display:inline-flex;margin-top:14px;">Browse Discover</a>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="empty-state" style="padding:60px;text-align:center;">
+    <div style="font-size:2.5rem;margin-bottom:12px;">🔎</div>
+    <h3>What are you looking for?</h3>
+    <p>Search for forms, projects, or creators to discover great content.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
