@@ -1,39 +1,45 @@
 {% extends 'base.html' %}
 {% block title %}Login — Draftspace{% endblock %}
-{% block body_class %}auth-page{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
 {% block body %}
-<div class="auth-wrap" style="display:flex; justify-content:center; align-items:center; min-height:100vh; background:#0f0f13; position:relative; overflow:hidden;">
+<div class="auth-wrap" style="display:flex; justify-content:center; align-items:center; min-height:100vh; position:relative; z-index:10; padding: 20px;">
   <div class="auth-floating-shapes">
-    <div class="shape s1" style="width:400px;height:400px;background:var(--mango);position:absolute;top:-100px;right:-100px;filter:blur(80px);opacity:0.2;border-radius:50%;"></div>
-    <div class="shape s2" style="width:300px;height:300px;background:#ff4e50;position:absolute;bottom:-100px;left:-100px;filter:blur(80px);opacity:0.2;border-radius:50%;"></div>
+    <div class="shape s1"></div>
+    <div class="shape s2"></div>
+    <div class="shape s3"></div>
   </div>
 
-  <div class="auth-card" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); padding:40px; border-radius:24px; backdrop-filter:blur(20px); width:100%; max-width:440px; z-index:10; box-shadow:0 20px 40px rgba(0,0,0,0.3);">
+  <div class="auth-card glass-card" style="padding:40px; width:100%; max-width:440px; z-index:10;">
     <div class="auth-logo-sm" style="display:flex; align-items:center; gap:8px; margin-bottom:32px; justify-content:center;">
       <span style="font-size:1.5rem; color:var(--mango);">◈</span>
-      <span style="font-size:1.2rem; font-weight:800; color:#fff;">Draftspace</span>
+      <span style="font-size:1.2rem; font-weight:800; color:#1A1A2E;">Draftspace</span>
     </div>
-    <h2 class="auth-title" style="margin:0 0 8px; font-size:1.8rem; font-weight:700; color:#fff; text-align:center;">Welcome back</h2>
-    <p class="auth-sub" style="margin:0 0 32px; color:rgba(255,255,255,0.5); text-align:center;">{{ email }}</p>
+    <h2 class="auth-title" style="margin:0 0 8px; font-size:1.8rem; font-weight:800; color:#1A1A2E; text-align:center;">Welcome back</h2>
+    <p class="auth-sub" style="margin:0 0 32px; color:#666; text-align:center;">{{ email }}</p>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for cat,msg in messages %}<div class="alert alert-{{cat}}" style="margin-bottom:20px; padding:12px; background:rgba(255,140,0,0.1); border:1px solid rgba(255,140,0,0.2); color:var(--mango); border-radius:8px; font-size:0.9rem;">{{msg}}</div>{% endfor %}
+      {% for cat,msg in messages %}<div class="alert alert-{{cat}}" style="margin-bottom:20px; padding:12px; background:rgba(255,140,0,0.1); border:1px solid rgba(255,140,0,0.2); color:var(--mango-d); border-radius:8px; font-size:0.9rem;">{{msg}}</div>{% endfor %}
     {% endwith %}
 
     <form method="POST" action="{{ url_for('auth.login') }}">
       <input type="hidden" name="email" value="{{ email }}">
       <div class="fg" style="margin-bottom:24px;">
-        <label style="display:block; margin-bottom:8px; font-size:0.9rem; color:rgba(255,255,255,0.7);">Enter your password</label>
+        <label style="display:block; margin-bottom:8px; font-size:0.9rem; color:#1A1A2E; font-weight: 600;">Enter your password</label>
         <div class="input-wrap" style="position:relative;">
-          <span class="input-icon" style="position:absolute; left:16px; top:50%; transform:translateY(-50%); color:rgba(255,255,255,0.4);">◉</span>
-          <input type="password" name="password" placeholder="Password" required autofocus style="width:100%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:16px 16px 16px 44px; border-radius:12px; font-size:1rem; outline:none; transition:all 0.2s;">
+          <span class="input-icon" style="position:absolute; left:16px; top:50%; transform:translateY(-50%); color:#aaa;">◉</span>
+          <input type="password" name="password" placeholder="Password" required autofocus style="width:100%; background:#fff; border:1px solid rgba(0,0,0,0.1); color:#1A1A2E; padding:16px 16px 16px 44px; border-radius:12px; font-size:1rem; outline:none; transition:all 0.2s;">
         </div>
       </div>
-      <button class="btn-primary w-full" type="submit" style="width:100%; padding:16px; font-size:1rem; border-radius:12px; font-weight:600;">Sign in →</button>
+      <button class="btn-primary w-full" type="submit" style="width:100%; padding:16px; font-size:1rem; border-radius:12px; font-weight:700;">Sign in →</button>
     </form>
     <div style="margin-top:24px; text-align:center; font-size:0.85rem;">
-      <a href="{{ url_for('auth.login') }}" style="color:rgba(255,255,255,0.5); text-decoration:none;">← Use a different email</a>
+      <a href="{{ url_for('auth.login') }}" style="color:#666; text-decoration:none; font-weight: 500;">← Use a different email</a>
     </div>
   </div>
 </div>
+<style>
+/* Remove padding-left from white-gradient-page for auth page specifically */
+body.white-gradient-page { padding-left: 0; }
+.input-wrap input:focus { border-color: var(--mango) !important; box-shadow: 0 0 0 4px rgba(255,140,0,0.1) !important; }
+</style>
 {% endblock %}

@@ -25,12 +25,30 @@ def _db():
     from app import db; return db
 
 def _smtp():
+    from flask_login import current_user
+    if current_user and current_user.is_authenticated:
+        try:
+            from bson import ObjectId
+            u_doc = _db().users.find_one({'_id': ObjectId(current_user.id)})
+            if u_doc and u_doc.get('smtp_settings'):
+                cfg = u_doc['smtp_settings']
+                if cfg.get('user') and cfg.get('pwd'):
+                    h = cfg.get('host', 'smtp.gmail.com')
+                    p = int(cfg.get('port', 587))
+                    u = cfg.get('user')
+                    w = cfg.get('pwd')
+                    f = cfg.get('from_addr') or u
+                    return h, p, u, w, f
+        except Exception as e:
+            print(f"Error loading user SMTP settings: {e}")
+
     h = os.getenv('SMTP_HOST') or os.getenv('MAIL_SERVER','smtp.gmail.com')
     p = int(os.getenv('SMTP_PORT') or os.getenv('MAIL_PORT',587))
     u = os.getenv('SMTP_USER') or os.getenv('EMAIL_USER','')
     w = os.getenv('SMTP_PASS') or os.getenv('EMAIL_PASS','')
     f = os.getenv('MAIL_FROM', u)
     return h, p, u, w, f
+
 
 # ── image helpers ─────────────────────────────────────────────────────────────
 def _is_b64(v):
@@ -49,13 +67,14 @@ def _strip_b64_html(html):
 def _b64_to_file(du, prefix='upload'):
     mime, bts = _extract_b64(du)
     if not bts: return None
-    ext = {'image/gif':'.gif','image/png':'.png','image/jpeg':'.jpg',
-           'image/jpg':'.jpg','image/webp':'.webp'}.get(
-           mime, mimetypes.guess_extension(mime) or '.bin')
-    fn = f'{prefix}_{uuid.uuid4().hex}{ext}'
     try:
-        with open(os.path.join(_upload_dir(),fn),'wb') as f: f.write(bts)
-        return f'/static/nl_uploads/{fn}'
+        from app import db
+        r = db.images.insert_one({
+            'mime': mime,
+            'data': bts,
+            'created_at': datetime.utcnow()
+        })
+        return f'/newsletter/image/{str(r.inserted_id)}'
     except Exception as e:
         print(f'[nl_upload] {e}'); return None
 
@@ -92,14 +111,35 @@ class _ImgC:
     def __init__(self): self._m={}; self.atts=[]
     def process(self, url, pfx='img'):
         if not url: return ''
-        # Convert local absolute URLs back to relative /static/
         for local_prefix in ('http://localhost:5000/', 'http://127.0.0.1:5000/'):
             if url.startswith(local_prefix):
                 url = '/' + url[len(local_prefix):]
             elif url.startswith(local_prefix.rstrip('/')):
                 url = '/' + url[len(local_prefix.rstrip('/')):]
-
         if url.startswith(('http://','https://')): return url
+        if url.startswith('/newsletter/image/'):
+            try:
+                from bson import ObjectId
+                from app import db
+                img_id = url.split('/')[-1]
+                img = db.images.find_one({'_id': ObjectId(img_id)})
+                if img and img.get('data'):
+                    if url in self._m: return f'cid:{self._m[url]}'
+                    cid = f'{pfx}_{len(self.atts)}@Draftspace'
+                    self._m[url] = cid
+                    self.atts.append((cid, img.get('mime', 'image/png'), img['data']))
+                    print(f'[EMAIL_IMG] CID from DB: {url} -> {cid} ({len(img["data"])} bytes)')
+                    return f'cid:{cid}'
+                else:
+                    print(f'[EMAIL_IMG] WARN: DB image not found: {url}')
+            except Exception as e:
+                print(f'[EMAIL_IMG] ERR loading DB image {url}: {e}')
+            try:
+                from flask import request as _req
+                base = os.getenv('BASE_URL') or _req.host_url.rstrip('/')
+                return base + url
+            except:
+                return url
         if url.startswith('/static/'):
             try:
                 from flask import current_app
@@ -112,18 +152,30 @@ class _ImgC:
                 cid=f'{pfx}_{len(self.atts)}@Draftspace'; self._m[url]=cid
                 mt=mimetypes.guess_type(fp)[0] or 'image/png'
                 with open(fp,'rb') as f: self.atts.append((cid,mt,f.read()))
+                print(f'[EMAIL_IMG] CID from file: {url} -> {cid}')
                 return f'cid:{cid}'
+            else:
+                print(f'[EMAIL_IMG] WARN: file not found: {fp}')
+                try:
+                    from flask import request as _req
+                    base = os.getenv('BASE_URL') or _req.host_url.rstrip('/')
+                    return base + url
+                except:
+                    return url
         mime,bts=_extract_b64(url)
-        if not bts: return ''
+        if not bts:
+            print(f'[EMAIL_IMG] WARN: unprocessable URL: {url[:80]}')
+            return ''
         key=url[:80]
         if key in self._m: return f'cid:{self._m[key]}'
         cid=f'{pfx}_{len(self.atts)}@Draftspace'; self._m[key]=cid
         self.atts.append((cid,mime or 'image/png',bts)); return f'cid:{cid}'
+
     def html(self, h, pfx='img'):
         if not h: return h
-        # Clean any absolute localhost URLs inside rich text src attributes back to relative /static/
-        h = re.sub(r'src="https?://(?:localhost|127\.0\.0\.1):5000(/static/[^"]+)"', r'src="\1"', h)
-        return re.sub(r'src="(data:[^"]+|/static/[^"]+)"',
+        # Clean any absolute localhost URLs inside rich text src attributes back to relative
+        h = re.sub(r'src="https?://(?:localhost|127\.0\.0\.1):5000(/static/[^"]+|/newsletter/image/[^"]+)"', r'src="\1"', h)
+        return re.sub(r'src="(data:[^"]+|/static/[^"]+|/newsletter/image/[^"]+)"',
                       lambda m:f'src="{self.process(m.group(1),pfx)}"', h)
 
 # ── email builder ─────────────────────────────────────────────────────────────
@@ -232,8 +284,8 @@ def _build_email(nl):
     return html, plain, col.atts
 
 
-def _build_preview_html(nl, base_url='http://localhost:5000'):
-    """Build newsletter HTML for browser preview — uses Base64 for local static images to ensure offline portability."""
+def _build_preview_html(nl, base_url='http://localhost:5000', b64=False):
+    """Build newsletter HTML for browser preview — uses absolute hosted URLs by default to ensure maximum email client compatibility."""
     th=nl.get('theme',{}); acc=th.get('accent_color','#FF8C00')
     title=nl.get('title','Newsletter'); subtitle=nl.get('subtitle','')
     footer=nl.get('footer','Sent by Draftspace'); blocks=nl.get('blocks',[])
@@ -247,6 +299,24 @@ def _build_preview_html(nl, base_url='http://localhost:5000'):
                 u = '/' + u[len(local_prefix):]
             elif u.startswith(local_prefix.rstrip('/')):
                 u = '/' + u[len(local_prefix.rstrip('/')):]
+
+        if not b64:
+            if u.startswith('/static/') or u.startswith('/newsletter/image/'):
+                return base_url + u
+            return u
+
+        if u.startswith('/newsletter/image/'):
+            try:
+                import base64 as _base64
+                from bson import ObjectId
+                from app import db
+                img_id = u.split('/')[-1]
+                img = db.images.find_one({'_id': ObjectId(img_id)})
+                if img and img.get('data'):
+                    encoded = _base64.b64encode(img['data']).decode('utf-8')
+                    return f"data:{img.get('mime','image/png')};base64,{encoded}"
+            except: pass
+            return base_url + u
 
         if u.startswith('/static/'):
             try:
@@ -269,10 +339,10 @@ def _build_preview_html(nl, base_url='http://localhost:5000'):
     def clean_html(h):
         if not h: return ''
         import re as _re
-        # Clean any absolute localhost URLs inside rich text src attributes back to relative /static/
-        h = _re.sub(r'src="https?://(?:localhost|127\.0\.0\.1):5000(/static/[^"]+)"', r'src="\1"', h)
-        h = _re.sub(r'src="' + base_url + r'(/static/[^"]+)"', r'src="\1"', h)
-        return _re.sub(r'src="(/static/[^"]+)"', lambda m: f'src="{to_b64(m.group(1))}"', h)
+        # Clean any absolute localhost URLs inside rich text src attributes back to relative
+        h = _re.sub(r'src="https?://(?:localhost|127\.0\.0\.1):5000(/static/[^"]+|/newsletter/image/[^"]+)"', r'src="\1"', h)
+        h = _re.sub(r'src="' + base_url + r'(/static/[^"]+|/newsletter/image/[^"]+)"', r'src="\1"', h)
+        return _re.sub(r'src="(/static/[^"]+|/newsletter/image/[^"]+)"', lambda m: f'src="{to_b64(m.group(1))}"', h)
 
     hi = to_b64(th.get('header_image',''))
     hdr_color = th.get('header_color','#1A1A2E')
@@ -288,10 +358,21 @@ def _build_preview_html(nl, base_url='http://localhost:5000'):
     for i, blk in enumerate(blocks):
         c = blk.get('content', {}); t = blk.get('type', '')
         if t == 'text':
-            rows += f'<tr><td style="padding:14px 28px;font-size:15px;line-height:1.75;color:#212529;font-family:Arial,sans-serif">{clean_html(c.get("html",""))}</td></tr>\n'
+            align = c.get('align', 'left')
+            color = c.get('color', '#212529')
+            fs = f"{c.get('font_size')}px" if c.get('font_size') else '15px'
+            lh = c.get('line_height', '1.75')
+            bg = f"background-color:{c.get('bg_color')};" if c.get('bg_color') else ''
+            pad = f"{c.get('padding', 14)}px 28px"
+            rows += f'<tr><td style="padding:{pad};font-size:{fs};line-height:{lh};color:{color};text-align:{align};{bg}font-family:Arial,sans-serif">{clean_html(c.get("html",""))}</td></tr>\n'
         elif t == 'heading':
-            lvl = c.get('level','h2'); fs = {'h1':'26px','h2':'20px','h3':'16px'}.get(lvl,'20px')
-            rows += f'<tr><td style="padding:14px 28px"><{lvl} style="font-family:Georgia,serif;font-size:{fs};color:#1A1A2E;margin:0;line-height:1.25;font-weight:700">{clean_html(c.get("text",""))}</{lvl}></td></tr>\n'
+            lvl = c.get('level','h2')
+            default_fs = {'h1':'26px','h2':'20px','h3':'16px'}.get(lvl,'20px')
+            fs = f"{c.get('font_size')}px" if c.get('font_size') else default_fs
+            align = c.get('align', 'left')
+            color = c.get('color', '#1A1A2E')
+            bg = f"background-color:{c.get('bg_color')};" if c.get('bg_color') else ''
+            rows += f'<tr><td style="padding:14px 28px;{bg}"><{lvl} style="font-family:Georgia,serif;font-size:{fs};color:{color};text-align:{align};margin:0;line-height:1.25;font-weight:700">{clean_html(c.get("text",""))}</{lvl}></td></tr>\n'
         elif t in ('image','gif'):
             src = to_b64(c.get('url',''))
             if src:
@@ -319,10 +400,14 @@ def _build_preview_html(nl, base_url='http://localhost:5000'):
             rows += '<tr><td style="padding:8px 28px"><hr style="border:none;border-top:2px solid #E8E0D5;margin:0"></td></tr>\n'
         elif t == 'quote':
             qt = clean_html(c.get('text','')); auth = c.get('author','')
+            align = c.get('align', 'left')
+            color = c.get('color', '#1A1A2E')
+            fs = f"{c.get('font_size')}px" if c.get('font_size') else '16px'
+            bg = c.get('bg_color', '#FFF8F0')
             rows += (f'<tr><td style="padding:8px 28px"><table width="100%" cellpadding="0" cellspacing="0"><tr>'
-                     f'<td style="border-left:4px solid {acc};background:#FFF8F0;padding:14px 18px;border-radius:0 8px 8px 0">'
-                     f'<blockquote style="font-family:Georgia,serif;font-size:16px;color:#1A1A2E;margin:0;line-height:1.6;font-style:italic">{qt}</blockquote>'
-                     + (f'<p style="margin:6px 0 0;font-size:12px;color:#999;font-family:Arial,sans-serif">— {auth}</p>' if auth else '')
+                     f'<td style="border-left:4px solid {acc};background:{bg};padding:14px 18px;border-radius:0 8px 8px 0">'
+                     f'<blockquote style="font-family:Georgia,serif;font-size:{fs};color:{color};text-align:{align};margin:0;line-height:1.6;font-style:italic">{qt}</blockquote>'
+                     + (f'<p style="margin:6px 0 0;font-size:12px;color:#999;font-family:Arial,sans-serif;text-align:{align}">— {auth}</p>' if auth else '')
                      + '</td></tr></table></td></tr>\n')
         elif t == '2col':
             l = clean_html(c.get('left','')); r2 = clean_html(c.get('right',''))
@@ -481,6 +566,18 @@ def upload_image():
     except Exception as e: return jsonify({'success':False,'error':str(e)})
 
 
+@newsletter_bp.route('/image/<img_id>')
+def serve_image(img_id):
+    from bson import ObjectId
+    try:
+        from app import db
+        img = db.images.find_one({'_id': ObjectId(img_id)})
+    except Exception:
+        img = None
+    if not img: return Response("Not found", status=404)
+    return Response(img.get('data', b''), mimetype=img.get('mime', 'image/png'))
+
+
 @newsletter_bp.route('/save', methods=['POST'])
 @login_required
 def save():
@@ -512,8 +609,9 @@ def preview(nl_id):
     try: nl=_db().newsletters.find_one({'_id':ObjectId(nl_id),'user_id':current_user.id})
     except: nl=None
     if not nl: return Response('<p>Not found</p>',mimetype='text/html',status=404)
-    base = _req.host_url.rstrip('/')
-    html = _build_preview_html(nl, base_url=base)
+    base = os.getenv('BASE_URL') or _req.host_url.rstrip('/')
+    b64_param = _req.args.get('b64', 'false').lower() != 'false'
+    html = _build_preview_html(nl, base_url=base, b64=b64_param)
     return Response(html, mimetype='text/html;charset=utf-8')
 
 
@@ -526,7 +624,7 @@ def export_html(nl_id):
     try: nl=_db().newsletters.find_one({'_id':ObjectId(nl_id),'user_id':current_user.id})
     except: nl=None
     if not nl: return Response('<p>Not found</p>',mimetype='text/html',status=404)
-    base = _req.host_url.rstrip('/')
+    base = os.getenv('BASE_URL') or _req.host_url.rstrip('/')
     html = _build_preview_html(nl, base_url=base)
     title = nl.get('title','newsletter').replace(' ','_').lower()[:40]
     return Response(
@@ -544,7 +642,7 @@ def public_preview(nl_id):
     try: nl=_db().newsletters.find_one({'_id':ObjectId(nl_id),'is_published':True})
     except: nl=None
     if not nl: return Response('<p style="font-family:sans-serif;padding:20px;color:#aaa">Preview not available</p>',mimetype='text/html',status=404)
-    base = _req.host_url.rstrip('/')
+    base = os.getenv('BASE_URL') or _req.host_url.rstrip('/')
     html = _build_preview_html(nl, base_url=base)
     return Response(html, mimetype='text/html;charset=utf-8')
 
@@ -663,17 +761,31 @@ def send():
                 if '@' not in to: continue
                 try:
                     if img_atts:
-                        outer=MIMEMultipart('mixed'); outer['Subject']=subject; outer['From']=f'Draftspace <{frm}>'; outer['To']=to
-                        alt=MIMEMultipart('alternative'); rel=MIMEMultipart('related')
-                        alt.attach(MIMEText(plain_body,'plain','utf-8'))
-                        rel.attach(MIMEText(html_body,'html','utf-8'))
-                        for cid,mt,bts in img_atts:
-                            ip=MIMEImage(bts,_subtype=mt.split('/')[-1]); ip.add_header('Content-ID',f'<{cid}>'); ip.add_header('Content-Disposition','inline'); rel.attach(ip)
-                        alt.attach(rel); outer.attach(alt); msg=outer
+                        msg = MIMEMultipart('related')
+                        msg['Subject'] = subject
+                        msg['From'] = f'Draftspace <{frm}>'
+                        msg['To'] = to
+                        
+                        alt = MIMEMultipart('alternative')
+                        alt.attach(MIMEText(plain_body, 'plain', 'utf-8'))
+                        alt.attach(MIMEText(html_body, 'html', 'utf-8'))
+                        msg.attach(alt)
+                        
+                        for cid, mt, bts in img_atts:
+                            subtype = mt.split('/')[-1] if '/' in mt else 'png'
+                            ip = MIMEImage(bts, _subtype=subtype)
+                            ip.add_header('Content-ID', f'<{cid}>')
+                            ip.add_header('Content-Disposition', 'inline')
+                            msg.attach(ip)
                     else:
-                        msg=MIMEMultipart('alternative'); msg['Subject']=subject; msg['From']=f'Draftspace <{frm}>'; msg['To']=to
-                        msg.attach(MIMEText(plain_body,'plain','utf-8')); msg.attach(MIMEText(html_body,'html','utf-8'))
-                    s.sendmail(frm,to,msg.as_string()); sent+=1
+                        msg = MIMEMultipart('alternative')
+                        msg['Subject'] = subject
+                        msg['From'] = f'Draftspace <{frm}>'
+                        msg['To'] = to
+                        msg.attach(MIMEText(plain_body, 'plain', 'utf-8'))
+                        msg.attach(MIMEText(html_body, 'html', 'utf-8'))
+                    s.sendmail(frm, to, msg.as_string())
+                    sent += 1
                 except Exception as e: errors.append(f'{to}: {e}')
     except smtplib.SMTPAuthenticationError: return jsonify({'success':False,'error':'Gmail auth failed. Use an App Password.'})
     except Exception as e: return jsonify({'success':False,'error':str(e)})
@@ -724,3 +836,64 @@ def ai_write():
 
     except Exception as e:
         return jsonify({'success': False, 'error': f'AI error: {str(e)}'})
+
+
+@newsletter_bp.route('/settings/smtp', methods=['POST'])
+@login_required
+def save_smtp_settings():
+    try:
+        from bson import ObjectId
+        data = request.get_json(force=True, silent=True) or {}
+        host = data.get('host', 'smtp.gmail.com').strip()
+        port = int(data.get('port', 587))
+        user = data.get('user', '').strip()
+        pwd = data.get('pwd', '').strip()
+        from_addr = data.get('from_addr', '').strip() or user
+
+        if not user:
+            return jsonify({'success': False, 'error': 'Username/Email is required.'})
+
+        # Fetch existing settings to keep password if a new one was not submitted
+        u_doc = _db().users.find_one({'_id': ObjectId(current_user.id)})
+        existing = (u_doc or {}).get('smtp_settings', {})
+        final_pwd = pwd if pwd else existing.get('pwd', '')
+
+        if not final_pwd:
+            return jsonify({'success': False, 'error': 'Password is required.'})
+
+        _db().users.update_one(
+            {'_id': ObjectId(current_user.id)},
+            {'$set': {
+                'smtp_settings': {
+                    'host': host,
+                    'port': port,
+                    'user': user,
+                    'pwd': final_pwd,
+                    'from_addr': from_addr
+                }
+            }}
+        )
+        return jsonify({'success': True, 'message': 'SMTP settings saved successfully!'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@newsletter_bp.route('/settings/smtp', methods=['GET'])
+@login_required
+def get_smtp_settings():
+    try:
+        from bson import ObjectId
+        u_doc = _db().users.find_one({'_id': ObjectId(current_user.id)})
+        smtp = (u_doc or {}).get('smtp_settings', {})
+        has_pwd = bool(smtp.get('pwd'))
+        return jsonify({
+            'success': True,
+            'host': smtp.get('host', 'smtp.gmail.com'),
+            'port': smtp.get('port', 587),
+            'user': smtp.get('user', ''),
+            'from_addr': smtp.get('from_addr', ''),
+            'has_pwd': has_pwd
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+

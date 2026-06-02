@@ -1,7 +1,13 @@
 {% extends 'base.html' %}
 {% block title %}Draftspace — The AI-Powered Form & Newsletter Builder{% endblock %}
-{% block body_class %}landing-page{% endblock %}
+{% block body_class %}white-gradient-page{% endblock %}
 {% block body %}
+<div class="auth-floating-shapes">
+  <div class="shape s1"></div>
+  <div class="shape s2"></div>
+  <div class="shape s3"></div>
+</div>
+
 <div class="landing-wrap">
   <nav class="landing-nav">
     <div class="landing-brand">
@@ -20,33 +26,86 @@
       <h1 class="hero-headline">Build forms that<br><span class="highlight">convert instantly.</span></h1>
       <p class="hero-sub">Beautiful multi-page forms, AI-powered newsletters, real-time analytics — all in one intelligent platform.</p>
       
-      <div class="hero-auth-card">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% for cat,msg in messages %}<div class="alert alert-{{cat}}">{{msg}}</div>{% endfor %}
-        {% endwith %}
-        <form method="POST" action="{{ url_for('auth.login') }}" class="hero-form">
-          <div class="input-wrap">
-            <span class="input-icon">✉</span>
-            <input type="email" name="email" placeholder="Enter your email to get started" required autofocus>
+      <div class="hero-auth-flip-container">
+        <div class="flipper" id="authFlipper">
+          
+          <!-- FRONT: LOGIN -->
+          <div class="front glass-card">
+            <div class="carousel-container">
+              <div class="carousel-inner" id="loginInner">
+                <!-- Step 1: Email -->
+                <div class="carousel-step">
+                  <h3 style="margin:0 0 12px; color:#fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Welcome Back</h3>
+                  <div class="input-wrap">
+                    <span class="input-icon">✉</span>
+                    <input type="email" id="loginEmail" placeholder="Email Address" required>
+                  </div>
+                  <button class="btn-primary" onclick="nextLoginStep()">Next →</button>
+                  <div class="divider"><span>or</span></div>
+                  <button type="button" class="btn-google" onclick="signInWithGoogle()"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G"> Continue with Google</button>
+                  <div class="switch-auth" onclick="flipCard()">New here? Flip to Register</div>
+                </div>
+                <!-- Step 2: Password -->
+                <div class="carousel-step">
+                  <div class="back-nav" onclick="prevLoginStep()">← Back to Email</div>
+                  <div class="input-wrap">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                  </div>
+                  <button class="btn-primary" onclick="submitLogin()" id="loginBtn">Login →</button>
+                  <div id="loginError" class="error-msg"></div>
+                </div>
+              </div>
+            </div>
           </div>
-          <button class="btn-primary" type="submit">Continue →</button>
-        </form>
-        <div class="hero-auth-footer">Free forever for basic use. No credit card required.</div>
+          
+          <!-- BACK: REGISTER -->
+          <div class="back glass-card">
+            <div class="carousel-container">
+              <div class="carousel-inner" id="regInner">
+                <!-- Step 1: Email & Password -->
+                <div class="carousel-step">
+                  <h3 style="margin:0 0 12px; color:#fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Create Account</h3>
+                  <div class="input-wrap">
+                    <span class="input-icon">✉</span>
+                    <input type="email" id="regEmail" placeholder="Email Address" required>
+                  </div>
+                  <div class="input-wrap">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" id="regPassword" placeholder="Password (Min 6)" required>
+                  </div>
+                  <button class="btn-primary" onclick="sendOTP()" id="sendOtpBtn">Send OTP →</button>
+                  <div id="regError" class="error-msg"></div>
+                  <div class="divider"><span>or</span></div>
+                  <button type="button" class="btn-google" onclick="signInWithGoogle()"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G"> Continue with Google</button>
+                  <div class="switch-auth" onclick="flipCard()">Have an account? Flip to Login</div>
+                </div>
+                <!-- Step 2: OTP Verification -->
+                <div class="carousel-step">
+                  <div class="back-nav" onclick="prevRegStep()">← Back</div>
+                  <p style="font-size:13px; margin:0 0 12px; color:rgba(255,255,255,0.8); line-height: 1.4;">Check your email for the 6-digit code.</p>
+                  <div class="input-wrap">
+                    <span class="input-icon">🔑</span>
+                    <input type="text" id="regOtp" placeholder="6-digit OTP" required>
+                  </div>
+                  <button class="btn-primary" onclick="verifyOTP()" id="verifyOtpBtn">Verify & Register →</button>
+                  <div id="otpError" class="error-msg"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
       </div>
     </div>
 
     <div class="hero-visual">
-      <div class="auth-floating-shapes">
-        <div class="shape s1"></div>
-        <div class="shape s2"></div>
-        <div class="shape s3"></div>
-      </div>
       <div class="dashboard-mockup">
         <div class="mockup-header"><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>
         <div class="mockup-body">
           <div class="mockup-sidebar"></div>
           <div class="mockup-content" style="display: flex; flex-direction: column; gap: 16px; align-items: center; justify-content: center; position: relative;">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" style="width: 320px; height: 320px; max-width: 100%; object-fit: contain; margin-bottom: 10px; filter: drop-shadow(0 15px 30px rgba(255,140,0,0.25));">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" style="width: 320px; height: 320px; max-width: 100%; object-fit: contain; margin-bottom: 10px; filter: drop-shadow(0 15px 30px rgba(255,140,0,0.15));">
             <div style="width: 100%; display: flex; flex-direction: column; gap: 16px;">
               <div class="mockup-card"></div>
               <div class="mockup-card" style="width:70%"></div>
@@ -106,80 +165,264 @@
   </div>
 </section>
 
+<script>
+function flipCard() {
+  document.getElementById('authFlipper').classList.toggle('flipped');
+}
+
+function nextLoginStep() {
+  const email = document.getElementById('loginEmail').value;
+  if(!email || !email.includes('@')) {
+    alert("Please enter a valid email.");
+    return;
+  }
+  document.getElementById('loginInner').classList.add('step2');
+}
+
+function prevLoginStep() {
+  document.getElementById('loginInner').classList.remove('step2');
+  document.getElementById('loginError').innerText = "";
+}
+
+function submitLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const pw = document.getElementById('loginPassword').value;
+  if(!pw) return alert("Please enter password");
+  
+  const btn = document.getElementById('loginBtn');
+  btn.innerText = "Logging in...";
+  
+  const formData = new FormData();
+  formData.append('email', email);
+  formData.append('password', pw);
+  
+  fetch("{{ url_for('auth.login') }}", {
+    method: "POST",
+    body: formData
+  }).then(r=>r.json()).then(data => {
+    if(data.success) {
+      window.location.href = data.redirect;
+    } else {
+      document.getElementById('loginError').innerText = data.message;
+      btn.innerText = "Login →";
+    }
+  });
+}
+
+function sendOTP() {
+  const email = document.getElementById('regEmail').value;
+  const pw = document.getElementById('regPassword').value;
+  
+  if(!email || pw.length < 6) {
+    document.getElementById('regError').innerText = "Valid email & password (min 6 chars) required.";
+    return;
+  }
+  
+  const btn = document.getElementById('sendOtpBtn');
+  btn.innerText = "Sending...";
+  
+  const formData = new FormData();
+  formData.append('email', email);
+  formData.append('password', pw);
+  
+  fetch("{{ url_for('auth.send_otp') }}", {
+    method: "POST",
+    body: formData
+  }).then(r=>r.json()).then(data => {
+    btn.innerText = "Send OTP →";
+    if(data.success) {
+      document.getElementById('regInner').classList.add('step2');
+      document.getElementById('regError').innerText = "";
+    } else {
+      document.getElementById('regError').innerText = data.message;
+    }
+  });
+}
+
+function prevRegStep() {
+  document.getElementById('regInner').classList.remove('step2');
+  document.getElementById('otpError').innerText = "";
+}
+
+function verifyOTP() {
+  const otp = document.getElementById('regOtp').value;
+  if(!otp) return alert("Enter OTP");
+  
+  const btn = document.getElementById('verifyOtpBtn');
+  btn.innerText = "Verifying...";
+  
+  const formData = new FormData();
+  formData.append('otp', otp);
+  
+  fetch("{{ url_for('auth.verify_otp') }}", {
+    method: "POST",
+    body: formData
+  }).then(r=>r.json()).then(data => {
+    if(data.success) {
+      window.location.href = data.redirect;
+    } else {
+      document.getElementById('otpError').innerText = data.message;
+      btn.innerText = "Verify & Register →";
+    }
+  });
+}
+</script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCSEKSQxTYB_rT3pTD0wINlwEJTEYPIteI",
+    authDomain: "draftspace-42dcb.firebaseapp.com",
+    projectId: "draftspace-42dcb",
+    storageBucket: "draftspace-42dcb.firebasestorage.app",
+    messagingSenderId: "765185171563",
+    appId: "1:765185171563:web:1eb534f042ef8bebad912e",
+    measurementId: "G-E0562Z4W44"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const analytics = getAnalytics(app);
+
+  window.signInWithGoogle = function() {
+    const provider = new GoogleAuthProvider();
+    const btns = document.querySelectorAll('.btn-google');
+    btns.forEach(b => b.innerText = "Connecting to Google...");
+    
+    signInWithPopup(auth, provider).then(result => {
+      const user = result.user;
+      const formData = new FormData();
+      formData.append('email', user.email);
+      formData.append('name', user.displayName || '');
+      formData.append('avatar', user.photoURL || '');
+      formData.append('uid', user.uid);
+      
+      fetch("{{ url_for('auth.google_login') }}", {
+        method: "POST",
+        body: formData
+      }).then(r=>r.json()).then(data => {
+        if(data.success) {
+          window.location.href = data.redirect;
+        } else {
+          alert(data.message);
+          btns.forEach(b => b.innerHTML = "<img src='https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg' alt='G'> Continue with Google");
+        }
+      });
+      
+    }).catch(error => {
+      console.error(error);
+      alert("Google Sign-In failed. Please try again.");
+      btns.forEach(b => b.innerHTML = "<img src='https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg' alt='G'> Continue with Google");
+    });
+  }
+</script>
+
 <style>
-.landing-page { background: #0f0f13; color: #fff; min-height: 100vh; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-.landing-wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+/* Modern Subtle Background Grid */
+body.white-gradient-page { 
+  font-family: 'Outfit', sans-serif !important;
+  padding-left: 0; 
+  background-color: #0f1c3f;
+  background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ url_for("static", filename="images/vincent_bg.png") }}');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* Flip Card & Carousel CSS */
+.hero-auth-flip-container { perspective: 1000px; width: 100%; height: 380px; }
+.flipper { position: relative; width: 100%; height: 100%; transition: transform 0.8s ease-in-out; transform-style: preserve-3d; }
+.flipper.flipped { transform: rotateY(180deg); }
+.front, .back { position: absolute; top:0; left:0; width: 100%; height: 100%; backface-visibility: hidden; padding: 32px; border-radius: 24px; box-sizing: border-box; display:flex; flex-direction:column; box-shadow: 0 20px 50px rgba(0,0,0,0.5); background: rgba(255,255,255,0.1); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.2); }
+.front { z-index: 2; transform: rotateY(0deg); pointer-events: auto; }
+.back { transform: rotateY(180deg); z-index: 1; pointer-events: none; }
+.flipper.flipped .front { pointer-events: none; }
+.flipper.flipped .back { pointer-events: auto; }
+
+.carousel-container { flex: 1; overflow: hidden; position: relative; }
+.carousel-inner { display: flex; width: 200%; height: 100%; transition: transform 0.4s cubic-bezier(0.4, 0.2, 0.2, 1); }
+.carousel-inner.step2 { transform: translateX(-50%); }
+.carousel-step { width: 50%; display:flex; flex-direction:column; gap:16px; box-sizing:border-box; padding-right: 4px;}
+
+.switch-auth { margin-top: auto; padding-top: 10px; font-size: 0.85rem; color: #80c4ff; text-align: center; font-weight: 600; cursor: pointer; opacity: 0.9; transition: 0.2s; text-shadow: 0 1px 2px rgba(0,0,0,0.3);}
+.switch-auth:hover { opacity: 1; text-decoration: underline; color: #fff; }
+.back-nav { font-size: 0.85rem; color: rgba(255,255,255,0.7); cursor: pointer; font-weight: 600; margin-bottom: 4px; display:inline-block; transition: color 0.2s; }
+.back-nav:hover { color: #fff; }
+.error-msg { color: #ff6b6b; font-size: 0.85rem; text-align: center; font-weight: 500; margin-top: 4px; }
+
+.btn-google { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(255,255,255,0.9); color: #1A1A2E; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); transition: all 0.2s; }
+.btn-google:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.btn-google img { width: 18px; height: 18px; }
+
+.divider { display: flex; align-items: center; text-align: center; margin: 8px 0; }
+.divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid rgba(255,255,255,0.2); }
+.divider span { padding: 0 10px; color: rgba(255,255,255,0.6); font-size: 0.85rem; font-weight: 500; }
+
+/* General Landing CSS */
+.landing-wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 10;}
 .landing-nav { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; }
 .landing-brand { display: flex; align-items: center; gap: 12px; }
 .brand-logo-img { height: 64px; width: auto; object-fit: contain; border-radius: 12px; }
-.brand-text { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.03em; }
-.landing-nav-links a { color: rgba(255,255,255,0.7); text-decoration: none; margin-left: 24px; font-size: 0.95rem; font-weight: 500; transition: color 0.2s; }
-.landing-nav-links a:hover { color: #fff; }
+.brand-text { font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.03em; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+.landing-nav-links a { color: rgba(255,255,255,0.8); text-decoration: none; margin-left: 24px; font-size: 0.95rem; font-weight: 600; transition: color 0.2s; }
+.landing-nav-links a:hover { color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 
-.landing-hero { display: flex; align-items: center; justify-content: space-between; padding: 80px 0 120px; gap: 60px; min-height: calc(100vh - 90px); }
-.hero-content { flex: 1; max-width: 540px; z-index: 10; }
-.hero-badge { display: inline-block; background: rgba(255,140,0,0.1); color: var(--mango); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-bottom: 24px; border: 1px solid rgba(255,140,0,0.2); }
-.hero-headline { font-size: 4.5rem; font-weight: 800; line-height: 1.05; margin: 0 0 24px; letter-spacing: -0.04em; }
-.highlight { background: linear-gradient(135deg, #FF8C00, #ff4e50); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.hero-sub { font-size: 1.2rem; color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 48px; font-weight: 400; }
+.landing-hero { display: flex; align-items: center; justify-content: space-between; padding: 100px 0 120px; gap: 60px; min-height: calc(100vh - 90px); }
+.hero-content { flex: 1; max-width: 500px; z-index: 10; margin-top: -60px; }
+.hero-badge { display: inline-block; background: rgba(255, 255, 255, 0.15); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-bottom: 24px; border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(10px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+.hero-headline { font-size: 4.8rem; font-weight: 800; line-height: 1.05; margin: 0 0 24px; letter-spacing: -0.04em; color: #fff; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+.highlight { background: linear-gradient(135deg, #FFE259, #FFA751); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+.hero-sub { font-size: 1.3rem; color: rgba(255,255,255,0.9); line-height: 1.6; margin-bottom: 48px; font-weight: 400; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
 
-.hero-auth-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 32px; border-radius: 24px; backdrop-filter: blur(20px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-.hero-form { display: flex; gap: 12px; }
-.hero-form .input-wrap { flex: 1; position: relative; }
-.hero-form .input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4); }
-.hero-form input { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 16px 16px 16px 44px; border-radius: 12px; font-size: 1rem; outline: none; transition: all 0.2s; }
-.hero-form input:focus { border-color: var(--mango); background: rgba(0,0,0,0.6); box-shadow: 0 0 0 4px rgba(255,140,0,0.1); }
-.hero-form button { padding: 0 32px; font-size: 1rem; border-radius: 12px; white-space: nowrap; }
-.hero-auth-footer { margin-top: 16px; font-size: 0.8rem; color: rgba(255,255,255,0.4); text-align: center; }
+.input-wrap { position: relative; }
+.input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #aaa; }
+.input-wrap input { width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 14px 14px 14px 44px; border-radius: 12px; font-size: 1rem; outline: none; transition: all 0.2s; box-sizing: border-box;}
+.input-wrap input::placeholder { color: rgba(255,255,255,0.5); }
+.input-wrap input:focus { border-color: #FFC107; box-shadow: 0 0 0 4px rgba(255,193,7,0.15); background: rgba(255,255,255,0.15); }
 
-.hero-visual { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; }
-.dashboard-mockup { width: 100%; max-width: 600px; background: #16161a; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 30px 60px rgba(0,0,0,0.5); overflow: hidden; position: relative; z-index: 2; transform: perspective(1000px) rotateY(-10deg) rotateX(5deg); transition: transform 0.5s ease; }
+.hero-visual { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; z-index: 10; margin-top: -60px;}
+.dashboard-mockup { width: 100%; max-width: 600px; background: #fff; border-radius: 16px; border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 30px 60px rgba(0,0,0,0.08); overflow: hidden; position: relative; z-index: 2; transform: perspective(1000px) rotateY(-10deg) rotateX(5deg); transition: transform 0.5s ease; }
 .dashboard-mockup:hover { transform: perspective(1000px) rotateY(-5deg) rotateX(2deg); }
-.mockup-header { height: 40px; background: #1f1f23; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 16px; }
+.mockup-header { height: 40px; background: #fbfbfd; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; padding: 0 16px; }
 .dots { display: flex; gap: 6px; }
-.dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.2); }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(0,0,0,0.1); }
 .dot:nth-child(1) { background: #ff5f56; } .dot:nth-child(2) { background: #ffbd2e; } .dot:nth-child(3) { background: #27c93f; }
 .mockup-body { display: flex; height: 360px; }
-.mockup-sidebar { width: 80px; border-right: 1px solid rgba(255,255,255,0.05); padding: 16px; background: rgba(0,0,0,0.2); }
-.mockup-content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px; background: #16161a; }
-.mockup-card { height: 60px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
-
-.auth-floating-shapes { position: absolute; inset: -100px; overflow: hidden; pointer-events: none; z-index: 1; }
-.shape { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.4; animation: float 10s infinite ease-in-out alternate; }
-.s1 { width: 400px; height: 400px; background: var(--mango); top: 0; right: -100px; animation-delay: 0s; }
-.s2 { width: 300px; height: 300px; background: #ff4e50; bottom: 0; left: 0px; animation-delay: -5s; }
-.s3 { width: 200px; height: 200px; background: #8a2be2; top: 50%; left: 30%; animation-delay: -2s; }
-
-@keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(30px, -30px) scale(1.1); } }
+.mockup-sidebar { width: 80px; border-right: 1px solid rgba(0,0,0,0.05); padding: 16px; background: rgba(0,0,0,0.02); }
+.mockup-content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px; background: #fff; }
+.mockup-card { height: 60px; background: rgba(0,0,0,0.03); border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); }
 
 @media (max-width: 900px) {
   .landing-hero { flex-direction: column; text-align: center; padding: 60px 0; }
-  .hero-content { max-width: 100%; }
-  .hero-form { flex-direction: column; }
+  .hero-content { max-width: 100%; margin: 0 auto; }
   .dashboard-mockup { transform: none; margin-top: 40px; }
   .dashboard-mockup:hover { transform: none; }
   .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
 }
 
 /* Landing Page Pricing Styles */
-.landing-pricing-section { padding: 100px 0; background: #0f0f13; border-top: 1px solid rgba(255,255,255,0.05); }
+.landing-pricing-section { padding: 100px 0; background: transparent; border-top: 1px solid rgba(0,0,0,0.05); position: relative; z-index: 10; }
 .pricing-header { text-align: center; margin-bottom: 60px; }
-.pricing-header h2 { font-size: 2.8rem; font-weight: 800; margin-bottom: 16px; color: #fff; }
-.pricing-header p { font-size: 1.15rem; color: rgba(255,255,255,0.6); }
+.pricing-header h2 { font-size: 2.8rem; font-weight: 800; margin-bottom: 16px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+.pricing-header p { font-size: 1.15rem; color: rgba(255,255,255,0.8); text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
-.pricing-card { padding: 40px 30px; position: relative; display: flex; flex-direction: column; background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); transition: transform 0.3s; }
-.pricing-card:hover { transform: translateY(-5px); border-color: rgba(255,140,0,0.3); }
-.badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--mango); color: #000; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; }
-.pricing-card h3 { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 15px; }
-.price { font-size: 3.5rem; font-weight: 800; color: #fff; margin-bottom: 30px; }
-.price span { font-size: 1rem; color: rgba(255,255,255,0.5); font-weight: 500; }
+.pricing-card { padding: 40px 30px; position: relative; display: flex; flex-direction: column; background: rgba(255,255,255,0.1); backdrop-filter: blur(24px); border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); }
+.badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #FFC107; color: #000; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; }
+.pricing-card h3 { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 15px; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.price { font-size: 3.5rem; font-weight: 900; color: #fff; margin-bottom: 30px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+.price span { font-size: 1rem; color: rgba(255,255,255,0.7); font-weight: 600; }
 .features { list-style: none; padding: 0; margin: 0 0 30px 0; flex: 1; }
-.features li { padding: 10px 0; color: rgba(255,255,255,0.8); display: flex; align-items: center; }
-.features li i { color: var(--mango); margin-right: 10px; }
+.features li { padding: 10px 0; color: rgba(255,255,255,0.9); display: flex; align-items: center; font-weight: 500; }
+.features li i { color: #FFC107; margin-right: 10px; }
 .btn { width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s; border: none; }
-.btn-primary { background: linear-gradient(135deg, var(--mango), var(--mango-d)); color: #fff; box-shadow: 0 4px 14px rgba(255,140,0,0.3); }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(255,140,0,0.4); }
-.btn-secondary { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); text-align: center; display: block; text-decoration: none; }
-.btn-secondary:hover { background: rgba(255,255,255,0.1); }
+.btn-primary { background: linear-gradient(135deg, #FFE259, #FFA751); color: #000; box-shadow: 0 4px 14px rgba(255,167,81,0.4); border: 2px solid transparent; }
+.btn-primary:hover { background: linear-gradient(135deg, #FFD000, #FF9100); color: #000; box-shadow: 0 8px 22px rgba(255,167,81,0.6); transform: translateY(-2px); }
+.btn-secondary { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); text-align: center; display: block; text-decoration: none; }
+.btn-secondary:hover { background: rgba(255,255,255,0.2); }
 </style>
 {% endblock %}

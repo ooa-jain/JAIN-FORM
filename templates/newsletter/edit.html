@@ -3,195 +3,302 @@
 {% block body_class %}white-gradient-page{% endblock %}
 {% block body %}
 <style>
-html,body{overflow:hidden;height:100%;margin:0}
+html,body{overflow:hidden;height:100%;margin:0;font-family:'DM Sans', sans-serif;background:#0d0d18}
 .app-nav{position:fixed;top:0;left:0;right:0;z-index:200}
 
 /* ── Shell ── */
-.shell{display:grid;grid-template-columns:200px 1fr 280px;position:fixed;top:0;left:250px;right:0;bottom:0;overflow:hidden;background:transparent}
+.shell{display:grid;grid-template-columns:220px 1fr 300px;position:fixed;top:0;left:250px;right:0;bottom:0;overflow:hidden;background:#0d0d18}
 
 /* ── Sidebar ── */
-.sb{background:#1A1A2E;overflow-y:auto;display:flex;flex-direction:column;min-height:0;border-right:1px solid rgba(255,255,255,.06)}
-.sb::-webkit-scrollbar{width:3px}.sb::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1)}
-.sb-top{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
-.sb-back{display:flex;align-items:center;gap:4px;color:rgba(255,255,255,.35);font-size:.72rem;text-decoration:none;margin-bottom:6px}
-.sb-back:hover{color:rgba(255,255,255,.7)}
-.sb-name{color:#fff;font-weight:700;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sb-sec{padding:8px 12px 4px;font-size:.58rem;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.25);text-transform:uppercase}
-.sb-btn{display:flex;align-items:center;gap:7px;padding:6px 12px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.5);border:none;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;transition:.13s}
-.sb-btn:hover{background:rgba(255,255,255,.06);color:#fff}
-.sb-ic{width:24px;height:24px;border-radius:6px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:.82rem;flex-shrink:0}
-.sb-btn:hover .sb-ic{background:rgba(255,140,0,.2)}
+.sb{background:rgba(15, 15, 30, 0.95);overflow-y:auto;display:flex;flex-direction:column;min-height:0;border-right:1px solid rgba(255,255,255,.08);box-shadow:5px 0 25px rgba(0,0,0,.35);z-index:10;backdrop-filter:blur(10px)}
+.sb::-webkit-scrollbar{width:4px}
+.sb::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+.sb-top{padding:16px 14px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.sb-back{display:flex;align-items:center;gap:5px;color:rgba(255,255,255,.45);font-size:.75rem;text-decoration:none;margin-bottom:8px;font-weight:600;transition:.2s}
+.sb-back:hover{color:#FF8C00}
+.sb-name{color:#fff;font-weight:800;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
+.sb-sec{padding:14px 14px 6px;font-size:.62rem;font-weight:800;letter-spacing:.15em;color:rgba(255,255,255,.35);text-transform:uppercase}
+.sb-btn{display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;font-size:.78rem;color:rgba(255,255,255,.65);border:none;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;transition:.18s;border-radius:6px;margin:2px 0}
+.sb-btn:hover{background:rgba(255,255,255,.05);color:#fff;transform:translateX(3px)}
+.sb-ic{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;transition:.18s}
+.sb-btn:hover .sb-ic{background:rgba(255,140,0,.25);color:#FF8C00;box-shadow:0 0 10px rgba(255,140,0,.2)}
+
 /* AI button */
-.sb-ai{margin:8px 10px 4px;background:linear-gradient(135deg,rgba(255,140,0,.15),rgba(142,45,226,.15));border:1px solid rgba(255,140,0,.25);border-radius:9px;padding:8px 10px;cursor:pointer;display:block;width:calc(100% - 20px)}
-.sb-ai:hover{background:linear-gradient(135deg,rgba(255,140,0,.25),rgba(142,45,226,.25))}
-.sb-ai-ttl{font-size:.76rem;font-weight:700;color:#FF8C00;margin-bottom:2px}
-.sb-ai-sub{font-size:.66rem;color:rgba(255,255,255,.35);line-height:1.4}
+.sb-ai{margin:12px;background:linear-gradient(135deg,rgba(255,140,0,.2),rgba(142,45,226,.2));border:1.5px solid rgba(255,140,0,.35);border-radius:12px;padding:12px;cursor:pointer;display:block;width:calc(100% - 24px);box-shadow:0 4px 15px rgba(255,140,0,.1);transition:.22s;text-align:left}
+.sb-ai:hover{background:linear-gradient(135deg,rgba(255,140,0,.3),rgba(142,45,226,.3));transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,140,0,.25)}
+.sb-ai-ttl{font-size:.8rem;font-weight:800;color:#FF8C00;margin-bottom:3px;display:flex;align-items:center;gap:4px}
+.sb-ai-sub{font-size:.68rem;color:rgba(255,255,255,.5);line-height:1.4}
 
 /* ── Main center ── */
-.main{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.main{display:flex;flex-direction:column;min-height:0;overflow:hidden;background:#0d0d18}
 
 /* Toolbar */
-.tb{height:42px;background:#fff;border-bottom:1px solid #E8E4DE;display:flex;align-items:center;gap:4px;padding:0 10px;flex-shrink:0;overflow-x:auto}
-.tb::-webkit-scrollbar{height:2px}
-.btn-save{padding:5px 14px;background:linear-gradient(135deg,#FF8C00,#CC7000);color:#fff;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;flex-shrink:0}
-.btn-save:hover{transform:translateY(-1px)}
-.tsep{width:1px;height:18px;background:#E8E4DE;margin:0 2px;flex-shrink:0}
-.tbtn{padding:4px 9px;border:1.5px solid transparent;border-radius:5px;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:600;color:#666;transition:.13s;white-space:nowrap;display:inline-flex;align-items:center;gap:3px;flex-shrink:0}
-.tbtn:hover{border-color:#FF8C00;color:#FF8C00}
-.blkcnt{margin-left:auto;font-size:.7rem;color:#ccc;flex-shrink:0}
+.tb{height:54px;background:rgba(18, 18, 36, 0.95);border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:6px;padding:0 16px;flex-shrink:0;overflow-x:auto;z-index:8}
+.tb::-webkit-scrollbar{height:3px}
+.btn-save{padding:7px 18px;background:linear-gradient(135deg,#FF8C00,#E65C00);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;flex-shrink:0;box-shadow:0 4px 12px rgba(255,140,0,.2);transition:.18s}
+.btn-save:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(255,140,0,.35)}
+.tsep{width:1px;height:22px;background:rgba(255,255,255,.1);margin:0 4px;flex-shrink:0}
+.tbtn{padding:6px 12px;border:1.5px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.03);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:700;color:rgba(255,255,255,.8);transition:.18s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;flex-shrink:0}
+.tbtn:hover{border-color:#FF8C00;color:#FF8C00;background:rgba(255,140,0,.05);transform:translateY(-1px)}
+.blkcnt{margin-left:auto;font-size:.75rem;color:rgba(255,255,255,.4);flex-shrink:0;background:rgba(255,255,255,.05);padding:3px 9px;border-radius:12px}
 
 /* Rich text toolbar */
-.rtbar{height:32px;background:#F8F7F4;border-bottom:1px solid #E8E4DE;display:none;align-items:center;gap:1px;padding:0 8px;flex-shrink:0;overflow-x:auto}
+.rtbar{height:40px;background:#15152a;border-bottom:1px solid rgba(255,255,255,.06);display:none;align-items:center;gap:2px;padding:0 12px;flex-shrink:0;overflow-x:auto}
 .rtbar.show{display:flex}
-.rtbar::-webkit-scrollbar{height:2px}
-.rtbtn{width:26px;height:26px;border:none;background:none;cursor:pointer;border-radius:4px;font-size:.78rem;display:flex;align-items:center;justify-content:center;transition:.13s;color:#555;flex-shrink:0}
-.rtbtn:hover{background:#E8E4DE}
-.rtbtn.on{background:#FFF5E8;color:#FF8C00}
-.rtsep{width:1px;height:16px;background:#E8E4DE;margin:0 2px;flex-shrink:0}
-.rt-fs{width:40px;padding:1px 3px;border:1.5px solid #E2DDD8;border-radius:4px;font-size:.7rem;outline:none;flex-shrink:0}
-.rt-ff{width:115px;padding:1px 3px;border:1.5px solid #E2DDD8;border-radius:4px;font-size:.7rem;outline:none;flex-shrink:0}
+.rtbar::-webkit-scrollbar{height:3px}
+.rtbtn{width:28px;height:28px;border:none;background:none;cursor:pointer;border-radius:6px;font-size:.82rem;display:flex;align-items:center;justify-content:center;transition:.15s;color:rgba(255,255,255,.75);flex-shrink:0}
+.rtbtn:hover{background:rgba(255,255,255,.1);color:#fff}
+.rtbtn.on{background:rgba(255,140,0,.2);color:#FF8C00;box-shadow:0 0 8px rgba(255,140,0,.15)}
+.rtsep{width:1px;height:20px;background:rgba(255,255,255,.1);margin:0 4px;flex-shrink:0}
+.rt-fs, .rt-ff{
+  padding: 2px 20px 2px 6px !important;
+  border: 1.5px solid rgba(255,255,255,.15) !important;
+  border-radius: 6px !important;
+  font-size: .76rem !important;
+  outline: none !important;
+  flex-shrink: 0 !important;
+  background-color: #0d0d18 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23FF8C00' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 6px center !important;
+  color: #fff !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  height: 28px !important;
+}
+.rt-ff { width: 110px !important; }
+.rt-fs { width: 55px !important; }
+.rt-fs:focus, .rt-ff:focus{
+  border-color: #FF8C00 !important;
+  background-color: #0d0d18 !important;
+  color: #fff !important;
+  box-shadow: 0 0 6px rgba(255,140,0,.35) !important;
+}
+.rt-fs option, .rt-ff option {
+  background: #15152a !important;
+  color: #fff !important;
+}
 
 /* Canvas */
-.canvas-wrap{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 16px 80px;display:flex;justify-content:center;align-items:flex-start;min-height:0}
+.canvas-wrap{flex:1;overflow-y:auto;overflow-x:hidden;padding:30px 20px 100px;display:flex;justify-content:center;align-items:flex-start;min-height:0;background:radial-gradient(circle at center, #1b1b36 0%, #080810 100%)}
 .canvas-wrap::-webkit-scrollbar{width:6px}
-.canvas-wrap::-webkit-scrollbar-track{background:#E8E4DE}
-.canvas-wrap::-webkit-scrollbar-thumb{background:#C8C4C0;border-radius:3px}
+.canvas-wrap::-webkit-scrollbar-track{background:#0d0d18}
+.canvas-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
 .canvas-wrap::-webkit-scrollbar-thumb:hover{background:#FF8C00}
 
 /* Email card */
-.email-card{width:580px;max-width:100%;background:#fff;border-radius:12px;overflow:visible;box-shadow:0 2px 20px rgba(0,0,0,.12);align-self:flex-start}
+.email-card{width:600px;max-width:100%;background:#fff;border-radius:16px;overflow:visible;box-shadow:0 12px 40px rgba(0,0,0,.45);align-self:flex-start;border:1px solid rgba(255,255,255,.05)}
 
 /* ── Header ── */
-.nl-hdr{position:relative;background:#1A1A2E;border-radius:12px 12px 0 0;overflow:hidden;cursor:pointer}
+.nl-hdr{position:relative;background:#1A1A2E;border-radius:16px 16px 0 0;overflow:hidden;cursor:pointer}
 .nl-hdr-bg{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat}
 .nl-hdr-overlay{position:absolute;inset:0;background:rgba(0,0,0,.35)}
-.nl-hdr-content{position:relative;z-index:2;padding:18px 24px 16px;text-align:center}
+.nl-hdr-content{position:relative;z-index:2;padding:24px 28px 20px;text-align:center}
 .nl-hdr:hover .nl-hdr-edit-hint{opacity:1}
-.nl-hdr-edit-hint{position:absolute;top:8px;right:10px;background:rgba(0,0,0,.6);color:#fff;padding:3px 8px;border-radius:5px;font-size:.68rem;font-family:'DM Sans',sans-serif;opacity:0;transition:opacity .18s;z-index:3;pointer-events:none}
-#nlLogoImg{max-width:120px;max-height:44px;border-radius:5px;margin:0 auto 8px}
-#nlLogoTxt{font-size:12px;letter-spacing:.2em;color:rgba(255,255,255,.5);margin-bottom:6px;outline:none;display:block}
-#nlHdrTitle{font-family:Georgia,serif;font-size:24px;font-weight:700;color:#fff;line-height:1.2;outline:none;display:block}
-#nlHdrSub{font-size:14px;color:rgba(255,255,255,.6);margin-top:4px;outline:none;display:block}
+.nl-hdr-edit-hint{position:absolute;top:10px;right:12px;background:rgba(0,0,0,.7);color:#fff;padding:4px 10px;border-radius:6px;font-size:.7rem;font-family:'DM Sans',sans-serif;opacity:0;transition:opacity .2s;z-index:3;pointer-events:none;font-weight:700;border:1px solid rgba(255,255,255,.1)}
+#nlLogoImg{max-width:140px;max-height:50px;border-radius:6px;margin:0 auto 10px}
+#nlLogoTxt{font-size:13px;letter-spacing:.25em;color:rgba(255,255,255,.6);margin-bottom:8px;outline:none;display:block}
+#nlHdrTitle{font-family:Georgia,serif;font-size:26px;font-weight:700;color:#fff;line-height:1.2;outline:none;display:block}
+#nlHdrSub{font-size:15px;color:rgba(255,255,255,.7);margin-top:6px;outline:none;display:block}
 
 /* Blocks */
-#nlCanvas{padding:4px 0;min-height:80px}
-.nl-blk{position:relative;border:2px solid transparent;border-radius:8px;margin:2px 6px;transition:border-color .13s}
-.nl-blk:hover{border-color:rgba(255,140,0,.3)}
-.nl-blk.sel{border-color:#FF8C00;background:rgba(255,140,0,.02)}
-.blk-acts{position:absolute;top:-11px;right:6px;display:none;gap:2px;z-index:10;background:#fff;border:1px solid #E8E4DE;border-radius:6px;padding:2px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+#nlCanvas{padding:6px 0;min-height:100px}
+.nl-blk{position:relative;border:2px solid transparent;border-radius:10px;margin:4px 10px;transition:all .18s}
+.nl-blk:hover{border-color:rgba(255,140,0,.45);box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.nl-blk.sel{border-color:#FF8C00;background:rgba(255,140,0,.03);box-shadow:0 4px 15px rgba(255,140,0,.06)}
+.blk-acts{position:absolute;top:-13px;right:10px;display:none;gap:3px;z-index:10;background:#fff;border:1.5px solid #FF8C00;border-radius:8px;padding:3px;box-shadow:0 4px 15px rgba(0,0,0,.15);animation:fadeInBlkActs .15s ease-out}
+@keyframes fadeInBlkActs { from{opacity:0;transform:translateY(3px)} to{opacity:1;transform:translateY(0)} }
 .nl-blk:hover .blk-acts,.nl-blk.sel .blk-acts{display:flex}
-.ba{padding:2px 6px;border:none;background:none;cursor:pointer;border-radius:4px;font-size:.72rem;color:#999;transition:.13s;font-family:'DM Sans',sans-serif}
-.ba:hover{background:#F0EEE8;color:#555}
+.ba{padding:3px 8px;border:none;background:none;cursor:pointer;border-radius:5px;font-size:.76rem;color:#777;transition:.15s;font-family:'DM Sans',sans-serif;font-weight:700}
+.ba:hover{background:#F0EEE8;color:#1A1A2E}
 .ba.del:hover{background:#FFF0F0;color:#E63946}
 
 /* Footer */
-#nlFooter{padding:12px 24px;text-align:center;background:#F8F9FA;border-top:1px solid #E0E0E0;border-radius:0 0 12px 12px}
-#nlFooterTxt{font-size:11px;color:#999;outline:none;font-family:Arial,sans-serif;line-height:1.7}
+#nlFooter{padding:16px 28px;text-align:center;background:#F8F9FA;border-top:1px solid #EAEAEA;border-radius:0 0 16px 16px}
+#nlFooterTxt{font-size:12px;color:#888;outline:none;font-family:Arial,sans-serif;line-height:1.7}
 
 /* Block renders */
-.blk-text{padding:10px 20px;font-size:15px;line-height:1.7;color:#212529;font-family:Georgia,serif;min-height:40px;outline:none}
-.blk-heading{padding:8px 20px;outline:none}
-.blk-img-wrap{padding:8px 18px;text-align:center}
-.blk-img-wrap img{max-width:100%;border-radius:8px;display:block;margin:0 auto}
-.blk-gif-wrap{padding:8px 18px;text-align:center}
-.blk-cta-wrap{padding:14px 20px;text-align:center}
-.blk-cta-btn{display:inline-block;padding:11px 28px;border-radius:8px;color:#fff;font-weight:700;font-size:14px;font-family:Arial,sans-serif;outline:none;min-width:140px}
-.blk-divider{padding:5px 18px}
+.blk-text{padding:12px 24px;font-size:16px;line-height:1.75;color:#2c3e50;font-family:Georgia,serif;min-height:50px;outline:none}
+.blk-heading{padding:10px 24px;outline:none}
+.blk-img-wrap{padding:10px 22px;text-align:center}
+.blk-img-wrap img{max-width:100%;border-radius:10px;display:block;margin:0 auto;box-shadow:0 4px 15px rgba(0,0,0,.08);transition:.2s}
+.blk-img-wrap img:hover{transform:scale(1.005)}
+.blk-gif-wrap{padding:10px 22px;text-align:center}
+.blk-gif-wrap img{border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,.08)}
+.blk-cta-wrap{padding:18px 24px;text-align:center}
+.blk-cta-btn{display:inline-block;padding:12px 32px;border-radius:10px;color:#fff;font-weight:800;font-size:15px;font-family:Arial,sans-serif;outline:none;min-width:160px;box-shadow:0 4px 12px rgba(0,0,0,.15);transition:.18s;cursor:pointer}
+.blk-cta-btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.22)}
+.blk-divider{padding:8px 22px}
 .blk-divider hr{border:none;border-top:2px solid #E8E0D5}
-.blk-quote-wrap{padding:6px 18px}
-.blk-quote-bar{border-left:4px solid #FF8C00;background:#FFF8F0;padding:10px 14px;border-radius:0 7px 7px 0}
-.blk-quote-txt{font-family:Georgia,serif;font-size:15px;color:#1A1A2E;line-height:1.6;font-style:italic;outline:none;min-height:24px}
-.blk-quote-auth{font-size:11px;color:#999;margin-top:4px;outline:none}
-.blk-2col{padding:8px 18px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.blk-2col .col{background:#FAFAFA;border-radius:7px;padding:9px;font-size:13px;line-height:1.6;font-family:Arial,sans-serif;outline:none;min-height:44px}
-.blk-spacer{display:flex;align-items:center;justify-content:center;color:#ddd;font-size:.66rem;font-family:'DM Sans',sans-serif}
-.blk-hdr{padding:14px 20px;text-align:center}
-.blk-hdr-txt{font-family:Georgia,serif;font-size:17px;font-weight:700;outline:none}
-.blk-video-wrap{padding:8px 18px}
-.blk-video-wrap img{width:100%;border-radius:9px;display:block}
-.blk-video-wrap .yt-embed{width:100%;border-radius:9px;aspect-ratio:16/9;border:none;display:block}
-.blk-img-compress{font-size:.65rem;color:#aaa;cursor:pointer;padding:2px 6px;border:1px solid #E2DDD8;border-radius:5px;background:#F8F7F4;margin-top:4px;display:inline-block;transition:.13s}
-.blk-img-compress:hover{border-color:#FF8C00;color:#FF8C00}
-.blk-social{padding:10px 18px;text-align:center}
+.blk-quote-wrap{padding:8px 22px}
+.blk-quote-bar{border-left:4px solid #FF8C00;background:#FFF8F0;padding:12px 18px;border-radius:0 10px 10px 0}
+.blk-quote-txt{font-family:Georgia,serif;font-size:16px;color:#1A1A2E;line-height:1.65;font-style:italic;outline:none;min-height:28px}
+.blk-quote-auth{font-size:12px;color:#888;margin-top:6px;outline:none;font-weight:600}
+.blk-2col{padding:10px 22px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.blk-2col .col{background:#F9F9FB;border-radius:10px;padding:12px;font-size:14px;line-height:1.65;font-family:Arial,sans-serif;outline:none;min-height:50px;border:1px solid #EAEAEA}
+.blk-spacer{display:flex;align-items:center;justify-content:center;color:#ccc;font-size:.7rem;font-family:'DM Sans',sans-serif;border:1px dashed rgba(0,0,0,.05);border-radius:6px}
+.blk-hdr{padding:16px 24px;text-align:center;border-radius:6px}
+.blk-hdr-txt{font-family:Georgia,serif;font-size:18px;font-weight:700;outline:none}
+.blk-video-wrap{padding:10px 22px}
+.blk-video-wrap .yt-embed{width:100%;border-radius:12px;aspect-ratio:16/9;border:none;display:block;box-shadow:0 6px 20px rgba(0,0,0,.15)}
+.blk-social{padding:12px 22px;text-align:center}
 
 /* ── Right panel ── */
-.panel{background:#fff;border-left:1px solid #E8E4DE;display:flex;flex-direction:column;min-height:0;overflow:hidden}
-.ptabs{display:flex;border-bottom:1px solid #E8E4DE;flex-shrink:0}
-.ptab{flex:1;padding:9px 4px;border:none;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:600;color:#bbb;border-bottom:2px solid transparent;transition:.13s}
+.panel{background:rgba(15, 15, 30, 0.95);border-left:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;min-height:0;overflow:hidden;box-shadow:-5px 0 25px rgba(0,0,0,.35);z-index:10;backdrop-filter:blur(10px)}
+.ptabs{display:flex;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;background:rgba(255,255,255,.02)}
+.ptab{flex:1;padding:12px 4px;border:none;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:700;color:rgba(255,255,255,.4);border-bottom:3px solid transparent;transition:.18s}
+.ptab:hover{color:rgba(255,255,255,.8)}
 .ptab.on{color:#FF8C00;border-bottom-color:#FF8C00}
-.pbody{flex:1;overflow-y:auto;padding:12px;min-height:0}
-.pbody::-webkit-scrollbar{width:3px}
-.pbody::-webkit-scrollbar-thumb{background:#E8E4DE}
+.pbody{flex:1;overflow-y:auto;padding:16px;min-height:0}
+.pbody::-webkit-scrollbar{width:4px}
+.pbody::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
 .ps{display:none}.ps.on{display:block}
-.pf{margin-bottom:10px}
-.pf label{display:block;font-size:.62rem;font-weight:700;color:#ccc;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
-.pf input,.pf textarea,.pf select{width:100%;padding:6px 9px;border:1.5px solid #E2DDD8;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.82rem;outline:none;transition:.15s;box-sizing:border-box}
-.pf input:focus,.pf textarea:focus,.pf select:focus{border-color:#FF8C00}
-.pf textarea{resize:vertical;min-height:48px}
-.crow{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
-.sw{width:22px;height:22px;border-radius:5px;cursor:pointer;border:2px solid transparent;transition:.13s;flex-shrink:0}
-.sw:hover{transform:scale(1.15)}
+.pf{margin-bottom:14px}
+.pf label{display:block;font-size:.65rem;font-weight:800;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.pf input,.pf textarea,.pf select{width:100%;padding:9px 12px;border:1.5px solid rgba(255,255,255,.15);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.84rem;outline:none;transition:.2s;box-sizing:border-box;background:rgba(255,255,255,.04);color:#fff}
+.pf input:focus,.pf textarea:focus,.pf select:focus{border-color:#FF8C00;background:rgba(255,140,0,.02);box-shadow:0 0 10px rgba(255,140,0,.15)}
+.pf select option{background:#15152a;color:#fff}
+.pf textarea{resize:vertical;min-height:60px}
+.crow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sw{width:24px;height:24px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:.18s;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.sw:hover{transform:scale(1.2);box-shadow:0 4px 10px rgba(0,0,0,.35)}
 .blkp{display:none}.blkp.on{display:block}
-.psec{font-size:.6rem;font-weight:700;color:#ddd;text-transform:uppercase;letter-spacing:.08em;padding:8px 0 4px;border-top:1px solid #F0EEE8;margin-top:4px}
+.psec{font-size:.65rem;font-weight:800;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.1em;padding:12px 0 6px;border-top:1px solid rgba(255,255,255,.08);margin-top:8px}
 .psec:first-child{border-top:none;padding-top:0}
+
 /* Header section in design panel */
-.hdr-preview{border-radius:8px;overflow:hidden;margin-bottom:10px;position:relative;min-height:60px}
-.hdr-prev-inner{padding:16px;text-align:center;position:relative}
+.hdr-preview{border-radius:10px;overflow:hidden;margin-bottom:14px;position:relative;min-height:70px;box-shadow:0 4px 15px rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.05)}
+.hdr-prev-inner{padding:20px;text-align:center;position:relative}
 .hdr-prev-bg{position:absolute;inset:0;background-size:cover;background-position:center}
 .hdr-prev-overlay{position:absolute;inset:0;background:rgba(0,0,0,.3)}
-.hdr-prev-txt{position:relative;z-index:1;font-size:.76rem;color:#fff;font-weight:700}
+.hdr-prev-txt{position:relative;z-index:1;font-size:.8rem;color:#fff;font-weight:800;text-shadow:0 2px 4px rgba(0,0,0,.5)}
 
 /* Recipients */
-.rbox{min-height:40px;border:1.5px solid #E2DDD8;border-radius:7px;padding:5px 7px;display:flex;flex-wrap:wrap;gap:3px;align-items:flex-start;cursor:text}
-.rbox:focus-within{border-color:#FF8C00}
-.rbox input{border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:.8rem;min-width:100px;flex:1;padding:2px 3px}
-.chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:#E8F4FD;color:#1565C0;border:1px solid #B3D9F0;border-radius:20px;font-size:.7rem}
-.chip .x{color:#aaa;cursor:pointer;font-size:.85rem}.chip .x:hover{color:#E63946}
-.btn-send{width:100%;padding:10px;background:linear-gradient(135deg,#2D6A4F,#1A4F37);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.86rem;font-weight:700;cursor:pointer;margin-top:8px;transition:.18s}
-.btn-send:hover{transform:translateY(-1px)}
-.al{padding:8px 10px;border-radius:7px;font-size:.76rem;margin-top:6px}
-.al-ok{background:#F0FFF4;color:#2D6A4F;border:1px solid #C8E6C9}
-.al-err{background:#FFF0F0;color:#E63946;border:1px solid rgba(230,57,70,.2)}
+.rbox{min-height:48px;border:1.5px solid rgba(255,255,255,.15);border-radius:8px;padding:6px 9px;display:flex;flex-wrap:wrap;gap:4px;align-items:flex-start;cursor:text;background:rgba(255,255,255,.04)}
+.rbox:focus-within{border-color:#FF8C00;background:rgba(255,140,0,.02)}
+.rbox input{border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:.84rem;min-width:120px;flex:1;padding:3px;background:transparent;color:#fff}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:rgba(255,140,0,.15);color:#FF8C00;border:1px solid rgba(255,140,0,.25);border-radius:20px;font-size:.74rem;font-weight:700}
+.chip .x{color:rgba(255,255,255,.5);cursor:pointer;font-size:.9rem;font-weight:bold}.chip .x:hover{color:#E63946}
+.btn-send{width:100%;padding:12px;background:linear-gradient(135deg,#2D6A4F,#1b4d36);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:10px;transition:.18s;box-shadow:0 4px 15px rgba(45,106,79,.25)}
+.btn-send:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(45,106,79,.4)}
+.al{padding:10px 12px;border-radius:8px;font-size:.8rem;margin-top:8px;font-weight:600}
+.al-ok{background:rgba(45,106,79,.15);color:#52b788;border:1px solid rgba(82,183,136,.3)}
+.al-err{background:rgba(230,57,70,.1);color:#e63946;border:1px solid rgba(230,57,70,.25)}
 
 /* AI Modal */
-.ai-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:3000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.ai-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:3000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(5px)}
 .ai-modal-bg.open{display:flex}
-.ai-modal{background:#fff;border-radius:16px;padding:22px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.ai-modal h2{font-size:1rem;font-weight:800;margin-bottom:3px;display:flex;align-items:center;gap:7px}
-.ai-modal p{font-size:.78rem;color:#aaa;margin-bottom:14px}
-.ai-tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px}
-.ai-tpl{padding:8px 10px;border:1.5px solid #E2DDD8;border-radius:8px;cursor:pointer;font-size:.76rem;color:#555;font-family:'DM Sans',sans-serif;background:#FAFAF8;transition:.15s;text-align:left}
-.ai-tpl:hover{border-color:#FF8C00;color:#FF8C00;background:#FFF9F0}
-.ai-tpl .ti{font-size:1.1rem;display:block;margin-bottom:2px}
-.ai-inp{width:100%;padding:9px 11px;border:1.5px solid #E2DDD8;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.84rem;outline:none;box-sizing:border-box;margin-bottom:8px}
+.ai-modal{background:#15152a;border-radius:18px;padding:26px;width:100%;max-width:500px;box-shadow:0 25px 60px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.08);color:#fff}
+.ai-modal h2{font-size:1.15rem;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:7px;color:#fff}
+.ai-modal p{font-size:.8rem;color:rgba(255,255,255,.5);margin-bottom:16px}
+.ai-tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.ai-tpl{padding:10px 12px;border:1.5px solid rgba(255,255,255,.12);border-radius:10px;cursor:pointer;font-size:.8rem;color:rgba(255,255,255,.75);font-family:'DM Sans',sans-serif;background:rgba(255,255,255,.02);transition:.18s;text-align:left}
+.ai-tpl:hover{border-color:#FF8C00;color:#FF8C00;background:rgba(255,140,0,.08);transform:translateY(-1px)}
+.ai-tpl .ti{font-size:1.25rem;display:block;margin-bottom:3px}
+.ai-inp{width:100%;padding:10px 12px;border:1.5px solid rgba(255,255,255,.15);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.86rem;outline:none;box-sizing:border-box;margin-bottom:10px;background:rgba(255,255,255,.04);color:#fff}
 .ai-inp:focus{border-color:#FF8C00}
-.ai-tone{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.ai-tone-btn{padding:4px 11px;border-radius:20px;border:1.5px solid #E2DDD8;background:#fff;font-size:.72rem;font-weight:600;color:#888;cursor:pointer;font-family:'DM Sans',sans-serif;transition:.13s}
-.ai-tone-btn.on{background:#FFF5E8;color:#FF8C00;border-color:rgba(255,140,0,.4)}
-.ai-actions{display:flex;gap:8px}
-.btn-ai-gen{flex:2;padding:10px;background:linear-gradient(135deg,#FF8C00,#8e2de2);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.86rem;font-weight:700;cursor:pointer;transition:.18s}
-.btn-ai-gen:hover{transform:translateY(-1px)}
+.ai-tone{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.ai-tone-btn{padding:5px 14px;border-radius:20px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.02);font-size:.76rem;font-weight:700;color:rgba(255,255,255,.6);cursor:pointer;font-family:'DM Sans',sans-serif;transition:.18s}
+.ai-tone-btn.on{background:rgba(255,140,0,.2);color:#FF8C00;border-color:rgba(255,140,0,.45)}
+.ai-actions{display:flex;gap:10px}
+.btn-ai-gen{flex:2;padding:12px;background:linear-gradient(135deg,#FF8C00,#8e2de2);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:800;cursor:pointer;transition:.18s;box-shadow:0 4px 15px rgba(255,140,0,.25)}
+.btn-ai-gen:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,140,0,.4)}
 .btn-ai-gen:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.ai-result{margin-top:10px;background:#F8F7F4;border-radius:8px;padding:10px;font-size:.8rem;color:#555;line-height:1.6;max-height:160px;overflow-y:auto;display:none}
+.ai-result{margin-top:12px;background:rgba(255,255,255,.03);border-radius:10px;padding:12px;font-size:.84rem;color:rgba(255,255,255,.8);line-height:1.65;max-height:180px;overflow-y:auto;display:none;border:1px solid rgba(255,255,255,.05)}
 .ai-result.show{display:block}
-.btn-ai-use{width:100%;padding:8px;background:#2D6A4F;color:#fff;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;margin-top:7px;display:none}
+.btn-ai-use{width:100%;padding:10px;background:#2D6A4F;color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:700;cursor:pointer;margin-top:10px;display:none;box-shadow:0 4px 12px rgba(45,106,79,.25)}
 .btn-ai-use.show{display:block}
 
 /* Preview modal */
-.prev-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.prev-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(5px)}
 .prev-bg.open{display:flex}
 
 /* Autosave / toast */
-.autosave{position:fixed;bottom:14px;right:14px;background:#1A1A2E;color:#fff;padding:6px 13px;border-radius:20px;font-size:.72rem;font-weight:600;box-shadow:0 3px 12px rgba(0,0,0,.2);opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.autosave{position:fixed;bottom:18px;right:18px;background:#FF8C00;color:#fff;padding:8px 16px;border-radius:20px;font-size:.76rem;font-weight:700;box-shadow:0 4px 15px rgba(255,140,0,.3);opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
 .autosave.show{opacity:1}
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(18px);background:#1A1A2E;color:#fff;padding:8px 20px;border-radius:40px;font-size:.8rem;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.2);opacity:0;transition:all .28s;pointer-events:none;z-index:9999;white-space:nowrap}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(18px);background:#1A1A2E;color:#fff;padding:10px 26px;border-radius:40px;font-size:.84rem;font-weight:700;box-shadow:0 8px 30px rgba(0,0,0,.35);opacity:0;transition:all .3s;pointer-events:none;z-index:9999;white-space:nowrap;border:1px solid rgba(255,255,255,.05)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.ok{background:#2D6A4F}.toast.err{background:#E63946}
+.toast.ok{background:#2D6A4F;box-shadow:0 8px 30px rgba(45,106,79,.4)}
+.toast.err{background:#E63946;box-shadow:0 8px 30px rgba(230,57,70,.4)}
 
 /* Upload file input styling */
-.file-up{font-size:.74rem;color:#aaa;cursor:pointer;width:100%}
-.file-up::file-selector-button{padding:4px 10px;background:#F0EEE8;border:1.5px solid #E2DDD8;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.72rem;cursor:pointer;margin-right:8px;transition:.13s}
-.file-up::file-selector-button:hover{background:#FFF5E8;border-color:#FF8C00}
+.file-up{font-size:.78rem;color:rgba(255,255,255,.5);cursor:pointer;width:100%}
+.file-up::file-selector-button{padding:5px 12px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.74rem;cursor:pointer;margin-right:10px;transition:.18s;color:#fff}
+.file-up::file-selector-button:hover{background:rgba(255,140,0,.15);border-color:#FF8C00}
+
+/* Responsive sidebars */
+@media(max-width:1150px){
+  .shell{grid-template-columns:180px 1fr 240px;left:0}
+}
+@media(max-width:850px){
+  .shell{grid-template-columns:1fr;grid-template-rows:auto 1fr auto;left:0;position:relative;height:100vh}
+  .sb{display:none}
+  .panel{position:fixed;bottom:0;left:0;right:0;height:45vh;border-left:none;border-top:1px solid rgba(255,255,255,.08);box-shadow:0 -10px 30px rgba(0,0,0,.45)}
+  .canvas-wrap{padding:20px 10px 50vh}
+}
+
+/* Responsive toolbar labels collapsing on laptop viewports */
+.tbtn-lbl { display: inline; }
+@media(max-width: 1450px) {
+  .tbtn-lbl {
+    display: inline-block !important;
+    opacity: 0 !important;
+    transform: translateX(-10px) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    margin-left: 6px !important;
+    pointer-events: none !important;
+  }
+  .tb { gap: 4px; padding: 0 10px; }
+  .tsep { margin: 0 2px; }
+  
+  .tbtn, .btn-save { 
+    position: relative !important;
+    overflow: hidden !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: 36px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    padding-left: 10px !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Hover to Expand Labels (only when not permanently expanded) */
+  .tb:not(.labels-expanded) .tbtn:hover,
+  .tb:not(.labels-expanded) .btn-save:hover {
+    width: 110px !important;
+    padding-right: 12px !important;
+  }
+  .tb:not(.labels-expanded) .tbtn:hover .tbtn-lbl,
+  .tb:not(.labels-expanded) .btn-save:hover .tbtn-lbl {
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+  }
+}
+.tb.labels-expanded .tbtn-lbl {
+  display: inline !important;
+  opacity: 1 !important;
+  transform: none !important;
+  margin-left: 6px !important;
+  pointer-events: auto !important;
+}
+.tb.labels-expanded .tbtn,
+.tb.labels-expanded .btn-save {
+  width: auto !important;
+  padding: 6px 12px !important;
+}
+.tb.labels-expanded {
+  gap: 6px !important;
+  padding: 0 16px !important;
+}
+/* ── Word-style Controls ── */
+.btn-group-word { display: flex; gap: 4px; background: rgba(255,255,255,0.06); padding: 3px; border-radius: 8px; border: 1.5px solid rgba(255,255,255,.08); }
+.btn-word { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 4px; border: none; background: none; color: rgba(255,255,255,0.65); font-family: 'DM Sans', sans-serif; font-size: .74rem; font-weight: 700; cursor: pointer; border-radius: 6px; transition: all .15s; }
+.btn-word:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.btn-word.active { background: #FF8C00; color: #fff; box-shadow: 0 2px 8px rgba(255,140,0,0.35); }
+.icon-align { font-size: .85rem; }
 </style>
 
 <!-- Background Shapes -->
@@ -242,19 +349,22 @@ html,body{overflow:hidden;height:100%;margin:0}
 
   <!-- Top toolbar -->
   <div class="tb">
-    <a href="/newsletter/" class="tbtn" style="color:#666;text-decoration:none" title="Back to Newsletters">← Back</a>
+    <a href="/newsletter/" class="tbtn" style="color:#bbb;text-decoration:none" title="Back to Newsletters">←<span class="tbtn-lbl"> Back</span></a>
     <div class="tsep"></div>
-    <button class="btn-save" onclick="doSave()">💾 Save</button>
+    <button class="btn-save" onclick="doSave()" title="Save changes (Ctrl+S)">💾<span class="tbtn-lbl"> Save</span></button>
     <div class="tsep"></div>
-    <button class="tbtn" onclick="openPreview()">👁 Preview</button>
-    <button class="tbtn" onclick="undo()">↩ Undo</button>
-    <button class="tbtn" onclick="redo()">↪ Redo</button>
+    <button class="tbtn" onclick="openPreview()" title="Preview newsletter">👁<span class="tbtn-lbl"> Preview</span></button>
+    <button class="tbtn" onclick="undo()" title="Undo action (Ctrl+Z)">↩<span class="tbtn-lbl"> Undo</span></button>
+    <button class="tbtn" onclick="redo()" title="Redo action (Ctrl+Y)">↪<span class="tbtn-lbl"> Redo</span></button>
     <div class="tsep"></div>
-    <button class="tbtn" onclick="openAI()">✨ AI Write</button>
-    <button class="tbtn" onclick="switchPanel('send')">✉ Send</button>
+    <button class="tbtn" onclick="openAI()" title="Open AI Writer">✨<span class="tbtn-lbl"> AI Write</span></button>
+    <button class="tbtn" onclick="switchPanel('send')" title="Send newsletter">✉<span class="tbtn-lbl"> Send</span></button>
     <div class="tsep"></div>
-    <button class="tbtn" onclick="doExport()" style="color:#1565C0;border-color:rgba(21,101,192,.25)" title="Download as HTML file">⬇ Export</button>
-    <button class="tbtn" onclick="doPublish()" style="color:#7B2FBE;border-color:rgba(123,47,190,.25)" title="Publish &amp; get shareable link">🌐 Publish</button>
+    <button class="tbtn" onclick="shareToGmail()" style="color:#ea4335;border-color:rgba(234,67,53,.25);background:rgba(234,67,53,.04)" title="Share & paste directly in Gmail">📧<span class="tbtn-lbl"> Gmail</span></button>
+    <button class="tbtn" onclick="doExport()" style="color:#1565C0;border-color:rgba(21,101,192,.25)" title="Download as HTML file">⬇<span class="tbtn-lbl"> Export</span></button>
+    <button class="tbtn" onclick="doPublish()" style="color:#7B2FBE;border-color:rgba(123,47,190,.25)" title="Publish &amp; get shareable link">🌐<span class="tbtn-lbl"> Publish</span></button>
+    <div class="tsep"></div>
+    <button class="tbtn" id="btn-toggle-labels" onclick="toggleToolbarLabels()" style="color:#FF8C00;border-color:rgba(255,140,0,.25)" title="Show/Hide button labels">ℹ️<span class="tbtn-lbl"> Labels</span></button>
     <span class="blkcnt" id="blkCnt">0 blocks</span>
   </div>
 
@@ -390,23 +500,23 @@ html,body{overflow:hidden;height:100%;margin:0}
       <div class="pf">
         <label>Subtitle</label>
         <input type="text" id="pSubtitle" value="{{ newsletter.subtitle or '' }}"
-          oninput="document.getElementById('nlHdrSub').textContent=this.value;nlState.subtitle=this.value">
+          oninput="document.getElementById('nlHdrSub').textContent=this.value;S.subtitle=this.value">
       </div>
       <div class="pf">
         <label>Accent Color</label>
         <div class="crow">
           <input type="color" id="pAccColor" value="{{ newsletter.theme.accent_color or '#FF8C00' }}"
             style="width:32px;height:28px;border-radius:6px;border:1.5px solid #E2DDD8;cursor:pointer;padding:2px"
-            oninput="nlState.theme.accent_color=this.value">
+            oninput="S.theme.accent_color=this.value">
           {% for c in ['#FF8C00','#1565C0','#2D6A4F','#8e2de2','#C94B4B','#434343'] %}
-          <div class="sw" style="background:{{c}}" onclick="document.getElementById('pAccColor').value='{{c}}';nlState.theme.accent_color='{{c}}'"></div>
+          <div class="sw" style="background:{{c}}" onclick="document.getElementById('pAccColor').value='{{c}}';S.theme.accent_color='{{c}}'"></div>
           {% endfor %}
         </div>
       </div>
       <div class="pf">
         <label>Footer Text</label>
         <textarea id="pFooter" rows="2"
-          oninput="document.getElementById('nlFooterTxt').textContent=this.value;nlState.footer=this.value">{{ newsletter.footer or '' }}</textarea>
+          oninput="document.getElementById('nlFooterTxt').textContent=this.value;S.footer=this.value">{{ newsletter.footer or '' }}</textarea>
       </div>
     </div>
 
@@ -418,7 +528,7 @@ html,body{overflow:hidden;height:100%;margin:0}
 
       <!-- heading -->
       <div class="blkp" id="bp-heading">
-        <div class="psec">Heading</div>
+        <div class="psec">Heading Styling</div>
         <div class="pf"><label>Level</label>
           <select onchange="updB('level',this.value)">
             <option value="h1">H1 — Large</option>
@@ -426,6 +536,120 @@ html,body{overflow:hidden;height:100%;margin:0}
             <option value="h3">H3 — Small</option>
           </select>
         </div>
+
+        <div class="pf">
+          <label>Alignment</label>
+          <div class="btn-group-word">
+            <button class="btn-word" id="btn-head-align-left" onclick="updTextProp('align','left')">▤ Left</button>
+            <button class="btn-word" id="btn-head-align-center" onclick="updTextProp('align','center')">▧ Center</button>
+            <button class="btn-word" id="btn-head-align-right" onclick="updTextProp('align','right')">▨ Right</button>
+          </div>
+        </div>
+
+        <div class="pf" style="display:flex;gap:10px">
+          <div style="flex:1">
+            <label>Size (px)</label>
+            <select id="head-fs" onchange="updTextProp('font_size',this.value?+this.value:'')">
+              <option value="">Default</option>
+              <option value="18">18 px</option>
+              <option value="20">20 px</option>
+              <option value="24">24 px</option>
+              <option value="28">28 px</option>
+              <option value="32">32 px</option>
+              <option value="36">36 px</option>
+            </select>
+          </div>
+          <div style="flex:1">
+            <label>Color</label>
+            <input type="color" id="head-color" value="#1A1A2E" oninput="updTextProp('color',this.value)" style="width:100%;height:32px;border-radius:6px;border:1.5px solid #E2DDD8;cursor:pointer;padding:2px;box-sizing:border-box">
+          </div>
+        </div>
+
+        <!-- inline AI Writer for Heading! -->
+        <div class="psec" style="margin-top:18px">🪄 Block AI Writer</div>
+        <div class="pf">
+          <label>AI Prompt / Preset</label>
+          <select id="head-ai-preset" style="width:100%;padding:8px;border:1.5px solid #E2DDD8;border-radius:8px;font-family:'DM Sans',sans-serif;margin-bottom:6px">
+            <option value="Rewrite this heading to make it extremely catchy and engaging">💡 Catchy Rewrite</option>
+            <option value="Make the heading sound highly professional">🧐 Professional Tone</option>
+            <option value="Convert this heading into a question">❓ Question Format</option>
+            <option value="Create a bold call-to-action heading based on: ">🎯 Call to Action...</option>
+          </select>
+          <input type="text" id="head-ai-prompt" placeholder="Optional custom instructions…" style="width:100%;padding:8px 10px;border:1.5px solid #E2DDD8;border-radius:8px;font-family:'DM Sans',sans-serif;box-sizing:border-box">
+        </div>
+        <button onclick="runBlockAI('head')" class="btn-ai-gen" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;font-size:.82rem;font-weight:700">
+          ✨ Apply AI to Heading
+        </button>
+      </div>
+
+      <!-- text styling tools -->
+      <div class="blkp" id="bp-text">
+        <div class="psec">Text Styling</div>
+        
+        <div class="pf">
+          <label>Alignment</label>
+          <div class="btn-group-word">
+            <button class="btn-word" id="btn-align-left" onclick="updTextProp('align','left')">▤ Left</button>
+            <button class="btn-word" id="btn-align-center" onclick="updTextProp('align','center')">▧ Center</button>
+            <button class="btn-word" id="btn-align-right" onclick="updTextProp('align','right')">▨ Right</button>
+            <button class="btn-word" id="btn-align-justify" onclick="updTextProp('align','justify')">▦ Justify</button>
+          </div>
+        </div>
+
+        <div class="pf" style="display:flex;gap:10px">
+          <div style="flex:1">
+            <label>Size (px)</label>
+            <select id="text-fs" onchange="updTextProp('font_size',this.value?+this.value:'')">
+              <option value="">Default</option>
+              <option value="12">12 px</option>
+              <option value="14">14 px</option>
+              <option value="16">16 px</option>
+              <option value="18">18 px</option>
+              <option value="20">20 px</option>
+              <option value="24">24 px</option>
+              <option value="28">28 px</option>
+            </select>
+          </div>
+          <div style="flex:1">
+            <label>Line Height</label>
+            <select id="text-lh" onchange="updTextProp('line_height',this.value)">
+              <option value="">Default</option>
+              <option value="1.2">Compact</option>
+              <option value="1.5">Normal</option>
+              <option value="1.75">Relaxed</option>
+              <option value="2.0">Double</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pf" style="display:flex;gap:10px">
+          <div style="flex:1">
+            <label>Text Color</label>
+            <input type="color" id="text-color" value="#212529" oninput="updTextProp('color',this.value)" style="width:100%;height:32px;border-radius:6px;border:1.5px solid #E2DDD8;cursor:pointer;padding:2px;box-sizing:border-box">
+          </div>
+          <div style="flex:1">
+            <label>Highlight</label>
+            <input type="color" id="text-bg" value="#ffffff" oninput="updTextProp('bg_color',this.value)" style="width:100%;height:32px;border-radius:6px;border:1.5px solid #E2DDD8;cursor:pointer;padding:2px;box-sizing:border-box">
+          </div>
+        </div>
+
+        <!-- inline AI Writer! -->
+        <div class="psec" style="margin-top:18px">🪄 Block AI Writer</div>
+        <div class="pf">
+          <label>AI Prompt / Preset</label>
+          <select id="text-ai-preset" style="width:100%;padding:8px;border:1.5px solid #E2DDD8;border-radius:8px;font-family:'DM Sans',sans-serif;margin-bottom:6px">
+            <option value="Rewrite the text to make it extremely engaging and professional">✨ Rewrite Professionally</option>
+            <option value="Make the text more friendly and casual">🎉 Make Friendly/Casual</option>
+            <option value="Expand the text with more details and insights">📝 Expand Content</option>
+            <option value="Shorten this text to be quick, punchy, and concise">✂ Shorten/Concise</option>
+            <option value="Fix any grammar mistakes and improve clarity">🧐 Fix Grammar & Clarity</option>
+            <option value="Write a catchy, modern newsletter paragraph about: ">💡 Create from prompt...</option>
+          </select>
+          <input type="text" id="text-ai-prompt" placeholder="Optional custom instructions…" style="width:100%;padding:8px 10px;border:1.5px solid #E2DDD8;border-radius:8px;font-family:'DM Sans',sans-serif;box-sizing:border-box">
+        </div>
+        <button onclick="runBlockAI('text')" class="btn-ai-gen" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;font-size:.82rem;font-weight:700">
+          ✨ Apply AI to Block
+        </button>
       </div>
 
       <!-- image -->
@@ -522,6 +746,17 @@ html,body{overflow:hidden;height:100%;margin:0}
 
     <!-- ════ SEND TAB ════ -->
     <div class="ps" id="ps-send">
+      <!-- SMTP Config Banner -->
+      <div id="smtpBanner" style="background:rgba(255,140,0,.08); border:1.5px solid rgba(255,140,0,.25); border-radius:10px; padding:12px; margin-bottom:14px;">
+        <div style="font-size:.76rem; font-weight:700; color:#FF8C00; margin-bottom:4px; display:flex; align-items:center; gap:5px">
+          ⚠️ Connect your Gmail / SMTP
+        </div>
+        <div style="font-size:.68rem; color:rgba(255,255,255,.6); line-height:1.4; margin-bottom:8px" id="smtpStatusText">
+          Connect your email to send newsletters directly with working pictures in recipients' inboxes!
+        </div>
+        <button onclick="openSMTPModal()" style="padding:6px 12px; font-size:.72rem; background:#FF8C00; border:none; border-radius:6px; color:#fff; cursor:pointer; font-weight:700; width:100%; transition:.18s" onmouseover="this.style.background='#e67e00'" onmouseout="this.style.background='#FF8C00'">⚙️ Configure Email Connection</button>
+      </div>
+
       <div class="psec">Email Details</div>
       <div class="pf"><label>Subject Line</label><input type="text" id="sendSub" value="{{ newsletter.title }}"></div>
       <div class="pf"><label>Preview Text (inbox teaser)</label><input type="text" id="sendPrev" placeholder="Short teaser shown in inbox…"></div>
@@ -613,6 +848,70 @@ html,body{overflow:hidden;height:100%;margin:0}
 <div class="autosave" id="autosave">💾 Saved</div>
 <div class="toast" id="toast"></div>
 
+<!-- Gmail Compose Modal -->
+<div class="ai-modal-bg" id="gmailModalBg" onclick="if(event.target===this)closeGmailModal()">
+<div class="ai-modal" style="max-width:440px; text-align:center">
+  <div style="font-size:3rem; margin-bottom:12px">📧</div>
+  <h2 style="justify-content:center">Ready to Send via Gmail!</h2>
+  <p style="margin-bottom:20px; line-height:1.6">
+    We have generated your gorgeous HTML newsletter template. 
+    Click the button below to **Copy your template** and open **Gmail Compose**. 
+    Then, simply press <strong>Ctrl + V</strong> (or Right-click ➔ Paste) in Gmail's compose box to insert your rich newsletter!
+  </p>
+
+  <div style="background:rgba(255,140,0,.08); border:1.5px solid rgba(255,140,0,.25); border-radius:10px; padding:12px; font-size:.78rem; color:#FF8C00; margin-bottom:22px; line-height:1.5; text-align:left">
+    💡 <strong>Pro-Tip:</strong> Gmail's compose box supports full rich HTML pasting. This guarantees 100% style retention, including fonts, background colors, alignments, and self-contained Base64 images!
+  </div>
+
+  <div class="ai-actions" style="justify-content:center">
+    <button onclick="closeGmailModal()" style="flex:1;padding:12px;border:1.5px solid rgba(255,255,255,.15);border-radius:10px;background:rgba(255,255,255,.05);color:#fff;font-family:'DM Sans',sans-serif;font-size:.86rem;cursor:pointer;transition:.18s">Cancel</button>
+    <button class="btn-ai-gen" id="gmailCopyBtn" onclick="doGmailCopyAndOpen()" style="flex:2;background:linear-gradient(135deg,#ea4335,#c5221f);box-shadow:0 4px 15px rgba(234,67,53,.35)">🚀 Copy &amp; Open Gmail</button>
+  </div>
+</div>
+</div>
+
+<!-- SMTP Settings Modal -->
+<div class="ai-modal-bg" id="smtpModalBg" onclick="if(event.target===this)closeSMTPModal()">
+<div class="ai-modal" style="max-width:440px; text-align:left">
+  <h2>⚙️ Email SMTP Configuration</h2>
+  <p style="margin-bottom:15px">Connect your personal or institutional email account to send newsletters directly with inline working images.</p>
+
+  <div class="pf">
+    <label>SMTP Host</label>
+    <input type="text" id="smtpHost" placeholder="e.g. smtp.gmail.com" value="smtp.gmail.com">
+  </div>
+  
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+    <div class="pf">
+      <label>SMTP Port</label>
+      <input type="number" id="smtpPort" placeholder="587" value="587">
+    </div>
+    <div class="pf">
+      <label>Sender Address (From)</label>
+      <input type="email" id="smtpFrom" placeholder="yourname@domain.com">
+    </div>
+  </div>
+
+  <div class="pf">
+    <label>SMTP Username (Email)</label>
+    <input type="email" id="smtpUser" placeholder="your-email@domain.com">
+  </div>
+
+  <div class="pf">
+    <label>SMTP Password / App Password</label>
+    <input type="password" id="smtpPwd" placeholder="••••••••••••••••">
+    <div style="font-size:.66rem; color:#aaa; margin-top:4px">
+      💡 Using Gmail? You <strong>must</strong> generate a 16-character <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:#FF8C00; text-decoration:underline">Google App Password</a>. Your regular password will not work.
+    </div>
+  </div>
+
+  <div class="ai-actions" style="margin-top:20px">
+    <button onclick="closeSMTPModal()" style="flex:1;padding:12px;border:1.5px solid rgba(255,255,255,.15);border-radius:10px;background:rgba(255,255,255,.05);color:#fff;font-family:'DM Sans',sans-serif;font-size:.86rem;cursor:pointer;transition:.18s">Cancel</button>
+    <button class="btn-ai-gen" id="saveSMTPBtn" onclick="saveSMTPSettings()" style="flex:2;background:linear-gradient(135deg,#FF8C00,#E65C00);box-shadow:0 4px 15px rgba(255,140,0,.25)">💾 Save &amp; Connect</button>
+  </div>
+</div>
+</div>
+
 <!-- Publish Modal -->
 <div class="ai-modal-bg" id="publishModalBg" onclick="if(event.target===this)closePublishModal()">
 <div class="ai-modal" style="max-width:420px">
@@ -690,17 +989,37 @@ function render(){
   updateHdrUI();
 }
 
+function getBlockStyle(c) {
+  let styles = [];
+  if (c.align) styles.push(`text-align:${c.align}`);
+  if (c.color) styles.push(`color:${c.color}`);
+  if (c.font_size) styles.push(`font-size:${c.font_size}px`);
+  if (c.line_height) styles.push(`line-height:${c.line_height}`);
+  if (c.bg_color) styles.push(`background-color:${c.bg_color}`);
+  if (c.padding) styles.push(`padding:${c.padding}px`);
+  return styles.length ? `style="${styles.join(';')}"` : '';
+}
+
 function blkHTML(b){
   const c=b.content||{}, acc=S.theme.accent_color||'#FF8C00';
   switch(b.type){
-    case 'text': return `<div class="blk-text" contenteditable="true" data-f="html">${c.html||'<p>Start typing…</p>'}</div>`;
-    case 'heading':{const lv=c.level||'h2',fs={h1:'24px',h2:'19px',h3:'15px'}[lv]||'19px';return `<${lv} class="blk-heading" contenteditable="true" data-f="text" style="font-family:Georgia,serif;font-size:${fs};color:#1A1A2E;margin:0;line-height:1.25;font-weight:700;padding:8px 18px">${c.text||'Heading'}</${lv}>`;}
+    case 'text': return `<div class="blk-text" contenteditable="true" data-f="html" ${getBlockStyle(c)}>${c.html||'<p>Start typing…</p>'}</div>`;
+    case 'heading':{
+      const lv=c.level||'h2';
+      const default_fs={h1:'24px',h2:'19px',h3:'15px'}[lv]||'19px';
+      let styles = [`font-family:Georgia,serif`,`margin:0`,`line-height:1.25`,`font-weight:700`,`padding:8px 18px`];
+      if(c.align) styles.push(`text-align:${c.align}`);
+      if(c.color) styles.push(`color:${c.color}`);
+      styles.push(`font-size:${c.font_size ? c.font_size+'px' : default_fs}`);
+      if(c.bg_color) styles.push(`background-color:${c.bg_color}`);
+      return `<${lv} class="blk-heading" contenteditable="true" data-f="text" style="${styles.join(';')}">${c.text||'Heading'}</${lv}>`;
+    }
     case 'image': return `<div class="blk-img-wrap">${c.url?`<img src="${c.url}" style="width:${c.img_width||'100%'};border-radius:${c.img_radius||8}px;display:block;margin:0 auto" onclick="switchPanel('block')">`:'<div style="height:70px;background:#F0EEE8;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:.78rem;cursor:pointer" onclick="switchPanel(\'block\')">🖼 Add image in Block panel</div>'}${c.caption?`<p style="font-size:11px;color:#999;text-align:center;margin:5px 0 0">${c.caption}</p>`:''}</div>`;
     case 'gif': return `<div class="blk-gif-wrap">${c.url?`<img src="${c.url}" style="max-width:${c.gif_width||'100%'};display:block;margin:0 auto">`:'<div style="height:70px;background:#F0EEE8;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:.78rem;cursor:pointer" onclick="switchPanel(\'block\')">GIF — add URL in Block panel</div>'}</div>`;
     case 'video': return c.youtube_id?`<div class="blk-video-wrap"><iframe class="yt-embed" src="https://www.youtube.com/embed/${c.youtube_id}?rel=0" allowfullscreen loading="lazy" title="YouTube video"></iframe><p style="text-align:center;font-size:11px;color:#aaa;margin:4px 0 6px;font-family:Arial,sans-serif">▶ YouTube embed (in email: clickable thumbnail)</p></div>`:`<div style="height:60px;background:#F0EEE8;border-radius:8px;margin:8px 18px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:.78rem;cursor:pointer" onclick="switchPanel('block')">▶ Add YouTube URL in Block tab</div>`;
     case 'cta': return `<div class="blk-cta-wrap"><div class="blk-cta-btn" contenteditable="true" data-f="text" style="background:${c.color||acc}">${c.text||'Click Here'}</div></div>`;
     case 'divider': return `<div class="blk-divider"><hr></div>`;
-    case 'quote': return `<div class="blk-quote-wrap"><div class="blk-quote-bar" style="border-left-color:${acc}"><div class="blk-quote-txt" contenteditable="true" data-f="text">${c.text||'Your quote…'}</div>${c.author?`<div class="blk-quote-auth" contenteditable="true" data-f="author">— ${c.author}</div>`:''}</div></div>`;
+    case 'quote': return `<div class="blk-quote-wrap"><div class="blk-quote-bar" style="border-left-color:${acc};${c.bg_color?`background-color:${c.bg_color};`:''}"><div class="blk-quote-txt" contenteditable="true" data-f="text" ${getBlockStyle(c)}>${c.text||'Your quote…'}</div>${c.author?`<div class="blk-quote-auth" contenteditable="true" data-f="author" style="${c.align?`text-align:${c.align}`:''}">— ${c.author}</div>`:''}</div></div>`;
     case '2col': return `<div class="blk-2col"><div class="col" contenteditable="true" data-f="left">${c.left||'Left…'}</div><div class="col" contenteditable="true" data-f="right">${c.right||'Right…'}</div></div>`;
     case 'spacer': return `<div class="blk-spacer" style="height:${c.height||24}px">${c.height||24}px</div>`;
     case 'hdr': return `<div class="blk-hdr" style="background:${c.bg||'#1A1A2E'}"><div class="blk-hdr-txt" contenteditable="true" data-f="text" style="color:${c.color||'#fff'}">${c.text||'Section'}</div></div>`;
@@ -757,7 +1076,25 @@ function selBlk(id){
 function syncProp(b){
   const c=b.content||{}, sv=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined)el.value=v;};
   switch(b.type){
-    case 'heading':{const s=document.querySelector('#bp-heading select');if(s)s.value=c.level||'h2';}break;
+    case 'text':
+      sv('text-fs', c.font_size || '');
+      sv('text-lh', c.line_height || '');
+      sv('text-color', c.color || '#212529');
+      sv('text-bg', c.bg_color || '#ffffff');
+      ['left','center','right','justify'].forEach(align => {
+        const btn = document.getElementById('btn-align-' + align);
+        if (btn) btn.classList.toggle('active', (c.align || 'left') === align);
+      });
+      break;
+    case 'heading':{
+      const s=document.querySelector('#bp-heading select');if(s)s.value=c.level||'h2';
+      sv('head-fs', c.font_size || '');
+      sv('head-color', c.color || '#1A1A2E');
+      ['left','center','right'].forEach(align => {
+        const btn = document.getElementById('btn-head-align-' + align);
+        if (btn) btn.classList.toggle('active', (c.align || 'left') === align);
+      });
+    }break;
     case 'image': sv('imgUrl',c.url||'');sv('imgW',parseFloat(c.img_width)||100);sv('imgR',c.img_radius||8);sv('imgAl',c.img_align||'center');sv('imgCap',c.caption||'');break;
     case 'gif': sv('gifUrl',c.url||'');sv('gifW',parseFloat(c.gif_width)||100);sv('gifAl',c.gif_align||'center');break;
     case 'video': sv('ytInp',c.youtube_id||'');break;
@@ -783,11 +1120,16 @@ function addBlock(type){
 }
 
 function delB(id){S.blocks=S.blocks.filter(b=>b.id!==id);if(selId===id){selId=null;document.getElementById('noSel').style.display='';}render();pushH();autoSave();}
-function mvB(id,d){const i=S.blocks.findIndex(b=>b.id===id),j=i+d;if(j<0||j>=S.blocks.length)return;[S.blocks[i],S.blocks[j]]=[S.blocks[j],S.blocks[i]];render();pushH();autoSave();}
+	function mvB(id,d){const i=S.blocks.findIndex(b=>b.id===id),j=i+d;if(j<0||j>=S.blocks.length)return;[S.blocks[i],S.blocks[j]]=[S.blocks[j],S.blocks[i]];render();pushH();autoSave();}
 function dupB(id){const i=S.blocks.findIndex(b=>b.id===id);if(i<0)return;const cp=JSON.parse(JSON.stringify(S.blocks[i]));cp.id='b'+Date.now();S.blocks.splice(i+1,0,cp);render();selBlk(cp.id);pushH();autoSave();}
 function swapB(a,b2){const ai=S.blocks.findIndex(x=>x.id===a),bi=S.blocks.findIndex(x=>x.id===b2);if(ai<0||bi<0)return;[S.blocks[ai],S.blocks[bi]]=[S.blocks[bi],S.blocks[ai]];render();pushH();}
 
-function fromDOM(id,el){const b=S.blocks.find(x=>x.id===id);if(!b)return;b.content=b.content||{};b.content[el.dataset.f||'html']=el.innerHTML;}
+function fromDOM(id,el){
+  const b=S.blocks.find(x=>x.id===id);if(!b)return;
+  b.content=b.content||{};
+  // Keep base styling intact during direct inline DOM sync
+  b.content[el.dataset.f||'html']=el.innerHTML;
+}
 
 function updB(k,v){
   if(!selId)return;
@@ -796,6 +1138,59 @@ function updB(k,v){
   const w=document.querySelector(`.nl-blk[data-id="${selId}"]`);
   if(w){const inn=w.querySelector('div:last-child');if(inn)inn.innerHTML=blkHTML(b);}
   autoSave();
+}
+
+function updTextProp(k, v) {
+  if(!selId) return;
+  updB(k, v);
+  if (k === 'align') {
+    const isHeading = S.blocks.find(x=>x.id===selId)?.type === 'heading';
+    const prefix = isHeading ? 'btn-head-align-' : 'btn-align-';
+    ['left','center','right','justify'].forEach(align => {
+      const btn = document.getElementById(prefix + align);
+      if (btn) btn.classList.toggle('active', align === v);
+    });
+  }
+}
+
+async function runBlockAI(type) {
+  if (!selId) return;
+  const b = S.blocks.find(x=>x.id===selId);
+  if (!b) return;
+  
+  const preset = document.getElementById(type + '-ai-preset').value;
+  const custom = document.getElementById(type + '-ai-prompt').value.trim();
+  const prompt = custom ? (preset + ': ' + custom) : preset;
+  
+  const current_text = type === 'head' ? (b.content.text || '') : (b.content.html || '');
+  
+  toast('🪄 AI is working on your block…');
+  
+  try {
+    const r = await fetch('/ai/block/generate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        prompt: prompt,
+        current_text: current_text
+      })
+    });
+    const d = await r.json();
+    if (d.success && d.text) {
+      if (type === 'head') {
+        updB('text', d.text);
+      } else {
+        let clean = d.text.trim();
+        if (!clean.startsWith('<')) clean = '<p>' + clean + '</p>';
+        updB('html', clean);
+      }
+      toast('✨ AI updated block successfully!', 'ok');
+    } else {
+      toast('⚠ AI failed: ' + (d.error || 'Unknown error'), 'err');
+    }
+  } catch (e) {
+    toast('⚠ Error: ' + e.message, 'err');
+  }
 }
 
 function setYtId(v){const m=v.match(/(?:v=|youtu\.be\/|\/embed\/|\/shorts\/)([a-zA-Z0-9_-]{11})/);updB('youtube_id',m?m[1]:v.trim().slice(0,11));}
@@ -983,14 +1378,123 @@ function syncPanelFromS(){
   updateHdrUI();
 }
 
-/* ════════════════════════════════════
-   PANEL
-════════════════════════════════════ */
 function switchPanel(tab){
   document.querySelectorAll('.ps').forEach(el=>el.classList.remove('on'));
   document.querySelectorAll('.ptab').forEach(el=>el.classList.remove('on'));
   const s=document.getElementById('ps-'+tab);if(s)s.classList.add('on');
   const t=document.getElementById('ptab-'+tab);if(t)t.classList.add('on');
+  if (tab === 'send') {
+    checkSMTPSettings();
+  }
+}
+
+async function checkSMTPSettings() {
+  try {
+    const r = await fetch('/newsletter/settings/smtp');
+    const d = await r.json();
+    const banner = document.getElementById('smtpBanner');
+    const statusText = document.getElementById('smtpStatusText');
+    if (d.success && d.user) {
+      banner.style.background = 'rgba(82,183,136,.08)';
+      banner.style.borderColor = 'rgba(82,183,136,.3)';
+      banner.querySelector('div').style.color = '#52b788';
+      banner.querySelector('div').innerHTML = '✅ Connected to Email!';
+      statusText.innerHTML = `Sending emails via your connected account: <strong>${d.user}</strong>. Images will be attached directly.`;
+    } else {
+      banner.style.background = 'rgba(255,140,0,.08)';
+      banner.style.borderColor = 'rgba(255,140,0,.25)';
+      banner.querySelector('div').style.color = '#FF8C00';
+      banner.querySelector('div').innerHTML = '⚠️ Connect your Gmail / SMTP';
+      statusText.innerHTML = 'Connect your email to send newsletters directly with working pictures in recipients\' inboxes!';
+    }
+  } catch (e) {
+    console.error('Failed to fetch SMTP settings:', e);
+  }
+}
+
+function openSMTPModal() {
+  fetch('/newsletter/settings/smtp')
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) {
+        document.getElementById('smtpHost').value = d.host || 'smtp.gmail.com';
+        document.getElementById('smtpPort').value = d.port || 587;
+        document.getElementById('smtpUser').value = d.user || '';
+        document.getElementById('smtpFrom').value = d.from_addr || '';
+        if (d.has_pwd) {
+          document.getElementById('smtpPwd').placeholder = '•••••••••••••••• (Saved)';
+          document.getElementById('smtpPwd').value = '';
+        } else {
+          document.getElementById('smtpPwd').placeholder = '••••••••••••••••';
+          document.getElementById('smtpPwd').value = '';
+        }
+      }
+      document.getElementById('smtpModalBg').classList.add('open');
+    })
+    .catch(() => {
+      document.getElementById('smtpModalBg').classList.add('open');
+    });
+}
+
+function closeSMTPModal() {
+  document.getElementById('smtpModalBg').classList.remove('open');
+}
+
+async function saveSMTPSettings() {
+  const host = document.getElementById('smtpHost').value.trim();
+  const port = parseInt(document.getElementById('smtpPort').value.trim());
+  const user = document.getElementById('smtpUser').value.trim();
+  const pwd = document.getElementById('smtpPwd').value;
+  const from_addr = document.getElementById('smtpFrom').value.trim();
+  
+  if (!user) {
+    toast('Username/Email is required', 'err');
+    return;
+  }
+  
+  const btn = document.getElementById('saveSMTPBtn');
+  btn.textContent = '⏳ Saving…';
+  btn.disabled = true;
+  
+  try {
+    const payload = { host, port, user, from_addr };
+    if (pwd) {
+      payload.pwd = pwd;
+    }
+    
+    const r = await fetch('/newsletter/settings/smtp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    if (d.success) {
+      toast('✅ Email connection saved!', 'ok');
+      closeSMTPModal();
+      checkSMTPSettings();
+    } else {
+      toast('⚠ ' + d.error, 'err');
+    }
+  } catch (e) {
+    toast('⚠ ' + e.message, 'err');
+  } finally {
+    btn.textContent = '💾 Save & Connect';
+    btn.disabled = false;
+  }
+}
+
+function toggleToolbarLabels() {
+  const tb = document.querySelector('.tb');
+  const btn = document.getElementById('btn-toggle-labels');
+  const isExpanded = tb.classList.toggle('labels-expanded');
+  
+  if (isExpanded) {
+    btn.innerHTML = 'ℹ️<span class="tbtn-lbl" style="display:inline !important"> Hide</span>';
+    btn.title = "Hide button labels";
+  } else {
+    btn.innerHTML = 'ℹ️<span class="tbtn-lbl"> Labels</span>';
+    btn.title = "Show button labels";
+  }
 }
 
 /* ════════════════════════════════════
@@ -1165,12 +1669,120 @@ function copyPubLink(){
   b.select();navigator.clipboard.writeText(b.value).then(()=>toast('✅ Link copied!','ok'));
 }
 
+/* ════════════════════════════════════
+   GMAIL SHARE
+   ════════════════════════════════════ */
+let gmailBodyContent = '';
+
+function closeGmailModal() {
+  document.getElementById('gmailModalBg').classList.remove('open');
+}
+
+async function shareToGmail() {
+  syncDOM();
+  await doSave();
+  toast('⏳ Preparing your template…');
+  
+  try {
+    const r = await fetch('/newsletter/' + NL_ID + '/preview?b64=true');
+    if (!r.ok) throw new Error('Preview fetch failed');
+    const html = await r.text();
+    
+    // Parse the preview HTML and extract the body content
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    gmailBodyContent = doc.body.innerHTML;
+    
+    // Open the gorgeous user-guidance modal
+    document.getElementById('gmailModalBg').classList.add('open');
+  } catch (err) {
+    toast('⚠ Preparation failed: ' + err.message, 'err');
+  }
+}
+
+async function doGmailCopyAndOpen() {
+  if (!gmailBodyContent) {
+    toast('⚠ Template content is empty!', 'err');
+    return;
+  }
+  
+  let copied = false;
+  
+  // Method 1: Modern Clipboard API (extremely reliable and natively supported in Chromium secure contexts)
+  if (navigator.clipboard && window.ClipboardItem) {
+    try {
+      const htmlBlob = new Blob([gmailBodyContent], { type: 'text/html' });
+      // Plain text fallback is the newsletter title or clean text
+      const cleanText = S.title || 'My Newsletter';
+      const textBlob = new Blob([cleanText], { type: 'text/plain' });
+      
+      const item = new ClipboardItem({
+        'text/html': htmlBlob,
+        'text/plain': textBlob
+      });
+      
+      await navigator.clipboard.write([item]);
+      copied = true;
+      toast('📋 Rich template copied! Opening Gmail...', 'ok');
+    } catch (err) {
+      console.warn('Modern Clipboard API failed, attempting fallback...', err);
+    }
+  }
+  
+  // Method 2: Rock-solid industrial fallback using visible disguised DOM selection
+  if (!copied) {
+    try {
+      // Create a disguised container inside the viewport (rendered but invisible)
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'fixed';
+      tempDiv.style.top = '0';
+      tempDiv.style.left = '0';
+      tempDiv.style.width = '10px';
+      tempDiv.style.height = '10px';
+      tempDiv.style.opacity = '0.01';
+      tempDiv.style.pointerEvents = 'none';
+      tempDiv.style.overflow = 'hidden';
+      tempDiv.innerHTML = gmailBodyContent;
+      document.body.appendChild(tempDiv);
+      
+      // Select the content
+      const range = document.createRange();
+      range.selectNodeContents(tempDiv);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      // Execute copy
+      const success = document.execCommand('copy');
+      selection.removeAllRanges();
+      document.body.removeChild(tempDiv);
+      
+      if (!success) {
+        throw new Error('Fallback copy command returned false');
+      }
+      copied = true;
+      toast('📋 Rich template copied (fallback)! Opening Gmail...', 'ok');
+    } catch (err) {
+      toast('⚠ Copy failed: ' + err.message, 'err');
+      return;
+    }
+  }
+  
+  // Compose Gmail Compose URL and open in new tab
+  if (copied) {
+    const su = encodeURIComponent(S.title || 'My Newsletter');
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${su}`;
+    window.open(gmailUrl, '_blank');
+    closeGmailModal();
+  }
+}
+
 // keyboard
 document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();doSave();}
   if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();}
   if((e.ctrlKey||e.metaKey)&&e.key==='y'){e.preventDefault();redo();}
-  if(e.key==='Escape'){closePreview();closeAI();closePublishModal();}
+  if(e.key==='Escape'){closePreview();closeAI();closePublishModal();closeGmailModal();}
 });
 
 

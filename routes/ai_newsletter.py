@@ -133,3 +133,38 @@ def improve_newsletter():
         return jsonify({'error': str(e)}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@ai_nl_bp.route('/block/generate', methods=['POST'])
+@login_required
+def generate_block():
+    data = request.get_json() or {}
+    prompt = data.get('prompt', '').strip()
+    current_text = data.get('current_text', '').strip()
+    
+    if not prompt:
+        return jsonify({'error': 'No prompt provided'}), 400
+    if not MISTRAL_API_KEY:
+        return jsonify({'error': 'MISTRAL_API_KEY not set in .env'}), 500
+
+    system_prompt = (
+        "You are an expert copywriter. Respond ONLY with a valid JSON object of the format: "
+        "{\"text\": \"your copy here\"}. "
+        "The generated copy should be highly engaging, professional, and formatted with clean paragraphs or simple inline styles. "
+        "Do not include any other keys, explanation, or chat. Just the JSON."
+    )
+    
+    user_prompt = f"Instruction: {prompt}\n"
+    if current_text:
+        user_prompt += f"Current Text: {current_text}\n"
+        
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user",   "content": user_prompt}
+    ]
+    try:
+        raw = call_mistral(messages)
+        res = parse_json(raw)
+        return jsonify({'success': True, 'text': res.get('text', '')})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
